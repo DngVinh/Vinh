@@ -1,9 +1,11 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
 import { AsyncState } from "./AsyncState";
 
 describe("AsyncState Component (TASK-WEB-STATE-001)", () => {
+  afterEach(() => cleanup());
   it("renders loading state with polite aria-live region", () => {
     render(<AsyncState status="loading" loadingMessage="Đang tải dữ liệu..." />);
     const liveRegion = screen.getByText("Đang tải dữ liệu...");
@@ -47,6 +49,32 @@ describe("AsyncState Component (TASK-WEB-STATE-001)", () => {
       </AsyncState>
     );
     expect(screen.getByText("Nội dung thành công")).toBeDefined();
+  });
+
+
+  it("renders zero-result state", () => {
+    render(<AsyncState status="zero-result" />);
+    expect(screen.getByText("Không tìm thấy kết quả")).toBeDefined();
+  });
+  
+  it("renders stale state", () => {
+    render(<AsyncState status="stale" />);
+    expect(screen.getByText(/Dữ liệu có thể chưa được cập nhật/i)).toBeDefined();
+  });
+
+  it("renders degraded state", () => {
+    render(<AsyncState status="degraded" />);
+    expect(screen.getByText(/Hệ thống đang phản hồi chậm/i)).toBeDefined();
+  });
+
+  it("renders unauthorized state", () => {
+    render(<AsyncState status="unauthorized" />);
+    expect(screen.getByText(/Bạn không có quyền truy cập/i)).toBeDefined();
+  });
+
+  it("renders result-unknown state", () => {
+    render(<AsyncState status="result-unknown" />);
+    expect(screen.getByText(/Trạng thái xử lý không rõ ràng/i)).toBeDefined();
   });
 
   it("negative path: renders fallback error when error status has no message", () => {

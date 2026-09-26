@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-STATE-002
 phase: P06
 title: "Rebuild shared loading empty error and recovery states"
-status: draft
+status: accepted
 objective: "Provide one accessible shared state component for the redesigned screens without collapsing failure, stale data and unknown results into generic success or error messages."
 layer: web
 bounded_context: redesign-system-states
