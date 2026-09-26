@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-A11Y-002
 phase: P06
 title: "Harden shared icons and interaction semantics"
-status: draft
+status: accepted
 objective: "Make shared icons and interactive semantics reliable for keyboard and assistive-technology users across the redesigned interface."
 layer: web
 bounded_context: redesign-accessibility

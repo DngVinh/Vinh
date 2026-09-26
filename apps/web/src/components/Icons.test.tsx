@@ -60,6 +60,17 @@ describe("Academic Vector Icons (TASK-WEB-ICONS-001)", () => {
     });
   });
 
+
+  it("renders meaningful icons with aria-label or accessibleName correctly", () => {
+    const { getByTestId, getByText } = render(
+      <SparklesIcon data-testid="meaningful-icon" accessibleName="Meaningful Sparkles" />
+    );
+    const svg = getByTestId("meaningful-icon");
+    expect(svg.getAttribute("aria-hidden")).toBeNull();
+    expect(svg.getAttribute("role")).toBe("img");
+    expect(getByText("Meaningful Sparkles")).toBeDefined();
+  });
+
   it("applies custom size and className correctly", () => {
     const { getByTestId } = render(
       <SparklesIcon data-testid="custom-sparkles" size={32} className="custom-test-class" />

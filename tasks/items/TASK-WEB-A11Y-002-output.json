@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-A11Y-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T16:04:00Z",
+  "completed_at": "2026-09-26T16:07:00Z",
+  "changed_files": [
+    "apps/web/src/components/Icons.tsx",
+    "apps/web/src/components/Icons.test.tsx"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-A11Y-002",
+        "acceptance_criteria": ["AC-REQ-NF-A11Y-002-01"]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "corepack pnpm --dir apps/web test --run src/components/Icons.test.tsx src/test/accessibility.test.tsx",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-WEB-A11Y-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-A11Y-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-A11Y-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-A11Y-002-04",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Separated decorative and meaningful icons by conditionally applying aria-hidden based on accessibleName prop.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}
