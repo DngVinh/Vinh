@@ -1,30 +1,35 @@
 import React, { type ReactNode } from "react";
 
+export type Role = "student" | "staff" | "admin" | "guest";
+
 export interface AppShellProps {
   children?: ReactNode;
   activeNav?: string;
+  userRole?: Role;
 }
 
 interface NavItem {
   key: string;
   label: string;
   href: string;
+  roles: Role[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "home", label: "Trang chủ", href: "/" },
-  { key: "chat", label: "Hỏi đáp AI", href: "/chat" },
-  { key: "schedule", label: "Thời khóa biểu", href: "/schedule" },
-  { key: "tickets", label: "Thủ tục & Yêu cầu", href: "/tickets" },
-  { key: "rooms", label: "Mượn phòng", href: "/rooms" },
-  { key: "staff", label: "Cán bộ", href: "/staff" },
-  { key: "knowledge", label: "Tri thức", href: "/knowledge" },
-  { key: "privacy", label: "Quyền riêng tư", href: "/privacy" },
+  { key: "home", label: "Trang chủ", href: "/", roles: ["student", "guest"] },
+  { key: "chat", label: "Hỏi đáp AI", href: "/chat", roles: ["student"] },
+  { key: "schedule", label: "Thời khóa biểu", href: "/schedule", roles: ["student"] },
+  { key: "tickets", label: "Thủ tục & Yêu cầu", href: "/tickets", roles: ["student", "staff", "admin"] },
+  { key: "rooms", label: "Mượn phòng", href: "/rooms", roles: ["student", "staff", "admin"] },
+  { key: "staff", label: "Cán bộ", href: "/staff", roles: ["staff", "admin"] },
+  { key: "knowledge", label: "Tri thức", href: "/knowledge", roles: ["admin", "staff"] },
+  { key: "privacy", label: "Quyền riêng tư", href: "/privacy", roles: ["student", "staff", "admin", "guest"] },
 ];
 
-export function AppShell({ children, activeNav }: AppShellProps) {
-  // Normalize active key (fallback to 'home' on root path if undefined)
+export function AppShell({ children, activeNav, userRole = "student" }: AppShellProps) {
   const currentKey = activeNav || "home";
+  const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
+
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-slate-50, #f8fafc)" }}>
@@ -147,7 +152,7 @@ export function AppShell({ children, activeNav }: AppShellProps) {
             padding: "4px 0",
           }}
         >
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = currentKey === item.key;
             return (
               <a

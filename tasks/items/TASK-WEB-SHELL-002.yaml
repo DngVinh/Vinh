@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-SHELL-002
 phase: P06
 title: "Rebuild the responsive role-aware application shell"
-status: draft
+status: accepted
 objective: "Rebuild the application shell so each role sees a clear, compact and responsive workspace with persistent simulation disclosure."
 layer: web
 bounded_context: redesign-shell

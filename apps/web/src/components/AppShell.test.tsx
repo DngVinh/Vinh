@@ -1,9 +1,11 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
 import { AppShell } from "./AppShell";
 
 describe("AppShell Component (TASK-WEB-SHELL-001)", () => {
+  afterEach(() => { cleanup(); });
   it("renders mandatory simulation disclosure banner and HUCE Demo identity", () => {
     render(
       <AppShell>
@@ -27,6 +29,25 @@ describe("AppShell Component (TASK-WEB-SHELL-001)", () => {
 
     // Children rendered in main
     expect(screen.getByText("Page Content")).toBeDefined();
+  });
+
+
+  it("filters navigation items based on userRole", () => {
+    const { rerender, queryByText } = render(
+      <AppShell userRole="student">
+        <div>Content</div>
+      </AppShell>
+    );
+    expect(queryByText("Hỏi đáp AI")).not.toBeNull();
+    expect(queryByText("Cán bộ")).toBeNull();
+
+    rerender(
+      <AppShell userRole="staff">
+        <div>Content</div>
+      </AppShell>
+    );
+    expect(queryByText("Cán bộ")).not.toBeNull();
+    expect(queryByText("Hỏi đáp AI")).toBeNull();
   });
 
   it("negative path: handles empty or null children without crashing", () => {
