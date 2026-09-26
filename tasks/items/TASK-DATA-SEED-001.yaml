@@ -1,0 +1,90 @@
+schema_version: '1.0'
+id: TASK-DATA-SEED-001
+phase: P02
+title: Generate deterministic synthetic identities
+status: accepted
+objective: Implement generate deterministic synthetic identities as one bounded, testable deliverable without changing upstream
+  behavior.
+layer: data
+bounded_context: synthetic-data
+priority: P0
+estimated_minutes: 30
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements:
+  - REQ-NF-DATA-001
+  acceptance_criteria:
+  - AC-REQ-NF-DATA-001-01
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - DEC-004
+  contracts:
+  - INT-DATA-001
+  - INT-DATA-002
+  controls:
+  - PRIV-DPIA-001
+  evals: []
+dependencies:
+- TASK-DB-IDENTITY-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/05-ai/SYNTHETIC_DATA_STRATEGY.md
+  load: full
+write_scope:
+  allowed_paths:
+  - packages/synthetic/src/identities.py
+  - packages/synthetic/tests/test_identities.py
+  - packages/synthetic/samples/identities.json
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 3
+  max_added_lines: 220
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement generate deterministic synthetic identities as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-DATA-SEED-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement generate deterministic synthetic identities as one
+    bounded, testable deliverable without changing upstream behavior.'
+- id: AC-TASK-DATA-SEED-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-DATA-SEED-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q packages/synthetic/tests/test_identities.py
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - synthetic-data-data
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

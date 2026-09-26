@@ -1,0 +1,59 @@
+document_id: "DOC-TOOL-DOCUMENT-001"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/document-request-create.schema.yaml"
+title: "document_request_create contract"
+description: "Requester identity and eligibility are injected and evaluated outside model arguments."
+$defs:
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["document_type", "purpose", "delivery_method", "copies"]
+    properties:
+      document_type: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      purpose: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      delivery_method: {type: "string", enum: ["DIGITAL", "PICKUP"]}
+      copies: {type: "integer", minimum: 1, maximum: 10}
+  result:
+    type: "object"
+    additionalProperties: false
+    required: ["document_request_id", "document_type", "purpose_code", "delivery_method", "copies", "status", "tracking_reference", "is_synthetic", "disclaimer", "created_at", "version"]
+    properties:
+      document_request_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      document_type: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      purpose_code: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      delivery_method: {type: "string", enum: ["DIGITAL", "PICKUP"]}
+      copies: {type: "integer", minimum: 1, maximum: 10}
+      status: {const: "SUBMITTED"}
+      tracking_reference: {$ref: "common.schema.yaml#/$defs/reference_id"}
+      is_synthetic: {const: true}
+      disclaimer: {const: "DỮ LIỆU MÔ PHỎNG — KHÔNG CÓ GIÁ TRỊ"}
+      created_at: {type: "string", format: "date-time"}
+      version: {type: "integer", minimum: 1}
+  output:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "result", "error"]
+    properties:
+      status: {type: "string", enum: ["succeeded", "failed", "uncertain"]}
+      result:
+        oneOf:
+          - $ref: "#/$defs/result"
+          - type: "null"
+      error:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/tool_error"
+          - type: "null"
+    allOf:
+      - if: {properties: {status: {const: "succeeded"}}}
+        then:
+          properties:
+            result: {$ref: "#/$defs/result"}
+            error: {type: "null"}
+      - if: {properties: {status: {enum: ["failed", "uncertain"]}}}
+        then:
+          properties:
+            result: {type: "null"}
+            error: {$ref: "common.schema.yaml#/$defs/tool_error"}

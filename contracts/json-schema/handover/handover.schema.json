@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/handover/handover.schema.json",
+  "title": "Handover",
+  "description": "Minimized human-handover resource; excludes hidden reasoning and unrestricted transcript.",
+  "x-document-control": {
+    "document_id": "DATA-SCHEMA-HANDOVER-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "Service Domain Architect",
+    "approvers": ["Operations Lead", "Security Lead", "Privacy Lead"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "handover_id",
+    "conversation_id",
+    "requester_user_id",
+    "queue_key",
+    "reason_code",
+    "risk_level",
+    "status",
+    "summary_redacted",
+    "context_reference_ids",
+    "citations",
+    "created_at",
+    "version"
+  ],
+  "properties": {
+    "handover_id": {"$ref": "#/$defs/uuidV7"},
+    "conversation_id": {"$ref": "#/$defs/uuidV7"},
+    "requester_user_id": {"$ref": "#/$defs/uuidV7"},
+    "queue_key": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+    "reason_code": {
+      "type": "string",
+      "enum": [
+        "USER_REQUESTED_HUMAN",
+        "INSUFFICIENT_EVIDENCE",
+        "POLICY_EXCEPTION",
+        "ACADEMIC_RIGHTS_IMPACT",
+        "COMPLAINT_OR_DISCIPLINE",
+        "SENSITIVE_WELLBEING",
+        "POTENTIAL_SELF_HARM",
+        "POTENTIAL_VIOLENCE",
+        "HARASSMENT_OR_ABUSE",
+        "DATA_PRIVACY_INCIDENT",
+        "TOOL_OR_INTEGRATION_FAILURE",
+        "OTHER_REVIEW_REQUIRED"
+      ]
+    },
+    "risk_level": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "status": {
+      "type": "string",
+      "enum": ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "RESOLVED", "RETURNED", "CANCELLED"]
+    },
+    "summary_redacted": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "context_reference_ids": {
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/uuidV7"}
+    },
+    "citations": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "../citations/citation.schema.json"}
+    },
+    "assigned_user_id": {"$ref": "#/$defs/uuidV7"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "accepted_at": {"type": "string", "format": "date-time"},
+    "resolved_at": {"type": "string", "format": "date-time"},
+    "version": {"type": "integer", "minimum": 1}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"status": {"enum": ["ASSIGNED", "ACCEPTED", "IN_PROGRESS", "RESOLVED"]}},
+        "required": ["status"]
+      },
+      "then": {"required": ["assigned_user_id"]}
+    },
+    {
+      "if": {"properties": {"status": {"const": "RESOLVED"}}, "required": ["status"]},
+      "then": {"required": ["resolved_at"]}
+    }
+  ],
+  "$defs": {
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  }
+}

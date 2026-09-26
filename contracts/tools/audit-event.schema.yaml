@@ -1,0 +1,69 @@
+document_id: "DOC-TOOL-SCHEMA-006"
+version: "1.0.0"
+status: "reviewed"
+owner: "Security Architect"
+approvers: ["Backend Architecture Lead", "Privacy Officer"]
+last_updated: "2026-09-21"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/audit-event.schema.yaml"
+title: "Tool audit event"
+type: "object"
+additionalProperties: false
+required: ["schema_version", "event_id", "event_type", "occurred_at", "actor_ref", "tool_id", "contract_version", "request_id", "turn_id", "trace_id", "policy_version", "outcome", "redaction_applied"]
+properties:
+  schema_version: {const: "1.0"}
+  event_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  event_type:
+    type: "string"
+    enum: ["candidate_validated", "authorization_decided", "preview_created", "confirmation_requested", "confirmation_approved", "confirmation_rejected", "confirmation_expired", "execution_started", "execution_succeeded", "execution_failed", "execution_uncertain", "result_disclosed"]
+  occurred_at:
+    type: "string"
+    format: "date-time"
+  actor_ref:
+    $ref: "common.schema.yaml#/$defs/reference_id"
+  tool_id:
+    type: "string"
+    pattern: "^TOOL-[A-Z]+-[0-9]{3}$"
+  contract_version:
+    type: "string"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  request_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  turn_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  trace_id:
+    $ref: "common.schema.yaml#/$defs/reference_id"
+  preview_id:
+    oneOf:
+      - $ref: "common.schema.yaml#/$defs/uuid"
+      - type: "null"
+  idempotency_key_ref:
+    oneOf:
+      - $ref: "common.schema.yaml#/$defs/reference_id"
+      - type: "null"
+  payload_hash:
+    oneOf:
+      - $ref: "common.schema.yaml#/$defs/sha256"
+      - type: "null"
+  policy_version:
+    type: "string"
+    minLength: 1
+    maxLength: 50
+  outcome:
+    type: "string"
+    enum: ["allowed", "denied", "approved", "rejected", "expired", "succeeded", "failed", "uncertain", "disclosed"]
+  reason_codes:
+    type: "array"
+    maxItems: 20
+    uniqueItems: true
+    items:
+      type: "string"
+      pattern: "^[A-Z0-9_]{1,80}$"
+  redaction_applied:
+    type: "boolean"
+  metadata:
+    type: "object"
+    additionalProperties:
+      type: ["string", "number", "integer", "boolean", "null"]
+    maxProperties: 20

@@ -1,0 +1,82 @@
+schema_version: '1.0'
+id: TASK-DOC-CONTRACT-001
+phase: P00
+title: Approve API data event and tool contracts
+status: accepted
+objective: Validate machine contracts against reviewed prose and record human approval without introducing new operations.
+layer: governance
+bounded_context: contract-governance
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- contract_change
+traceability:
+  requirements: []
+  design:
+  - ARCH-009
+  contracts:
+  - API-BASE-001
+  - DATA-BASE-001
+  - EVT-BASE-001
+  controls: []
+  evals: []
+dependencies: []
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/04-architecture/contracts/README.md
+  load: full
+write_scope:
+  allowed_paths:
+  - docs/04-architecture/contracts/README.md
+  - contracts/README.md
+  forbidden_paths:
+  - .git/**
+  - tasks/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Validate machine contracts against reviewed prose and record human approval without introducing
+  new operations.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-DOC-CONTRACT-001-01
+  assertion: 'The deliverable satisfies the single objective: Validate machine contracts against reviewed prose and record
+    human approval without introducing new operations.'
+- id: AC-TASK-DOC-CONTRACT-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-DOC-CONTRACT-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python tasks/tools/validate_catalog.py
+  expected_exit_code: 0
+  proves: Task metadata and dependency catalog remain valid after governance review.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: stop_before_promotion
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - contract-governance-governance
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

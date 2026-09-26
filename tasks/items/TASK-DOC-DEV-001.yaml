@@ -1,0 +1,82 @@
+schema_version: '1.0'
+id: TASK-DOC-DEV-001
+phase: P00
+title: Document local bootstrap without secrets
+status: accepted
+objective: Document deterministic local bootstrap, validation and shutdown steps using synthetic data and placeholder configuration
+  only.
+layer: governance
+bounded_context: developer-experience
+priority: P1
+estimated_minutes: 30
+sensitivity: low
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design:
+  - ARCH-002
+  - ARCH-003
+  contracts: []
+  controls:
+  - SEC-CRYPTO-005
+  evals: []
+dependencies:
+- TASK-DOC-STACK-001
+- TASK-REPO-CONFIG-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/04-architecture/core/ARCH-002_CONTAINER_VIEW.md
+  load: full
+write_scope:
+  allowed_paths:
+  - docs/10-delivery/LOCAL_BOOTSTRAP.md
+  forbidden_paths:
+  - .git/**
+  - tasks/**
+  max_files: 1
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Document deterministic local bootstrap, validation and shutdown steps using synthetic data
+  and placeholder configuration only.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-DOC-DEV-001-01
+  assertion: 'The deliverable satisfies the single objective: Document deterministic local bootstrap, validation and shutdown
+    steps using synthetic data and placeholder configuration only.'
+- id: AC-TASK-DOC-DEV-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-DOC-DEV-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python tasks/tools/validate_catalog.py
+  expected_exit_code: 0
+  proves: Task metadata and dependency catalog remain valid after governance review.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: stop_before_promotion
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - developer-experience-governance
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

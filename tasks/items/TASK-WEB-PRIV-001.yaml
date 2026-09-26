@@ -1,0 +1,34 @@
+schema_version: "1.1"
+id: TASK-WEB-PRIV-001
+phase: P05
+title: Render accessible privacy notice consent and request status
+status: accepted
+objective: Render the versioned privacy notice consent control and owner-safe request status without exposing internal notes or implying completed legal processing.
+layer: web
+bounded_context: privacy-center-ui
+priority: P0
+estimated_minutes: 35
+sensitivity: high
+human_approval_required: true
+approval_reasons: [legal_privacy]
+traceability:
+  requirements: [REQ-F-PRIV-001, REQ-F-PRIV-002, REQ-F-PRIV-004, REQ-NF-A11Y-003]
+  acceptance_criteria: [AC-REQ-F-PRIV-001-01, AC-REQ-F-PRIV-002-01, AC-REQ-F-PRIV-004-01, AC-REQ-NF-A11Y-003-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: [UX-SCR-019, UX-A11Y-001]
+  contracts: [API-CONV-001]
+  controls: [PRIV-FLOW-015]
+  evals: []
+dependencies: [TASK-API-PRIV-001, TASK-API-PRIV-002, TASK-WEB-SHELL-001]
+inputs: [{path: docs/00-governance/DOCUMENT_CONTROL.md, load: full}, {path: docs/01-product/requirements.yaml, load: section, ids: [REQ-F-PRIV-001, AC-REQ-F-PRIV-001-01, REQ-F-PRIV-002, AC-REQ-F-PRIV-002-01, REQ-F-PRIV-004, AC-REQ-F-PRIV-004-01, REQ-NF-A11Y-003, AC-REQ-NF-A11Y-003-01]}]
+write_scope: {allowed_paths: [apps/web/src/features/privacy/PrivacyCenter.tsx, apps/web/src/features/privacy/PrivacyCenter.test.tsx], forbidden_paths: [docs/**, contracts/**, .git/**], max_files: 2, max_added_lines: 200}
+preconditions: [Every dependency is accepted and every normative input is approved for this environment., The orchestrator has confirmed a clean non-overlapping write lease for this task.]
+steps: [Read input and accessibility patterns., Implement only privacy-center state and consent controls., Add status disclosure and assistive-technology tests., Run verification and return schema-valid evidence.]
+acceptance_criteria: [{id: AC-TASK-WEB-PRIV-001-01, assertion: Notice version and purpose are visible before consent interaction.}, {id: AC-TASK-WEB-PRIV-001-02, assertion: Status omits internal notes and announces dynamic state accessibly.}, {id: AC-TASK-WEB-PRIV-001-03, assertion: All changed files are within the declared scope.}]
+verification: [{command: corepack pnpm --dir apps/web test --run src/features/privacy/PrivacyCenter.test.tsx, expected_exit_code: 0, proves: Privacy center UI tests pass.}]
+evidence_required: [initial and final git status, changed-file and diff summary, commands with exit codes, acceptance-to-evidence mapping]
+recovery: {strategy: reverse_patch, steps: [Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.]}
+stop_conditions: [A required source is missing conflicting changed after review or not approved., Completion requires an unlisted file dependency network call secret or destructive operation.]
+parallelism: {eligible: true, conflict_keys: [privacy-center-ui]}
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}

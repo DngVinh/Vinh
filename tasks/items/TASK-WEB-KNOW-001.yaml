@@ -1,0 +1,85 @@
+schema_version: '1.0'
+id: TASK-WEB-KNOW-001
+phase: P06
+title: Render knowledge review and publish controls
+status: accepted
+objective: Implement render knowledge review and publish controls as one bounded, testable deliverable without changing upstream
+  behavior.
+layer: web
+bounded_context: knowledge
+priority: P1
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- authorization
+traceability:
+  requirements: []
+  design:
+  - UX-SCR-KNOW-001
+  contracts:
+  - API-KNOW-001
+  controls:
+  - SEC-AUTHZ-013
+  evals: []
+dependencies:
+- TASK-WEB-API-001
+- TASK-API-KNOW-002
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/03-ux/SCREEN_INVENTORY.md
+  load: full
+write_scope:
+  allowed_paths:
+  - apps/web/src/features/knowledge/KnowledgeReview.tsx
+  - apps/web/src/features/knowledge/KnowledgeReview.test.tsx
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement render knowledge review and publish controls as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-WEB-KNOW-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement render knowledge review and publish controls as one
+    bounded, testable deliverable without changing upstream behavior.'
+- id: AC-TASK-WEB-KNOW-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-WEB-KNOW-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: corepack pnpm --dir apps/web test --run apps/web/src/features/knowledge/KnowledgeReview.test.tsx
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - knowledge-web
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

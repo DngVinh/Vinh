@@ -1,0 +1,91 @@
+schema_version: '1.1'
+id: TASK-API-IDENTITY-004
+phase: P03
+title: Revoke the current server-side session on logout
+status: accepted
+objective: Implement explicit logout that revokes the current session and proves replay is denied without claiming success
+  on revocation failure.
+layer: api
+bounded_context: identity-session
+priority: P0
+estimated_minutes: 30
+sensitivity: critical
+human_approval_required: true
+approval_reasons:
+- authentication
+traceability:
+  requirements:
+  - REQ-F-AUTH-003
+  acceptance_criteria:
+  - AC-REQ-F-AUTH-003-01
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - ADR-015
+  - ARCH-004
+  contracts:
+  - API-CONV-001
+  controls:
+  - SEC-AUTHN-003
+  evals: []
+dependencies:
+- TASK-API-IDENTITY-002
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/01-product/requirements.yaml
+  load: section
+  ids:
+  - REQ-F-AUTH-003
+  - AC-REQ-F-AUTH-003-01
+write_scope:
+  allowed_paths:
+  - services/api/src/campus247/presentation/logout.py
+  - services/api/src/campus247/application/identity/logout.py
+  - tests/api/test_logout.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 3
+  max_added_lines: 220
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean non-overlapping write lease for this task.
+steps:
+- Read inputs and identity adapter patterns.
+- Implement only explicit session revocation and non-claiming failure behavior.
+- Add replay and revocation-failure tests.
+- Run verification and return schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-API-IDENTITY-004-01
+  assertion: Logout revokes the current session and a replay is denied.
+- id: AC-TASK-API-IDENTITY-004-02
+  assertion: A revocation failure returns an error without a false success claim.
+- id: AC-TASK-API-IDENTITY-004-03
+  assertion: All changed files are within the declared scope.
+verification:
+- command: python -m pytest -q tests/api/test_logout.py
+  expected_exit_code: 0
+  proves: Logout replay and failure-path behavior pass.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+- A required source is missing conflicting changed after review or not approved.
+- Completion requires an unlisted file dependency network call secret or destructive operation.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - identity-session
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

@@ -1,0 +1,429 @@
+{
+  "manifest": {
+    "dataset_id": "DATASET-SYNTH-SERVICES-SEED2472026",
+    "version": "1.0.0",
+    "generator_version": "1.0.0",
+    "seed": 2472026,
+    "locale": "vi-VN",
+    "simulation_label": true,
+    "record_counts": {
+      "room": 4,
+      "schedule_entry": 20,
+      "ticket": 5,
+      "room_booking": 3
+    },
+    "records_checksum": "sha256:3fb493ffafa823d3035eae1778ea001fc574c187fea3c0ce95600be6a65bc1f6"
+  },
+  "records": {
+    "room": [
+      {
+        "id": "3586a823-17ad-75bb-bbed-eb0ead5f00a7",
+        "room_code": "H1-301",
+        "display_name": "Phòng học đa năng H1-301",
+        "capacity": 50,
+        "features": [
+          "PROJECTOR",
+          "WIFI",
+          "AIR_CONDITIONER"
+        ],
+        "status": "AVAILABLE",
+        "version": 1
+      },
+      {
+        "id": "535faba7-6b1b-7161-868a-b055b0a101c6",
+        "room_code": "H1-302",
+        "display_name": "Phòng hội thảo sinh viên H1-302",
+        "capacity": 30,
+        "features": [
+          "PROJECTOR",
+          "WIFI",
+          "WHITEBOARD"
+        ],
+        "status": "AVAILABLE",
+        "version": 1
+      },
+      {
+        "id": "4d30c508-e343-7a0c-824d-97710a87ad20",
+        "room_code": "H2-201",
+        "display_name": "Phòng máy tính chuyên dụng H2-201",
+        "capacity": 40,
+        "features": [
+          "COMPUTERS",
+          "PROJECTOR",
+          "AIR_CONDITIONER"
+        ],
+        "status": "AVAILABLE",
+        "version": 1
+      },
+      {
+        "id": "22d278a1-8190-705e-8b1d-cec91db88a5d",
+        "room_code": "H2-202",
+        "display_name": "Phòng thảo luận nhóm H2-202",
+        "capacity": 15,
+        "features": [
+          "WIFI",
+          "WHITEBOARD"
+        ],
+        "status": "AVAILABLE",
+        "version": 1
+      }
+    ],
+    "schedule_entry": [
+      {
+        "id": "fce9f463-faef-7c42-b0ba-17b69c8bc132",
+        "student_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-4b419a1b-IT201",
+        "course_code": "IT201",
+        "course_name": "Lập trình Python và Ứng dụng",
+        "starts_at": "2026-10-15T07:30:00Z",
+        "ends_at": "2026-10-15T10:30:00Z",
+        "location_label": "H1-301",
+        "instructor_display_name": "ThS. Nguyễn Hoàng Long",
+        "sync_version": 1
+      },
+      {
+        "id": "f77c93ef-a97f-735e-be00-6df0811de996",
+        "student_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-4b419a1b-CS301",
+        "course_code": "CS301",
+        "course_name": "Cơ sở dữ liệu nâng cao",
+        "starts_at": "2026-10-16T07:30:00Z",
+        "ends_at": "2026-10-16T10:30:00Z",
+        "location_label": "H1-302",
+        "instructor_display_name": "TS. Trần Văn Bách",
+        "sync_version": 1
+      },
+      {
+        "id": "afe27cf2-f7e5-7581-b702-9215681520f5",
+        "student_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-4b419a1b-SE202",
+        "course_code": "SE202",
+        "course_name": "Công nghệ phần mềm",
+        "starts_at": "2026-10-17T07:30:00Z",
+        "ends_at": "2026-10-17T10:30:00Z",
+        "location_label": "H2-201",
+        "instructor_display_name": "PGS.TS. Lê Thị Mai",
+        "sync_version": 1
+      },
+      {
+        "id": "9f439f11-b0fa-70f5-9119-32c6f8bc107c",
+        "student_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-4b419a1b-NW101",
+        "course_code": "NW101",
+        "course_name": "Mạng máy tính cơ bản",
+        "starts_at": "2026-10-18T07:30:00Z",
+        "ends_at": "2026-10-18T10:30:00Z",
+        "location_label": "H2-202",
+        "instructor_display_name": "ThS. Phạm Quang Huy",
+        "sync_version": 1
+      },
+      {
+        "id": "d77aaf6a-3ef2-7d96-87b2-94cfc3388db8",
+        "student_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-97c5ab40-IT201",
+        "course_code": "IT201",
+        "course_name": "Lập trình Python và Ứng dụng",
+        "starts_at": "2026-10-16T07:30:00Z",
+        "ends_at": "2026-10-16T10:30:00Z",
+        "location_label": "H1-301",
+        "instructor_display_name": "ThS. Nguyễn Hoàng Long",
+        "sync_version": 1
+      },
+      {
+        "id": "da2383f6-1ffe-790b-8251-d9e98e9720ae",
+        "student_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-97c5ab40-CS301",
+        "course_code": "CS301",
+        "course_name": "Cơ sở dữ liệu nâng cao",
+        "starts_at": "2026-10-17T07:30:00Z",
+        "ends_at": "2026-10-17T10:30:00Z",
+        "location_label": "H1-302",
+        "instructor_display_name": "TS. Trần Văn Bách",
+        "sync_version": 1
+      },
+      {
+        "id": "f50efb6e-3781-7f56-a397-de884b7ada67",
+        "student_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-97c5ab40-SE202",
+        "course_code": "SE202",
+        "course_name": "Công nghệ phần mềm",
+        "starts_at": "2026-10-18T07:30:00Z",
+        "ends_at": "2026-10-18T10:30:00Z",
+        "location_label": "H2-201",
+        "instructor_display_name": "PGS.TS. Lê Thị Mai",
+        "sync_version": 1
+      },
+      {
+        "id": "6db42abe-4a8c-744c-8db1-f30362850782",
+        "student_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-97c5ab40-NW101",
+        "course_code": "NW101",
+        "course_name": "Mạng máy tính cơ bản",
+        "starts_at": "2026-10-19T07:30:00Z",
+        "ends_at": "2026-10-19T10:30:00Z",
+        "location_label": "H2-202",
+        "instructor_display_name": "ThS. Phạm Quang Huy",
+        "sync_version": 1
+      },
+      {
+        "id": "76124b5d-82c8-7af6-975a-ed2588355bc5",
+        "student_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-f806ca42-IT201",
+        "course_code": "IT201",
+        "course_name": "Lập trình Python và Ứng dụng",
+        "starts_at": "2026-10-17T07:30:00Z",
+        "ends_at": "2026-10-17T10:30:00Z",
+        "location_label": "H1-301",
+        "instructor_display_name": "ThS. Nguyễn Hoàng Long",
+        "sync_version": 1
+      },
+      {
+        "id": "b63e4314-9e22-7291-86da-6abe1a9f592f",
+        "student_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-f806ca42-CS301",
+        "course_code": "CS301",
+        "course_name": "Cơ sở dữ liệu nâng cao",
+        "starts_at": "2026-10-18T07:30:00Z",
+        "ends_at": "2026-10-18T10:30:00Z",
+        "location_label": "H1-302",
+        "instructor_display_name": "TS. Trần Văn Bách",
+        "sync_version": 1
+      },
+      {
+        "id": "43ab0466-6e81-7f07-9db3-97c0150e5b88",
+        "student_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-f806ca42-SE202",
+        "course_code": "SE202",
+        "course_name": "Công nghệ phần mềm",
+        "starts_at": "2026-10-19T07:30:00Z",
+        "ends_at": "2026-10-19T10:30:00Z",
+        "location_label": "H2-201",
+        "instructor_display_name": "PGS.TS. Lê Thị Mai",
+        "sync_version": 1
+      },
+      {
+        "id": "f6803b86-6270-7cdc-a641-8ec3ac98cb86",
+        "student_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-f806ca42-NW101",
+        "course_code": "NW101",
+        "course_name": "Mạng máy tính cơ bản",
+        "starts_at": "2026-10-20T07:30:00Z",
+        "ends_at": "2026-10-20T10:30:00Z",
+        "location_label": "H2-202",
+        "instructor_display_name": "ThS. Phạm Quang Huy",
+        "sync_version": 1
+      },
+      {
+        "id": "606d725f-21b7-7f2b-8c4d-8fa9334ba36c",
+        "student_user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-ba70a333-IT201",
+        "course_code": "IT201",
+        "course_name": "Lập trình Python và Ứng dụng",
+        "starts_at": "2026-10-18T07:30:00Z",
+        "ends_at": "2026-10-18T10:30:00Z",
+        "location_label": "H1-301",
+        "instructor_display_name": "ThS. Nguyễn Hoàng Long",
+        "sync_version": 1
+      },
+      {
+        "id": "081306bc-a6ec-7b6a-9c2d-8769be128644",
+        "student_user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-ba70a333-CS301",
+        "course_code": "CS301",
+        "course_name": "Cơ sở dữ liệu nâng cao",
+        "starts_at": "2026-10-19T07:30:00Z",
+        "ends_at": "2026-10-19T10:30:00Z",
+        "location_label": "H1-302",
+        "instructor_display_name": "TS. Trần Văn Bách",
+        "sync_version": 1
+      },
+      {
+        "id": "f7d22f3f-afd1-78d7-8197-bbe7ba64b9af",
+        "student_user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-ba70a333-SE202",
+        "course_code": "SE202",
+        "course_name": "Công nghệ phần mềm",
+        "starts_at": "2026-10-20T07:30:00Z",
+        "ends_at": "2026-10-20T10:30:00Z",
+        "location_label": "H2-201",
+        "instructor_display_name": "PGS.TS. Lê Thị Mai",
+        "sync_version": 1
+      },
+      {
+        "id": "c47c7f5f-a01e-79f7-9bdd-6bbc7c945851",
+        "student_user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-ba70a333-NW101",
+        "course_code": "NW101",
+        "course_name": "Mạng máy tính cơ bản",
+        "starts_at": "2026-10-21T07:30:00Z",
+        "ends_at": "2026-10-21T10:30:00Z",
+        "location_label": "H2-202",
+        "instructor_display_name": "ThS. Phạm Quang Huy",
+        "sync_version": 1
+      },
+      {
+        "id": "66faccdc-2b14-7e45-a762-d90bf924261b",
+        "student_user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-35e97518-IT201",
+        "course_code": "IT201",
+        "course_name": "Lập trình Python và Ứng dụng",
+        "starts_at": "2026-10-19T07:30:00Z",
+        "ends_at": "2026-10-19T10:30:00Z",
+        "location_label": "H1-301",
+        "instructor_display_name": "ThS. Nguyễn Hoàng Long",
+        "sync_version": 1
+      },
+      {
+        "id": "8162daf5-433a-7278-b4a9-c63cf60ae184",
+        "student_user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-35e97518-CS301",
+        "course_code": "CS301",
+        "course_name": "Cơ sở dữ liệu nâng cao",
+        "starts_at": "2026-10-20T07:30:00Z",
+        "ends_at": "2026-10-20T10:30:00Z",
+        "location_label": "H1-302",
+        "instructor_display_name": "TS. Trần Văn Bách",
+        "sync_version": 1
+      },
+      {
+        "id": "340d5cfa-22ca-7153-916d-c97cf3ae383c",
+        "student_user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-35e97518-SE202",
+        "course_code": "SE202",
+        "course_name": "Công nghệ phần mềm",
+        "starts_at": "2026-10-21T07:30:00Z",
+        "ends_at": "2026-10-21T10:30:00Z",
+        "location_label": "H2-201",
+        "instructor_display_name": "PGS.TS. Lê Thị Mai",
+        "sync_version": 1
+      },
+      {
+        "id": "33fe24f2-41d9-7cd8-ba93-b318058becdc",
+        "student_user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "source_system": "SYNTHETIC_SIS",
+        "source_record_id": "SIS-35e97518-NW101",
+        "course_code": "NW101",
+        "course_name": "Mạng máy tính cơ bản",
+        "starts_at": "2026-10-22T07:30:00Z",
+        "ends_at": "2026-10-22T10:30:00Z",
+        "location_label": "H2-202",
+        "instructor_display_name": "ThS. Phạm Quang Huy",
+        "sync_version": 1
+      }
+    ],
+    "ticket": [
+      {
+        "id": "71582dc4-dbca-716b-9aa1-a21b5637a264",
+        "requester_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "category": "GENERAL_SUPPORT",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "subject": "Hỗ trợ thủ tục học vụ demo 1",
+        "description_redacted": "Yêu cầu hỗ trợ sinh viên thử nghiệm.",
+        "queue_key": "HUCE_GENERAL",
+        "version": 1
+      },
+      {
+        "id": "0f41fabb-d189-7a5b-b39c-ca2db93cabe3",
+        "requester_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "category": "GENERAL_SUPPORT",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "subject": "Hỗ trợ thủ tục học vụ demo 2",
+        "description_redacted": "Yêu cầu hỗ trợ sinh viên thử nghiệm.",
+        "queue_key": "HUCE_GENERAL",
+        "version": 1
+      },
+      {
+        "id": "3f23e85f-e8bb-71a6-b9d6-9f05f708a17b",
+        "requester_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "category": "GENERAL_SUPPORT",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "subject": "Hỗ trợ thủ tục học vụ demo 3",
+        "description_redacted": "Yêu cầu hỗ trợ sinh viên thử nghiệm.",
+        "queue_key": "HUCE_GENERAL",
+        "version": 1
+      },
+      {
+        "id": "e1c25153-d3c1-7562-8820-6fd49aa47c76",
+        "requester_user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "category": "GENERAL_SUPPORT",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "subject": "Hỗ trợ thủ tục học vụ demo 4",
+        "description_redacted": "Yêu cầu hỗ trợ sinh viên thử nghiệm.",
+        "queue_key": "HUCE_GENERAL",
+        "version": 1
+      },
+      {
+        "id": "352efac1-0116-7243-bc39-17dda7661361",
+        "requester_user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "category": "GENERAL_SUPPORT",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "subject": "Hỗ trợ thủ tục học vụ demo 5",
+        "description_redacted": "Yêu cầu hỗ trợ sinh viên thử nghiệm.",
+        "queue_key": "HUCE_GENERAL",
+        "version": 1
+      }
+    ],
+    "room_booking": [
+      {
+        "id": "441be87c-9cb5-782f-b1fd-3685e2a29166",
+        "room_id": "3586a823-17ad-75bb-bbed-eb0ead5f00a7",
+        "requester_user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "starts_at": "2026-10-20T14:00:00Z",
+        "ends_at": "2026-10-20T16:00:00Z",
+        "purpose_redacted": "Học nhóm bài tập lớn",
+        "attendee_count": 5,
+        "status": "CONFIRMED",
+        "action_execution_id": "39439405-3d96-79b5-946b-ce6e89711501",
+        "version": 1
+      },
+      {
+        "id": "46cefc7b-c93d-74cd-b884-4df3f970f24f",
+        "room_id": "535faba7-6b1b-7161-868a-b055b0a101c6",
+        "requester_user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "starts_at": "2026-10-21T14:00:00Z",
+        "ends_at": "2026-10-21T16:00:00Z",
+        "purpose_redacted": "Học nhóm bài tập lớn",
+        "attendee_count": 5,
+        "status": "CONFIRMED",
+        "action_execution_id": "cd8baa14-5f05-7d4d-b4a5-35d4e6609eb7",
+        "version": 1
+      },
+      {
+        "id": "5fc6bf40-bbde-7886-896c-6968a30be34d",
+        "room_id": "4d30c508-e343-7a0c-824d-97710a87ad20",
+        "requester_user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "starts_at": "2026-10-22T14:00:00Z",
+        "ends_at": "2026-10-22T16:00:00Z",
+        "purpose_redacted": "Học nhóm bài tập lớn",
+        "attendee_count": 5,
+        "status": "CONFIRMED",
+        "action_execution_id": "1b1782c2-e7a0-7508-a7ce-49a7a23242d7",
+        "version": 1
+      }
+    ]
+  }
+}

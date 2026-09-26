@@ -1,0 +1,79 @@
+schema_version: "1.1"
+id: TASK-WEB-DESIGN-002
+phase: P06
+title: "Rebuild the academic visual foundation and design tokens"
+status: accepted
+objective: "Replace the current visual foundation with a restrained academic token system that supports clear hierarchy, readable Vietnamese content and consistent responsive surfaces."
+layer: web
+bounded_context: redesign-foundation
+priority: P0
+estimated_minutes: 45
+sensitivity: low
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: ["REQ-NF-A11Y-001"]
+  acceptance_criteria: ["AC-REQ-NF-A11Y-001-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: ["UX-A11Y-001"]
+  contracts: []
+  controls: []
+  evals: []
+dependencies: ["TASK-WEB-DESIGN-001", "TASK-DOC-UX-004"]
+inputs: [{path: "docs/00-governance/DOCUMENT_CONTROL.md", load: "full"}, {path: "docs/03-ux/ACCESSIBILITY.md", load: "full"}, {path: "docs/03-ux/CONTENT_STYLE_VI.md", load: "full"}]
+write_scope:
+  allowed_paths: ["apps/web/src/styles/tokens.css", "apps/web/src/app/globals.css", "apps/web/src/styles/tokens.test.ts"]
+  forbidden_paths: [docs/**, contracts/**, .git/**]
+  max_files: 3
+  max_added_lines: 300
+preconditions:
+  - Every dependency is accepted and every normative input is approved for this environment.
+  - The assigned task status is ready and any required human approval names this task and exact scope.
+  - The orchestrator confirmed a clean non-overlapping write lease and the executor preserved all pre-existing workspace changes.
+steps:
+  - Read every input and each existing allowed target before editing.
+  - "Define semantic color, typography, spacing, radius, elevation, focus and motion tokens; rebuild global primitives; remove the blanket button sizing from inline links while retaining compliant targets and visible focus."
+  - Implement only the stated objective within the allowed paths and do not change requirements contracts routes authorization or expected results.
+  - Add or update focused positive keyboard responsive and failure-path evidence that fits this objective.
+  - Run every verification command in order then inspect git status and the exact changed-file set.
+  - Return one JSON object conforming to tasks/task-output.schema.json with acceptance-to-evidence mapping.
+acceptance_criteria:
+  - id: AC-TASK-WEB-DESIGN-002-01
+    assertion: "Replace the current visual foundation with a restrained academic token system that supports clear hierarchy, readable Vietnamese content and consistent responsive surfaces."
+  - id: AC-TASK-WEB-DESIGN-002-02
+    assertion: "Define semantic color, typography, spacing, radius, elevation, focus and motion tokens; rebuild global primitives; remove the blanket button sizing from inline links while retaining compliant targets and visible focus."
+  - id: AC-TASK-WEB-DESIGN-002-03
+    assertion: Required failure keyboard and responsive states have reproducible evidence with no fabricated success or data.
+  - id: AC-TASK-WEB-DESIGN-002-04
+    assertion: Every changed file is inside the declared scope and no unrelated workspace state was altered.
+verification:
+  - command: "corepack pnpm --dir apps/web test --run src/styles/tokens.test.ts"
+    expected_exit_code: 0
+    proves: "Token and global-style invariants pass."
+  - command: "corepack pnpm --dir apps/web lint"
+    expected_exit_code: 0
+    proves: "The visual foundation typechecks."
+evidence_required:
+  - initial and final git status
+  - changed-file and diff summary
+  - commands with exit codes
+  - acceptance-to-evidence mapping
+  - browser or manual evidence marked not_verified when unavailable
+recovery:
+  strategy: reverse_patch
+  steps:
+    - Keep the patch unpromoted and apply only a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+  - A required source is missing conflicting changed after approval or not approved.
+  - Completion needs an unlisted file dependency network call secret destructive action or a change to a higher-authority artifact.
+  - Visual or browser claims cannot be reproduced in the available environment.
+parallelism:
+  eligible: true
+  conflict_keys: ["redesign-foundation"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

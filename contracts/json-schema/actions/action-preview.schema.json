@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/actions/action-preview.schema.json",
+  "title": "ActionPreview",
+  "description": "Immutable preview of a write action awaiting explicit actor confirmation.",
+  "x-document-control": {
+    "document_id": "API-SCHEMA-ACTION-PREVIEW-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "API Architect",
+    "approvers": ["Product Owner", "Security Lead", "Domain Architect"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "preview_id",
+    "actor_user_id",
+    "action_type",
+    "status",
+    "summary",
+    "normalized_payload",
+    "payload_hash",
+    "policy_decision",
+    "policy_version",
+    "confirmation_token",
+    "expires_at",
+    "created_at"
+  ],
+  "properties": {
+    "preview_id": {"$ref": "#/$defs/uuidV7"},
+    "actor_user_id": {"$ref": "#/$defs/uuidV7"},
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "CREATE_TICKET",
+        "SUBMIT_DOCUMENT_REQUEST",
+        "CREATE_ROOM_BOOKING",
+        "CANCEL_ROOM_BOOKING",
+        "CANCEL_DOCUMENT_REQUEST",
+        "CREATE_HANDOVER",
+        "TICKET_TRANSITION",
+        "HANDOVER_TRANSITION",
+        "CREATE_KNOWLEDGE_SOURCE",
+        "REGISTER_DOCUMENT_VERSION",
+        "PUBLISH_KNOWLEDGE_VERSION"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING_CONFIRMATION",
+        "CONFIRMED",
+        "EXECUTING",
+        "SUCCEEDED",
+        "FAILED",
+        "EXPIRED",
+        "CANCELLED"
+      ]
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "normalized_payload": {"type": "object"},
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "policy_decision": {
+      "type": "string",
+      "const": "ALLOW_WITH_CONFIRMATION"
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,64}$"
+    },
+    "confirmation_token": {
+      "type": "string",
+      "minLength": 22,
+      "maxLength": 512,
+      "description": "One-time bearer secret. Never log or persist in plaintext."
+    },
+    "expires_at": {"type": "string", "format": "date-time"},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"action_type": {"const": "CREATE_TICKET"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/createTicketPayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "SUBMIT_DOCUMENT_REQUEST"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/documentRequestPayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "CREATE_ROOM_BOOKING"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/roomBookingPayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "CREATE_HANDOVER"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/createHandoverPayload"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "action_type": {
+            "enum": ["CANCEL_ROOM_BOOKING", "CANCEL_DOCUMENT_REQUEST"]
+          }
+        },
+        "required": ["action_type"]
+      },
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/cancelPayload"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "action_type": {
+            "enum": ["TICKET_TRANSITION", "HANDOVER_TRANSITION"]
+          }
+        },
+        "required": ["action_type"]
+      },
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/transitionPayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "CREATE_KNOWLEDGE_SOURCE"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/createKnowledgeSourcePayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "REGISTER_DOCUMENT_VERSION"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/registerDocumentVersionPayload"}}}
+    },
+    {
+      "if": {"properties": {"action_type": {"const": "PUBLISH_KNOWLEDGE_VERSION"}}, "required": ["action_type"]},
+      "then": {"properties": {"normalized_payload": {"$ref": "#/$defs/publishKnowledgePayload"}}}
+    }
+  ],
+  "$defs": {
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "description", "effects"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {"type": "string", "minLength": 1, "maxLength": 300}
+        }
+      }
+    },
+    "createTicketPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "priority", "subject", "description"],
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["GENERAL_SUPPORT", "ACADEMIC_POLICY", "DOCUMENT_REQUEST_SUPPORT", "FACILITY", "COMPLAINT", "OTHER"]
+        },
+        "priority": {"type": "string", "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"]},
+        "subject": {"type": "string", "minLength": 1, "maxLength": 200},
+        "description": {"type": "string", "minLength": 1, "maxLength": 5000},
+        "queue_key": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"}
+      }
+    },
+    "documentRequestPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_type", "purpose_code", "delivery_method"],
+      "properties": {
+        "document_type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+        "purpose_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+        "delivery_method": {"type": "string", "enum": ["DIGITAL", "PICKUP"]}
+      }
+    },
+    "roomBookingPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["room_id", "starts_at", "ends_at", "purpose", "attendee_count"],
+      "properties": {
+        "room_id": {"$ref": "#/$defs/uuidV7"},
+        "starts_at": {"type": "string", "format": "date-time"},
+        "ends_at": {"type": "string", "format": "date-time"},
+        "purpose": {"type": "string", "minLength": 1, "maxLength": 300},
+        "attendee_count": {"type": "integer", "minimum": 1, "maximum": 1000}
+      }
+    },
+    "cancelPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_id", "expected_version", "reason_code"],
+      "properties": {
+        "target_id": {"$ref": "#/$defs/uuidV7"},
+        "expected_version": {"type": "integer", "minimum": 1},
+        "reason_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"}
+      }
+    },
+    "transitionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_id", "command", "expected_version"],
+      "properties": {
+        "target_id": {"$ref": "#/$defs/uuidV7"},
+        "command": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$"},
+        "expected_version": {"type": "integer", "minimum": 1},
+        "reason_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"}
+      }
+    },
+    "createHandoverPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conversation_id", "queue_key", "reason_code", "risk_level", "summary_redacted", "context_reference_ids"],
+      "properties": {
+        "conversation_id": {"$ref": "#/$defs/uuidV7"},
+        "queue_key": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+        "reason_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+        "risk_level": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+        "summary_redacted": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "context_reference_ids": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/uuidV7"}
+        }
+      }
+    },
+    "publishKnowledgePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_version_id", "expected_version"],
+      "properties": {
+        "document_version_id": {"$ref": "#/$defs/uuidV7"},
+        "expected_version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "createKnowledgeSourcePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "canonical_uri", "title", "owner_unit", "authority_level", "is_synthetic"],
+      "properties": {
+        "source_type": {"type": "string", "enum": ["OFFICIAL_DOCUMENT", "OFFICIAL_WEB", "SYNTHETIC_DOCUMENT"]},
+        "canonical_uri": {"type": "string", "format": "uri", "maxLength": 2000},
+        "title": {"type": "string", "minLength": 1, "maxLength": 300},
+        "owner_unit": {"type": "string", "minLength": 1, "maxLength": 160},
+        "authority_level": {"type": "integer", "minimum": 1, "maximum": 100},
+        "is_synthetic": {"type": "boolean"}
+      }
+    },
+    "registerDocumentVersionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "version_label", "file_name", "media_type", "size_bytes", "content_checksum"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/uuidV7"},
+        "version_label": {"type": "string", "minLength": 1, "maxLength": 64},
+        "file_name": {"type": "string", "minLength": 1, "maxLength": 255},
+        "media_type": {"type": "string", "enum": ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/html", "text/plain"]},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 52428800},
+        "content_checksum": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "effective_from": {"type": "string", "format": "date-time"},
+        "effective_until": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

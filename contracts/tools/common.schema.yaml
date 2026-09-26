@@ -1,0 +1,75 @@
+document_id: "DOC-TOOL-SCHEMA-001"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+approvers: ["Security Architect", "QA Lead"]
+last_updated: "2026-09-21"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/common.schema.yaml"
+title: "Campus 24/7 common tool definitions"
+$defs:
+  uuid:
+    type: "string"
+    format: "uuid"
+  bounded_text:
+    type: "string"
+    minLength: 1
+    maxLength: 2000
+  short_text:
+    type: "string"
+    minLength: 1
+    maxLength: 200
+  reference_id:
+    type: "string"
+    pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+  sha256:
+    type: "string"
+    pattern: "^sha256:[a-f0-9]{64}$"
+  tool_error:
+    type: "object"
+    additionalProperties: false
+    required: ["code", "message_key", "retryable", "trace_id"]
+    properties:
+      code:
+        type: "string"
+        enum: ["TOOL_INPUT_INVALID", "TOOL_AUTHORIZATION_DENIED", "TOOL_STEP_UP_REQUIRED", "TOOL_CONFIRMATION_REQUIRED", "TOOL_CONFIRMATION_INVALID", "TOOL_CONFLICT", "TOOL_NOT_FOUND", "TOOL_RATE_LIMITED", "TOOL_DEPENDENCY_UNAVAILABLE", "TOOL_EXECUTION_UNCERTAIN", "TOOL_INTERNAL_ERROR"]
+      message_key:
+        type: "string"
+        pattern: "^[a-z0-9_.-]{1,100}$"
+      retryable:
+        type: "boolean"
+      retry_after_seconds:
+        type: ["integer", "null"]
+        minimum: 1
+        maximum: 3600
+      trace_id:
+        $ref: "#/$defs/reference_id"
+      field_errors:
+        type: "array"
+        maxItems: 20
+        items:
+          type: "object"
+          additionalProperties: false
+          required: ["field", "reason_code"]
+          properties:
+            field:
+              type: "string"
+              maxLength: 100
+            reason_code:
+              type: "string"
+              pattern: "^[A-Z0-9_]{1,80}$"
+  page_info:
+    type: "object"
+    additionalProperties: false
+    required: ["limit", "has_more"]
+    properties:
+      limit:
+        type: "integer"
+        minimum: 1
+        maximum: 100
+      next_cursor:
+        type: ["string", "null"]
+        maxLength: 512
+      has_more:
+        type: "boolean"
+

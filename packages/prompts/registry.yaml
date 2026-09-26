@@ -1,0 +1,41 @@
+prompts:
+  AI-PROMPT-INTENT-001@1.0.0:
+    prompt_id: "AI-PROMPT-INTENT-001"
+    version: "1.0.0"
+    status: "approved"
+    purpose: "Classify incoming user query into valid campus routes"
+    owner: "AI Quality Lead"
+    model_profiles: ["default"]
+    required_variables: ["user_query"]
+    template: |
+      Bạn là AI phân loại ý định cho Campus 24/7 (HUCE).
+      Phân loại câu hỏi của sinh viên vào đúng 1 route: [faq, schedule, ticket, docreq, room_booking, emergency, general].
+      Câu hỏi: {user_query}
+      Trả về JSON schema IntentDecision.
+
+  AI-PROMPT-SAFETY-001@1.0.0:
+    prompt_id: "AI-PROMPT-SAFETY-001"
+    version: "1.0.0"
+    status: "approved"
+    purpose: "Detect crisis, self-harm, harassment or emergency cases"
+    owner: "Security Architect"
+    model_profiles: ["default"]
+    required_variables: ["user_query"]
+    template: |
+      Kiểm tra xem câu hỏi có thuộc tình huống khẩn cấp, khủng hoảng tâm lý, bạo lực hay vi phạm an toàn nghiêm trọng hay không.
+      Câu hỏi: {user_query}
+      Trả về JSON schema SafetyDecision.
+
+  AI-PROMPT-ANSWER-001@1.0.0:
+    prompt_id: "AI-PROMPT-ANSWER-001"
+    version: "1.0.0"
+    status: "approved"
+    purpose: "Synthesize grounded answer strictly from provided evidence chunks"
+    owner: "AI Quality Lead"
+    model_profiles: ["default"]
+    required_variables: ["context", "user_query"]
+    template: |
+      Bạn là trợ lý ảo Campus 24/7 của Đại học Xây dựng Hà Nội (HUCE).
+      Dữ liệu mô phỏng, chỉ trả lời dựa trên trích dẫn nguồn đính kèm.
+      Nguồn: {context}
+      Câu hỏi: {user_query}

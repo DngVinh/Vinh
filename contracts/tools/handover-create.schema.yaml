@@ -1,0 +1,71 @@
+document_id: "DOC-TOOL-HITL-001"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/handover-create.schema.yaml"
+title: "handover_create contract"
+description: "Actor, conversation and destination queue are trusted context; model supplies only minimized categorized content."
+$defs:
+  handover_category:
+    type: "string"
+    enum: ["USER_REQUEST", "INSUFFICIENT_EVIDENCE", "ACADEMIC_RIGHTS", "COMPLAINT_OR_DISCIPLINE", "SENSITIVE_WELLBEING", "PRIVACY_OR_SECURITY", "TOOL_UNCERTAINTY", "OTHER_REVIEW"]
+  reason_code:
+    type: "string"
+    enum: ["USER_REQUESTED_HUMAN", "INSUFFICIENT_EVIDENCE", "POLICY_EXCEPTION", "ACADEMIC_RIGHTS_IMPACT", "COMPLAINT_OR_DISCIPLINE", "SENSITIVE_WELLBEING", "POTENTIAL_SELF_HARM", "POTENTIAL_VIOLENCE", "HARASSMENT_OR_ABUSE", "DATA_PRIVACY_INCIDENT", "TOOL_OR_INTEGRATION_FAILURE", "OTHER_REVIEW_REQUIRED"]
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["category", "severity", "summary", "reason_codes", "related_reference_ids"]
+    properties:
+      category: {$ref: "#/$defs/handover_category"}
+      severity: {type: "string", enum: ["normal", "high", "critical"]}
+      summary: {type: "string", minLength: 1, maxLength: 2000}
+      reason_codes:
+        type: "array"
+        minItems: 1
+        maxItems: 10
+        uniqueItems: true
+        items: {$ref: "#/$defs/reason_code"}
+      related_reference_ids:
+        type: "array"
+        maxItems: 50
+        uniqueItems: true
+        items: {$ref: "common.schema.yaml#/$defs/reference_id"}
+  result:
+    type: "object"
+    additionalProperties: false
+    required: ["handover_id", "queue_key", "reason_code", "risk_level", "status", "created_at", "version"]
+    properties:
+      handover_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      queue_key: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      reason_code: {$ref: "#/$defs/reason_code"}
+      risk_level: {type: "string", enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]}
+      status: {const: "QUEUED"}
+      created_at: {type: "string", format: "date-time"}
+      version: {type: "integer", minimum: 1}
+  output:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "result", "error"]
+    properties:
+      status: {type: "string", enum: ["succeeded", "failed", "uncertain"]}
+      result:
+        oneOf:
+          - $ref: "#/$defs/result"
+          - type: "null"
+      error:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/tool_error"
+          - type: "null"
+    allOf:
+      - if: {properties: {status: {const: "succeeded"}}}
+        then:
+          properties:
+            result: {$ref: "#/$defs/result"}
+            error: {type: "null"}
+      - if: {properties: {status: {enum: ["failed", "uncertain"]}}}
+        then:
+          properties:
+            result: {type: "null"}
+            error: {$ref: "common.schema.yaml#/$defs/tool_error"}

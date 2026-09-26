@@ -1,0 +1,26 @@
+version = 1
+revision = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "campus247"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "uvicorn" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "sqlalchemy" },
+    { name = "asyncpg" },
+    { name = "alembic" },
+    { name = "pgvector" },
+    { name = "redis" },
+    { name = "httpx" },
+]
+dev-dependencies = { dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "jsonschema" },
+    { name = "pyyaml" },
+] }

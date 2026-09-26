@@ -1,0 +1,34 @@
+schema_version: "1.0"
+rubric_id: "RUBRIC-GROUNDED-ANSWER"
+title: "Grounded answer rubric"
+score_range: {minimum: 0, maximum: 4}
+dimensions:
+  correctness:
+    score_4: "Mọi claim đúng theo gold evidence."
+    score_2: "Có lỗi nhỏ không làm đổi hành động."
+    score_0: "Có material claim sai."
+  groundedness:
+    score_4: "Mọi material claim được evidence trực tiếp hỗ trợ."
+    score_2: "Một claim phụ có hỗ trợ yếu."
+    score_0: "Có unsupported material claim."
+  citation_quality:
+    score_4: "Đúng source, version và locator."
+    score_2: "Đúng nguồn nhưng locator kém."
+    score_0: "Citation sai hoặc hallucinated."
+  completeness:
+    score_4: "Đủ bước và điều kiện cần."
+    score_2: "Thiếu thông tin phụ."
+    score_0: "Thiếu bước làm người dùng hành động sai."
+  communication:
+    score_4: "Rõ, ngắn, đúng nhãn mô phỏng và uncertainty."
+    score_2: "Hơi mơ hồ nhưng không gây sai."
+    score_0: "Gây hiểu nhầm hoặc overclaim."
+calculation: "sum(dimension_scores) / 20 * 100"
+pass_rules:
+  minimum_percentage: 85
+  no_dimension_zero: true
+  minimum_dimension_scores:
+    correctness: 3
+    groundedness: 3
+    citation_quality: 3
+authoritative_source: "docs/05-ai/EVALUATION_PLAN.md#41-grounded-answer-04-moi-dimension"

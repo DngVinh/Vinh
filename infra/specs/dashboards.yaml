@@ -1,0 +1,308 @@
+schema_version: "1.0.0"
+document:
+  id: "OPS-DASHBOARD-SPEC-001"
+  status: "draft"
+  owner: "SRE Lead"
+  last_updated: "2026-09-22"
+
+policy:
+  name_pattern: "campus247-{environment}-{dashboard_id}"
+  default_period_seconds: 60
+  default_time_range: "PT6H"
+  personal_dimensions_allowed: false
+  raw_prompt_or_payload_allowed: false
+  release_annotations_required: true
+  config_annotations_required: true
+  dashboard_write_access: ["SRE Lead", "Platform Lead"]
+  source_evidence_mutation_from_dashboard_allowed: false
+
+dashboards:
+  - id: "DASH-OVERVIEW-001"
+    title: "Campus 24/7 Service Overview"
+    owner: "SRE Lead"
+    audience: ["Operations", "Product Owner", "Incident Commander"]
+    purpose: "Current service health, SLO burn, capability state and release context"
+    widgets:
+      - id: "overview-capability-state"
+        type: "single_value"
+        title: "Capability state"
+        metrics:
+          - {namespace: "Campus247/Application", name: "capability_state", statistic: "Maximum", dimensions: ["Environment", "State"]}
+      - id: "overview-edge-availability"
+        type: "time_series"
+        title: "Edge and API success ratio"
+        expressions: ["1 - eligible_5xx_or_timeout / eligible_requests"]
+        slo_ids: ["SLO-WEB-001", "SLO-API-001"]
+      - id: "overview-error-budget"
+        type: "time_series"
+        title: "Error budget remaining and burn rate"
+        expressions: ["budget_remaining_ratio", "burn_rate_5m", "burn_rate_1h", "burn_rate_24h"]
+        slo_ids: ["SLO-API-001"]
+      - id: "overview-latency"
+        type: "time_series"
+        title: "Request latency p50/p95/p99"
+        metrics:
+          - {namespace: "Campus247/Application", name: "http_server_duration_ms", statistics: ["p50", "p95", "p99"], dimensions: ["Environment", "Service", "RouteFamily"]}
+      - id: "overview-dependencies"
+        type: "time_series"
+        title: "Dependency outcomes"
+        metrics:
+          - {namespace: "Campus247/Application", name: "dependency_requests_total", statistic: "Sum", dimensions: ["Environment", "Dependency", "Outcome"]}
+      - id: "overview-release"
+        type: "text_and_single_value"
+        title: "Release and config identity"
+        metrics:
+          - {namespace: "Campus247/Operations", name: "release_info", statistic: "Maximum", dimensions: ["Environment", "ReleaseId", "ConfigVersion"]}
+      - id: "overview-open-alarms"
+        type: "alarm_status"
+        title: "Critical/high alarms"
+        alarm_ids: ["ALM-EDGE-001", "ALM-EDGE-002", "ALM-API-001", "ALM-API-002", "ALM-DB-001", "ALM-ASYNC-001", "ALM-SEC-001", "ALM-AUDIT-001"]
+
+  - id: "DASH-API-001"
+    title: "Campus 24/7 API and SSE"
+    owner: "Backend Lead"
+    audience: ["Backend", "SRE"]
+    purpose: "HTTP/SSE traffic, errors, latency, saturation and deployment behavior"
+    widgets:
+      - id: "api-rps-status"
+        type: "time_series"
+        title: "Requests by route family and status class"
+        metrics:
+          - {namespace: "Campus247/Application", name: "http_server_requests_total", statistic: "Sum", dimensions: ["Environment", "Service", "RouteFamily", "StatusClass"]}
+      - id: "api-latency-route"
+        type: "time_series"
+        title: "Latency p95/p99 by route family"
+        metrics:
+          - {namespace: "Campus247/Application", name: "http_server_duration_ms", statistics: ["p95", "p99"], dimensions: ["Environment", "RouteFamily", "Outcome"]}
+      - id: "api-active"
+        type: "time_series"
+        title: "Active HTTP and SSE connections"
+        metrics:
+          - {namespace: "Campus247/Application", name: "http_server_active_requests", statistic: "Maximum", dimensions: ["Environment", "Service"]}
+          - {namespace: "Campus247/Application", name: "sse_connections_active", statistic: "Maximum", dimensions: ["Environment"]}
+      - id: "api-sse-first-event"
+        type: "time_series"
+        title: "SSE first event and terminal outcome"
+        metrics:
+          - {namespace: "Campus247/Application", name: "sse_first_event_duration_ms", statistics: ["p50", "p95", "p99"], dimensions: ["Environment", "Outcome"]}
+          - {namespace: "Campus247/Application", name: "sse_terminal_events_total", statistic: "Sum", dimensions: ["Environment", "TerminalType"]}
+      - id: "api-ecs"
+        type: "time_series"
+        title: "ECS CPU, memory, desired/running tasks"
+        metrics:
+          - {namespace: "AWS/ECS", name: "CPUUtilization", statistic: "Average", dimensions: ["ClusterName", "ServiceName"]}
+          - {namespace: "AWS/ECS", name: "MemoryUtilization", statistic: "Average", dimensions: ["ClusterName", "ServiceName"]}
+          - {namespace: "ECS/ContainerInsights", name: "RunningTaskCount", statistic: "Minimum", dimensions: ["ClusterName", "ServiceName"]}
+      - id: "api-db-pool"
+        type: "time_series"
+        title: "DB pool usage and wait"
+        metrics:
+          - {namespace: "Campus247/Application", name: "db_pool_in_use", statistic: "Maximum", dimensions: ["Environment", "Service"]}
+          - {namespace: "Campus247/Application", name: "db_pool_max", statistic: "Maximum", dimensions: ["Environment", "Service"]}
+          - {namespace: "Campus247/Application", name: "db_pool_wait_ms", statistic: "p95", dimensions: ["Environment", "Service"]}
+
+  - id: "DASH-ASYNC-001"
+    title: "Campus 24/7 Async and Worker"
+    owner: "Backend Lead"
+    audience: ["Backend", "SRE", "Knowledge Operations"]
+    purpose: "Transactional outbox, queues, workers, retries and DLQ"
+    widgets:
+      - id: "async-outbox"
+        type: "time_series"
+        title: "Unpublished outbox and oldest age"
+        metrics:
+          - {namespace: "Campus247/Application", name: "outbox_unpublished_total", statistic: "Maximum", dimensions: ["Environment", "EventClass"]}
+          - {namespace: "Campus247/Application", name: "outbox_oldest_age_seconds", statistic: "Maximum", dimensions: ["Environment", "EventClass"]}
+      - id: "async-queue-depth-age"
+        type: "time_series"
+        title: "Queue depth and oldest message"
+        metrics:
+          - {namespace: "AWS/SQS", name: "ApproximateNumberOfMessagesVisible", statistic: "Maximum", dimensions: ["QueueName"]}
+          - {namespace: "AWS/SQS", name: "ApproximateAgeOfOldestMessage", statistic: "Maximum", dimensions: ["QueueName"]}
+      - id: "async-inflight"
+        type: "time_series"
+        title: "Messages in flight and delayed"
+        metrics:
+          - {namespace: "AWS/SQS", name: "ApproximateNumberOfMessagesNotVisible", statistic: "Maximum", dimensions: ["QueueName"]}
+          - {namespace: "AWS/SQS", name: "ApproximateNumberOfMessagesDelayed", statistic: "Maximum", dimensions: ["QueueName"]}
+      - id: "async-worker"
+        type: "time_series"
+        title: "Worker throughput, latency and outcome"
+        metrics:
+          - {namespace: "Campus247/Application", name: "worker_jobs_total", statistic: "Sum", dimensions: ["Environment", "QueueClass", "Outcome"]}
+          - {namespace: "Campus247/Application", name: "worker_job_duration_ms", statistic: "p95", dimensions: ["Environment", "JobType", "Outcome"]}
+      - id: "async-dlq"
+        type: "alarm_and_time_series"
+        title: "Dead-letter queues"
+        alarm_ids: ["ALM-ASYNC-003"]
+        metrics:
+          - {namespace: "AWS/SQS", name: "ApproximateNumberOfMessagesVisible", statistic: "Maximum", dimensions: ["DeadLetterQueueName"]}
+
+  - id: "DASH-DATA-001"
+    title: "Campus 24/7 Data Services"
+    owner: "Data Platform Owner"
+    audience: ["Data Platform", "SRE"]
+    purpose: "RDS, Redis, storage, backup and recovery readiness"
+    widgets:
+      - id: "data-rds-resource"
+        type: "time_series"
+        title: "RDS CPU, memory, storage, connections"
+        metrics:
+          - {namespace: "AWS/RDS", name: "CPUUtilization", statistic: "Average", dimensions: ["DBInstanceIdentifier"]}
+          - {namespace: "AWS/RDS", name: "FreeableMemory", statistic: "Minimum", dimensions: ["DBInstanceIdentifier"]}
+          - {namespace: "AWS/RDS", name: "FreeStorageSpace", statistic: "Minimum", dimensions: ["DBInstanceIdentifier"]}
+          - {namespace: "AWS/RDS", name: "DatabaseConnections", statistic: "Maximum", dimensions: ["DBInstanceIdentifier"]}
+      - id: "data-rds-io"
+        type: "time_series"
+        title: "RDS latency, IOPS and queue depth"
+        metrics:
+          - {namespace: "AWS/RDS", name: "ReadLatency", statistic: "Average", dimensions: ["DBInstanceIdentifier"]}
+          - {namespace: "AWS/RDS", name: "WriteLatency", statistic: "Average", dimensions: ["DBInstanceIdentifier"]}
+          - {namespace: "AWS/RDS", name: "DiskQueueDepth", statistic: "Average", dimensions: ["DBInstanceIdentifier"]}
+      - id: "data-redis"
+        type: "time_series"
+        title: "Redis CPU, memory, evictions, replication"
+        metrics:
+          - {namespace: "AWS/ElastiCache", name: "EngineCPUUtilization", statistic: "Average", dimensions: ["ReplicationGroupId"]}
+          - {namespace: "AWS/ElastiCache", name: "DatabaseMemoryUsagePercentage", statistic: "Maximum", dimensions: ["ReplicationGroupId"]}
+          - {namespace: "AWS/ElastiCache", name: "Evictions", statistic: "Sum", dimensions: ["ReplicationGroupId"]}
+          - {namespace: "AWS/ElastiCache", name: "ReplicationLag", statistic: "Maximum", dimensions: ["ReplicationGroupId"]}
+      - id: "data-backup"
+        type: "time_series_and_table"
+        title: "Backup jobs and recoverable point age"
+        metrics:
+          - {namespace: "Campus247/Operations", name: "latest_recoverable_point_age_seconds", statistic: "Maximum", dimensions: ["Environment", "ResourceClass"]}
+          - {namespace: "Campus247/Operations", name: "backup_restore_last_success_timestamp", statistic: "Maximum", dimensions: ["Environment", "ResourceClass"]}
+        alarm_ids: ["ALM-BACKUP-001", "ALM-BACKUP-002"]
+
+  - id: "DASH-AI-001"
+    title: "Campus 24/7 AI, RAG and Tool Safety"
+    owner: "AI Platform Lead"
+    audience: ["AI Engineering", "AI Quality", "SRE", "Security"]
+    purpose: "Provider health, token/cost units, retrieval/evidence outcomes and controlled tools"
+    widgets:
+      - id: "ai-llm-outcomes"
+        type: "time_series"
+        title: "LLM requests, error ratio and latency"
+        metrics:
+          - {namespace: "Campus247/AI", name: "llm_requests_total", statistic: "Sum", dimensions: ["Environment", "ProviderAlias", "ModelAlias", "Purpose", "Outcome"]}
+          - {namespace: "Campus247/AI", name: "llm_duration_ms", statistic: "p95", dimensions: ["Environment", "ProviderAlias", "Purpose", "Outcome"]}
+      - id: "ai-token-units"
+        type: "time_series"
+        title: "Input/output token units"
+        metrics:
+          - {namespace: "Campus247/AI", name: "llm_tokens_total", statistic: "Sum", dimensions: ["Environment", "ProviderAlias", "ModelAlias", "Direction"]}
+      - id: "ai-circuit"
+        type: "single_value_and_time_series"
+        title: "Provider circuit and capability state"
+        metrics:
+          - {namespace: "Campus247/AI", name: "llm_circuit_state", statistic: "Maximum", dimensions: ["Environment", "ProviderAlias", "State"]}
+          - {namespace: "Campus247/Application", name: "capability_state", statistic: "Maximum", dimensions: ["Environment", "State"]}
+      - id: "ai-rag"
+        type: "time_series"
+        title: "RAG latency and evidence outcomes"
+        metrics:
+          - {namespace: "Campus247/AI", name: "rag_duration_ms", statistic: "p95", dimensions: ["Environment", "RetrievalVersion", "Outcome"]}
+          - {namespace: "Campus247/AI", name: "evidence_gate_total", statistic: "Sum", dimensions: ["Environment", "Outcome", "ReasonCode"]}
+      - id: "ai-tools"
+        type: "time_series"
+        title: "Tool and confirmation outcomes"
+        metrics:
+          - {namespace: "Campus247/AI", name: "tool_executions_total", statistic: "Sum", dimensions: ["Environment", "ToolId", "Outcome"]}
+          - {namespace: "Campus247/AI", name: "confirmation_total", statistic: "Sum", dimensions: ["Environment", "Outcome"]}
+      - id: "ai-quality-note"
+        type: "text"
+        title: "Quality boundary"
+        content: "Runtime availability does not prove grounded correctness or safety. Link the latest accepted offline eval report by release ID."
+
+  - id: "DASH-SECURITY-001"
+    title: "Campus 24/7 Security and Synthetic Guard"
+    owner: "Security Operations Owner"
+    audience: ["Security Operations", "Privacy Owner", "SRE"]
+    purpose: "Authorization anomalies, egress blocks, audit delivery, guard and retention controls"
+    widgets:
+      - id: "security-authz"
+        type: "time_series"
+        title: "Authorization decisions"
+        metrics:
+          - {namespace: "Campus247/Security", name: "authorization_decisions_total", statistic: "Sum", dimensions: ["Environment", "ActionClass", "Outcome", "ReasonCode"]}
+      - id: "security-guard"
+        type: "alarm_and_time_series"
+        title: "PII egress and synthetic-only guard"
+        metrics:
+          - {namespace: "Campus247/Security", name: "external_pii_block_total", statistic: "Sum", dimensions: ["Environment", "DestinationClass"]}
+          - {namespace: "Campus247/Security", name: "synthetic_guard_violations_total", statistic: "Sum", dimensions: ["Environment", "Guard"]}
+        alarm_ids: ["ALM-SEC-001", "ALM-SEC-002"]
+      - id: "security-audit"
+        type: "alarm_and_time_series"
+        title: "Audit delivery"
+        metrics:
+          - {namespace: "Campus247/Security", name: "audit_delivery_total", statistic: "Sum", dimensions: ["Environment", "AuditSink", "Outcome"]}
+        alarm_ids: ["ALM-AUDIT-001"]
+      - id: "security-redaction"
+        type: "time_series"
+        title: "Redaction and telemetry drops"
+        metrics:
+          - {namespace: "Campus247/Security", name: "redaction_dropped_fields_total", statistic: "Sum", dimensions: ["Environment", "SignalType", "RuleId"]}
+      - id: "security-retention"
+        type: "time_series"
+        title: "Retention job lag"
+        metrics:
+          - {namespace: "Campus247/Operations", name: "retention_job_lag_seconds", statistic: "Maximum", dimensions: ["Environment", "RetentionRule"]}
+        alarm_ids: ["ALM-RETENTION-001"]
+
+  - id: "DASH-COST-001"
+    title: "Campus 24/7 Release and Cost"
+    owner: "FinOps and Capacity Owner"
+    audience: ["Finance Owner", "Platform Lead", "Product Owner", "SRE"]
+    purpose: "Cost units, budget forecast, utilization and release correlation"
+    widgets:
+      - id: "cost-budget"
+        type: "time_series"
+        title: "Actual and forecast percent of approved budget"
+        metrics:
+          - {namespace: "AWS/Billing", name: "EstimatedCharges", statistic: "Maximum", dimensions: ["Currency"]}
+        expressions: ["actual_cost / approved_budget", "forecast_cost / approved_budget"]
+        alarm_ids: ["ALM-COST-001", "ALM-COST-002", "ALM-COST-003"]
+      - id: "cost-fargate-units"
+        type: "time_series"
+        title: "Fargate running task and utilization units"
+        metrics:
+          - {namespace: "ECS/ContainerInsights", name: "RunningTaskCount", statistic: "Average", dimensions: ["ClusterName", "ServiceName"]}
+          - {namespace: "AWS/ECS", name: "CPUUtilization", statistic: "Average", dimensions: ["ClusterName", "ServiceName"]}
+          - {namespace: "AWS/ECS", name: "MemoryUtilization", statistic: "Average", dimensions: ["ClusterName", "ServiceName"]}
+      - id: "cost-network-units"
+        type: "time_series"
+        title: "ALB, NAT and transfer units"
+        metrics:
+          - {namespace: "AWS/ApplicationELB", name: "ProcessedBytes", statistic: "Sum", dimensions: ["LoadBalancer"]}
+          - {namespace: "AWS/NATGateway", name: "BytesOutToDestination", statistic: "Sum", dimensions: ["NatGatewayId"]}
+      - id: "cost-observability-units"
+        type: "time_series"
+        title: "Log and custom telemetry volume"
+        metrics:
+          - {namespace: "AWS/Logs", name: "IncomingBytes", statistic: "Sum", dimensions: ["LogGroupName"]}
+          - {namespace: "Campus247/Operations", name: "telemetry_export_bytes_total", statistic: "Sum", dimensions: ["Environment", "SignalType"]}
+      - id: "cost-llm-units"
+        type: "time_series"
+        title: "LLM token/request units"
+        metrics:
+          - {namespace: "Campus247/AI", name: "llm_tokens_total", statistic: "Sum", dimensions: ["Environment", "ProviderAlias", "Direction"]}
+          - {namespace: "Campus247/AI", name: "llm_requests_total", statistic: "Sum", dimensions: ["Environment", "ProviderAlias", "Outcome"]}
+
+validation:
+  unique_dashboard_ids: true
+  unique_widget_ids_within_dashboard: true
+  prohibited_dimensions:
+    - "UserId"
+    - "StudentId"
+    - "Email"
+    - "ConversationId"
+    - "RequestId"
+    - "TraceId"
+    - "RawPath"
+    - "Prompt"
+    - "Payload"
+  unresolved_expression_behavior: "fail_dashboard_validation"
+  production_cost_dashboard_requires_approved_budget: true
+

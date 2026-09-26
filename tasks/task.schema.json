@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.local/schemas/task.schema.json",
+  "title": "Campus 24/7 atomic implementation task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "phase", "title", "status", "objective", "layer", "bounded_context", "priority", "estimated_minutes", "sensitivity", "human_approval_required", "approval_reasons", "traceability", "dependencies", "inputs", "write_scope", "preconditions", "steps", "acceptance_criteria", "verification", "evidence_required", "recovery", "stop_conditions", "parallelism", "execution_policy"],
+  "properties": {
+    "schema_version": {"enum": ["1.0", "1.1"]},
+    "id": {"type": "string", "pattern": "^TASK-[A-Z0-9]+-[A-Z0-9]+-[0-9]{3}$"},
+    "phase": {"type": "string", "pattern": "^P[0-9]{2}$"},
+    "title": {"type": "string", "minLength": 8, "maxLength": 120},
+    "status": {"enum": ["draft", "reviewed", "ready", "in_progress", "verification", "accepted", "blocked", "failed"]},
+    "objective": {"type": "string", "minLength": 20, "maxLength": 500},
+    "layer": {"enum": ["governance", "repository", "data", "database", "domain", "application", "api", "agent", "web", "worker", "integration", "infrastructure", "observability", "test", "eval", "operations", "release"]},
+    "bounded_context": {"type": "string", "minLength": 2, "maxLength": 80},
+    "priority": {"enum": ["P0", "P1", "P2"]},
+    "estimated_minutes": {"type": "integer", "minimum": 15, "maximum": 45},
+    "sensitivity": {"enum": ["low", "medium", "high", "critical"]},
+    "human_approval_required": {"type": "boolean"},
+    "approval_reasons": {"type": "array", "uniqueItems": true, "items": {"enum": ["requirement_change", "contract_change", "architecture_change", "unapproved_dependency", "authentication", "authorization", "security_policy", "cryptography", "destructive_migration", "real_secret_or_data", "paid_service", "production_deploy", "destructive_git_filesystem", "legal_privacy"]}},
+    "traceability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requirements", "design", "contracts", "controls", "evals"],
+      "properties": {
+        "requirements": {"$ref": "#/$defs/idList"},
+        "acceptance_criteria": {"$ref": "#/$defs/idList"},
+        "coverage_binding_ref": {"type": "string", "pattern": "^tasks/requirement-acceptance-bindings\\.yaml$"},
+        "binding_mode": {"enum": ["direct", "canonical", "mixed"]},
+        "design": {"$ref": "#/$defs/idList"},
+        "contracts": {"$ref": "#/$defs/idList"},
+        "controls": {"$ref": "#/$defs/idList"},
+        "evals": {"$ref": "#/$defs/idList"}
+      }
+    },
+    "dependencies": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^TASK-[A-Z0-9]+-[A-Z0-9]+-[0-9]{3}$"}},
+    "inputs": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["path", "load"], "properties": {"path": {"type": "string", "minLength": 1}, "load": {"enum": ["full", "section"]}, "ids": {"$ref": "#/$defs/idList"}}}},
+    "write_scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowed_paths", "forbidden_paths", "max_files", "max_added_lines"],
+      "properties": {
+        "allowed_paths": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "forbidden_paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "max_files": {"type": "integer", "minimum": 1, "maximum": 3},
+        "max_added_lines": {"type": "integer", "minimum": 1, "maximum": 400}
+      }
+    },
+    "preconditions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 8}},
+    "steps": {"type": "array", "minItems": 2, "maxItems": 8, "items": {"type": "string", "minLength": 8}},
+    "acceptance_criteria": {"type": "array", "minItems": 2, "maxItems": 8, "items": {"type": "object", "additionalProperties": false, "required": ["id", "assertion"], "properties": {"id": {"type": "string", "pattern": "^AC-TASK-[A-Z0-9-]+-[0-9]{2}$"}, "assertion": {"type": "string", "minLength": 12}}}},
+    "verification": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "object", "additionalProperties": false, "required": ["command", "expected_exit_code", "proves"], "properties": {"command": {"type": "string", "minLength": 2}, "expected_exit_code": {"type": "integer", "minimum": 0, "maximum": 255}, "proves": {"type": "string", "minLength": 8}}}},
+    "evidence_required": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 5}},
+    "recovery": {"type": "object", "additionalProperties": false, "required": ["strategy", "steps"], "properties": {"strategy": {"enum": ["reverse_patch", "feature_disable", "pointer_rollback", "image_rollback", "stop_before_promotion", "forward_fix"]}, "steps": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 8}}}},
+    "stop_conditions": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 8}},
+    "parallelism": {"type": "object", "additionalProperties": false, "required": ["eligible", "conflict_keys"], "properties": {"eligible": {"type": "boolean"}, "conflict_keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,79}$"}}}},
+    "execution_policy": {"type": "object", "additionalProperties": false, "required": ["max_fix_attempts", "network_access", "paid_services", "destructive_operations"], "properties": {"max_fix_attempts": {"const": 2}, "network_access": {"type": "boolean"}, "paid_services": {"type": "boolean"}, "destructive_operations": {"const": false}}}
+  },
+  "allOf": [
+    {"if": {"properties": {"human_approval_required": {"const": true}}}, "then": {"properties": {"approval_reasons": {"minItems": 1}}}},
+    {"if": {"properties": {"human_approval_required": {"const": false}}}, "then": {"properties": {"approval_reasons": {"maxItems": 0}}}}
+  ],
+  "$defs": {"idList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 2, "maxLength": 120}}}
+}

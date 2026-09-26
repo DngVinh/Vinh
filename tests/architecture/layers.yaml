@@ -1,0 +1,22 @@
+# Architecture layer boundary rules conforming to ARCH-003
+schema_version: "1.0"
+source_root: "services/api/src/campus247"
+
+forbidden_imports:
+  domain:
+    - fastapi
+    - sqlalchemy
+    - langgraph
+    - redis
+    - campus247.presentation
+    - campus247.infrastructure
+    - campus247.bootstrap
+  application:
+    - fastapi
+    - campus247.presentation
+    - campus247.infrastructure
+    - campus247.bootstrap
+  presentation:
+    - campus247.infrastructure
+  infrastructure:
+    - campus247.presentation

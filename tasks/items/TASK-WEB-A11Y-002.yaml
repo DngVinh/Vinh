@@ -1,0 +1,76 @@
+schema_version: "1.1"
+id: TASK-WEB-A11Y-002
+phase: P06
+title: "Harden shared icons and interaction semantics"
+status: draft
+objective: "Make shared icons and interactive semantics reliable for keyboard and assistive-technology users across the redesigned interface."
+layer: web
+bounded_context: redesign-accessibility
+priority: P0
+estimated_minutes: 30
+sensitivity: low
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: ["REQ-NF-A11Y-002"]
+  acceptance_criteria: ["AC-REQ-NF-A11Y-002-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: ["UX-A11Y-001"]
+  contracts: []
+  controls: []
+  evals: []
+dependencies: ["TASK-WEB-DESIGN-002"]
+inputs: [{path: "docs/00-governance/DOCUMENT_CONTROL.md", load: "full"}, {path: "docs/03-ux/ACCESSIBILITY.md", load: "full"}, {path: "docs/03-ux/INTERACTION_SPECIFICATIONS.md", load: "full"}]
+write_scope:
+  allowed_paths: ["apps/web/src/components/Icons.tsx", "apps/web/src/components/Icons.test.tsx", "apps/web/src/test/accessibility.test.tsx"]
+  forbidden_paths: [docs/**, contracts/**, .git/**]
+  max_files: 3
+  max_added_lines: 300
+preconditions:
+  - Every dependency is accepted and every normative input is approved for this environment.
+  - The assigned task status is ready and any required human approval names this task and exact scope.
+  - The orchestrator confirmed a clean non-overlapping write lease and the executor preserved all pre-existing workspace changes.
+steps:
+  - Read every input and each existing allowed target before editing.
+  - "Separate decorative and meaningful icons, require accessible names for icon-only controls, retain native controls, verify focus order and keyboard activation, and add regression checks without encoding layout snapshots as accessibility proof."
+  - Implement only the stated objective within the allowed paths and do not change requirements contracts routes authorization or expected results.
+  - Add or update focused positive keyboard responsive and failure-path evidence that fits this objective.
+  - Run every verification command in order then inspect git status and the exact changed-file set.
+  - Return one JSON object conforming to tasks/task-output.schema.json with acceptance-to-evidence mapping.
+acceptance_criteria:
+  - id: AC-TASK-WEB-A11Y-002-01
+    assertion: "Make shared icons and interactive semantics reliable for keyboard and assistive-technology users across the redesigned interface."
+  - id: AC-TASK-WEB-A11Y-002-02
+    assertion: "Separate decorative and meaningful icons, require accessible names for icon-only controls, retain native controls, verify focus order and keyboard activation, and add regression checks without encoding layout snapshots as accessibility proof."
+  - id: AC-TASK-WEB-A11Y-002-03
+    assertion: Required failure keyboard and responsive states have reproducible evidence with no fabricated success or data.
+  - id: AC-TASK-WEB-A11Y-002-04
+    assertion: Every changed file is inside the declared scope and no unrelated workspace state was altered.
+verification:
+  - command: "corepack pnpm --dir apps/web test --run src/components/Icons.test.tsx src/test/accessibility.test.tsx"
+    expected_exit_code: 0
+    proves: "Shared semantics and keyboard regressions pass."
+evidence_required:
+  - initial and final git status
+  - changed-file and diff summary
+  - commands with exit codes
+  - acceptance-to-evidence mapping
+  - browser or manual evidence marked not_verified when unavailable
+recovery:
+  strategy: reverse_patch
+  steps:
+    - Keep the patch unpromoted and apply only a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+  - A required source is missing conflicting changed after approval or not approved.
+  - Completion needs an unlisted file dependency network call secret destructive action or a change to a higher-authority artifact.
+  - Visual or browser claims cannot be reproduced in the available environment.
+parallelism:
+  eligible: true
+  conflict_keys: ["redesign-accessibility"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

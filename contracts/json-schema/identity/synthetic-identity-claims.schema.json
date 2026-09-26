@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/identity/synthetic-identity-claims.schema.json",
+  "title": "SyntheticIdentityClaims",
+  "description": "Validated claims emitted only by the demo synthetic identity provider.",
+  "x-document-control": {
+    "document_id": "INT-SCHEMA-SYNTH-ID-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "Identity Architect",
+    "approvers": ["Security Lead", "Solution Architect"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "iss",
+    "sub",
+    "aud",
+    "exp",
+    "iat",
+    "jti",
+    "name",
+    "email",
+    "roles",
+    "faculty_code",
+    "is_synthetic",
+    "claims_version"
+  ],
+  "properties": {
+    "iss": {
+      "type": "string",
+      "const": "https://identity.demo.campus247.example"
+    },
+    "sub": {
+      "type": "string",
+      "pattern": "^syn_[a-z0-9]{16,64}$"
+    },
+    "aud": {
+      "oneOf": [
+        {"type": "string", "const": "campus247-api"},
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string"},
+          "contains": {"const": "campus247-api"}
+        }
+      ]
+    },
+    "exp": {"type": "integer", "minimum": 0},
+    "iat": {"type": "integer", "minimum": 0},
+    "jti": {"type": "string", "format": "uuid"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 160},
+    "email": {
+      "type": "string",
+      "format": "email",
+      "pattern": "^[A-Za-z0-9._%+-]+@example\\.invalid$"
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["STUDENT", "SUPPORT_OFFICER", "KNOWLEDGE_ADMIN", "SYSTEM_ADMIN"]
+      }
+    },
+    "faculty_code": {"type": "string", "const": "FIT"},
+    "student_code": {
+      "type": "string",
+      "pattern": "^SYN[0-9]{8}$"
+    },
+    "queue_scopes": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"}
+    },
+    "is_synthetic": {"type": "boolean", "const": true},
+    "claims_version": {"type": "string", "const": "1.0"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"roles": {"contains": {"const": "STUDENT"}}},
+        "required": ["roles"]
+      },
+      "then": {"required": ["student_code"]}
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+schema_version: "1.1"
+id: TASK-WEB-PRIV-002
+phase: P06
+title: "Rebuild the privacy center and consent presentation"
+status: draft
+objective: "Rebuild the privacy center so the active notice, version, effective date, consent implications and request status are understandable before action."
+layer: web
+bounded_context: redesign-privacy
+priority: P0
+estimated_minutes: 40
+sensitivity: critical
+human_approval_required: true
+approval_reasons: ["legal_privacy"]
+traceability:
+  requirements: ["REQ-F-PRIV-001"]
+  acceptance_criteria: ["AC-REQ-F-PRIV-001-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: ["UX-A11Y-001"]
+  contracts: []
+  controls: []
+  evals: []
+dependencies: ["TASK-WEB-PRIV-001", "TASK-WEB-SHELL-002", "TASK-WEB-STATE-002", "TASK-DOC-UX-003"]
+inputs: [{path: "docs/00-governance/DOCUMENT_CONTROL.md", load: "full"}, {path: "docs/01-product/PRD.md", load: "full"}, {path: "docs/03-ux/CONTENT_STYLE_VI.md", load: "full"}]
+write_scope:
+  allowed_paths: ["apps/web/src/features/privacy/PrivacyCenter.tsx", "apps/web/src/features/privacy/PrivacyCenter.test.tsx"]
+  forbidden_paths: [docs/**, contracts/**, .git/**]
+  max_files: 2
+  max_added_lines: 300
+preconditions:
+  - Every dependency is accepted and every normative input is approved for this environment.
+  - The assigned task status is ready and any required human approval names this task and exact scope.
+  - The orchestrator confirmed a clean non-overlapping write lease and the executor preserved all pre-existing workspace changes.
+steps:
+  - Read every input and each existing allowed target before editing.
+  - "Use plain Vietnamese hierarchy, preserve version and effective date near consent, distinguish optional and required processing, support keyboard and assistive technology, and avoid preselected consent or ambiguous success."
+  - Implement only the stated objective within the allowed paths and do not change requirements contracts routes authorization or expected results.
+  - Add or update focused positive keyboard responsive and failure-path evidence that fits this objective.
+  - Run every verification command in order then inspect git status and the exact changed-file set.
+  - Return one JSON object conforming to tasks/task-output.schema.json with acceptance-to-evidence mapping.
+acceptance_criteria:
+  - id: AC-TASK-WEB-PRIV-002-01
+    assertion: "Rebuild the privacy center so the active notice, version, effective date, consent implications and request status are understandable before action."
+  - id: AC-TASK-WEB-PRIV-002-02
+    assertion: "Use plain Vietnamese hierarchy, preserve version and effective date near consent, distinguish optional and required processing, support keyboard and assistive technology, and avoid preselected consent or ambiguous success."
+  - id: AC-TASK-WEB-PRIV-002-03
+    assertion: Required failure keyboard and responsive states have reproducible evidence with no fabricated success or data.
+  - id: AC-TASK-WEB-PRIV-002-04
+    assertion: Every changed file is inside the declared scope and no unrelated workspace state was altered.
+verification:
+  - command: "corepack pnpm --dir apps/web test --run src/features/privacy/PrivacyCenter.test.tsx"
+    expected_exit_code: 0
+    proves: "Notice, consent and request-state behavior pass."
+evidence_required:
+  - initial and final git status
+  - changed-file and diff summary
+  - commands with exit codes
+  - acceptance-to-evidence mapping
+  - browser or manual evidence marked not_verified when unavailable
+recovery:
+  strategy: reverse_patch
+  steps:
+    - Keep the patch unpromoted and apply only a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+  - A required source is missing conflicting changed after approval or not approved.
+  - Completion needs an unlisted file dependency network call secret destructive action or a change to a higher-authority artifact.
+  - Visual or browser claims cannot be reproduced in the available environment.
+parallelism:
+  eligible: true
+  conflict_keys: ["redesign-privacy"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

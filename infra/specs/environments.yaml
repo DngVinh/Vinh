@@ -1,0 +1,272 @@
+schema_version: "1.0.0"
+document:
+  id: "OPS-ENV-SPEC-001"
+  status: "draft"
+  owner: "Platform Lead"
+  last_updated: "2026-09-22"
+
+defaults:
+  project: "campus247"
+  institution_label: "HUCE Demo"
+  institution_mode: "single_institution"
+  multitenancy_enabled: false
+  locale: "vi-VN"
+  timezone_display: "Asia/Bangkok"
+  persisted_timestamps: "UTC"
+  data_mode: "synthetic_only"
+  real_personal_data_allowed: false
+  external_llm_direct_identifiers_allowed: false
+  simulation_notice_required: true
+  image_policy: "immutable_digest"
+  infrastructure_tool: "aws-cdk-typescript"
+
+environments:
+  local:
+    lifecycle: "persistent_developer_workspace"
+    aws:
+      enabled: false
+      account_id: null
+      region: null
+    runtime: "docker-compose"
+    data:
+      mode: "synthetic_only"
+      manifest_required: true
+      production_copy_allowed: false
+    authentication:
+      provider: "mock"
+      privileged_role_self_selection_allowed: false
+    llm:
+      provider: "deterministic_fake"
+      network_calls_allowed: false
+    availability:
+      multi_az: false
+      slo_claim_allowed: false
+    secrets:
+      store: "ignored_nonproduction_fixture_or_process_secret"
+      usable_real_secret_allowed: false
+    deployment:
+      human_approval_required: false
+      paid_resource_mutation_allowed: false
+    blockers: []
+
+  development:
+    lifecycle: "local_by_default_ephemeral_aws_by_approval"
+    aws:
+      enabled: "optional"
+      account_boundary: "nonproduction"
+      account_id: null
+      region: "ap-southeast-1"
+      vpc_isolated_from_staging: true
+    runtime: "local_or_ecs_fargate"
+    data:
+      mode: "synthetic_only"
+      manifest_required: true
+      production_copy_allowed: false
+    authentication:
+      provider: "mock"
+      startup_guard: "deny_if_environment_is_production_or_real_data"
+      privileged_role_self_selection_allowed: false
+    llm:
+      default_provider: "deterministic_fake"
+      deepseek_mode: "disabled_unless_explicit_privacy_security_cost_approval"
+    availability:
+      multi_az: false
+      slo_claim_allowed: false
+    capacity:
+      profile: "development_minimal"
+      values_resolved_by: "implementation_and_cost_review"
+    secrets:
+      store: "aws-secrets-manager_when_aws_enabled"
+      shared_with_staging_or_production: false
+    deployment:
+      human_approval_required_for_paid_mutation: true
+      ttl_required_for_ephemeral_stack: true
+      cleanup_requires_exact_target_authorization: true
+    blockers:
+      - "account_id_required_before_aws_deploy"
+      - "version_pins_required_before_aws_deploy"
+
+  staging:
+    lifecycle: "persistent_release_validation"
+    aws:
+      enabled: true
+      account_boundary: "nonproduction"
+      account_id: null
+      region: "ap-southeast-1"
+      dedicated_vpc: true
+      availability_zones_minimum: 2
+    runtime: "ecs_fargate"
+    data:
+      mode: "synthetic_only"
+      manifest_required: true
+      production_scale_synthetic_allowed: true
+      production_copy_allowed: false
+    authentication:
+      provider: "mock"
+      entra_test_adapter: "future_by_approved_test_tenant"
+      startup_guard: "deny_mock_if_real_data_or_production"
+      privileged_role_self_selection_allowed: false
+    llm:
+      default_provider: "deterministic_fake"
+      deepseek_mode: "opt_in_after_privacy_security_eval_and_cost_gate"
+      data_policy: "NO_DIRECT_IDENTIFIERS"
+    availability:
+      normal_profile: "cost_optimized"
+      parity_profile: "multi_az_for_release_failover_and_restore_drills"
+      production_slo_claim_allowed: false
+    compute:
+      normal:
+        web: {desired: 1, min: 1, max: null}
+        api: {desired: 1, min: 1, max: null}
+        worker: {desired: 1, min: 1, max: null}
+      parity:
+        web: {desired: 2, min: 2, max: null}
+        api: {desired: 2, min: 2, max: null}
+        worker: {desired: 2, min: 1, max: null}
+      cpu_and_memory: "resolve_from_load_test"
+    database:
+      multi_az_normal: false
+      multi_az_parity: true
+      engine_version: null
+      instance_class: null
+      deletion_protection: true
+    cache:
+      multi_az_normal: false
+      multi_az_parity: true
+      engine_version: null
+      node_type: null
+      authoritative: false
+    network:
+      nat_gateways_normal: 1
+      nat_gateways_parity: 2
+      interface_endpoints: "select_by_security_reliability_cost_formula"
+    secrets:
+      store: "aws-secrets-manager"
+      shared_with_other_environments: false
+    deployment:
+      protected_environment: true
+      human_approval_required_for_paid_or_infrastructure_mutation: true
+      application_release_to_existing_capacity: "allowed_after_all_gates_and_policy"
+    blockers:
+      - "account_id_required"
+      - "all_runtime_and_engine_version_pins_required"
+      - "budget_or_paid_resource_approval_required"
+
+  production:
+    lifecycle: "blocked_until_full_readiness_approval"
+    aws:
+      enabled: true
+      account_boundary: "dedicated_production_account"
+      account_id: null
+      region: "ap-southeast-1_reference_only_pending_privacy_approval"
+      dedicated_vpc: true
+      availability_zones_minimum: 2
+    runtime: "ecs_fargate"
+    data:
+      mode: "synthetic_only_until_approved_real_data_cutover"
+      manifest_required: true
+      real_data_cutover_approval_refs: []
+      production_copy_from_nonproduction_allowed: false
+    authentication:
+      provider: "microsoft_entra_oidc_target"
+      mock_allowed: false
+      tenant_id: null
+      issuer: null
+      audience: null
+      role_mapping_version: null
+      mfa_staff_admin_required: true
+    llm:
+      provider: "deepseek_through_provider_neutral_gateway_after_approval"
+      provider_approval_ref: null
+      data_policy: "NO_DIRECT_IDENTIFIERS_until_legal_policy_changes"
+      automatic_provider_switching: false
+    availability:
+      multi_az: true
+      app_tasks_across_azs: true
+      design_availability_target: 0.999
+      rpo_minutes_target: 15
+      rto_minutes_target: 60
+      rpo_rto_status: "not_verified"
+      multi_region_active_active: false
+    compute:
+      web: {desired: 2, min: 2, max: null}
+      api: {desired: 2, min: 2, max: null}
+      worker: {desired: 2, min: 1, max: null}
+      cpu_and_memory: "resolve_from_staging_load_test"
+    database:
+      multi_az: true
+      engine_version: null
+      instance_class: null
+      deletion_protection: true
+      backup_retention_days: null
+    cache:
+      multi_az: true
+      automatic_failover: true
+      engine_version: null
+      node_type: null
+      authoritative: false
+    network:
+      nat_gateways: "one_per_az"
+      interface_endpoints: "approved_set_after_cost_review"
+      public_ecs_ip: false
+      public_data_store: false
+    secrets:
+      store: "aws-secrets-manager"
+      shared_with_other_environments: false
+      long_lived_human_aws_keys_allowed: false
+    deployment:
+      protected_environment: true
+      human_approval_required: true
+      build_once_promote_digest: true
+      destructive_replacement_allowed: false
+    budget:
+      monthly_amount: null
+      currency: null
+      owner: null
+      thresholds_percent: [50, 75, 90, 100]
+    blockers:
+      - "OQ-001_product_owner"
+      - "OQ-002_data_owner"
+      - "OQ-003_emergency_contacts_and_hours"
+      - "OQ-004_entra_configuration"
+      - "OQ-005_external_llm_legal_conditions"
+      - "OQ-006_retention_schedule"
+      - "OQ-007_real_integration_contracts"
+      - "OQ-008_budget"
+      - "security_privacy_vendor_and_cross_border_approval"
+      - "full_restore_meets_rpo_rto"
+      - "on_call_and_incident_destinations_tested"
+      - "all_version_and_capacity_values_resolved"
+
+promotion:
+  artifact_rebuild_between_environments_allowed: false
+  data_copy_between_environments_allowed: false
+  secret_copy_plaintext_allowed: false
+  required_identity:
+    source_revision: true
+    release_id: true
+    image_digests: ["web", "api", "worker"]
+    config_version: true
+    cdk_template_hashes: true
+    contract_versions: true
+    evidence_refs: true
+
+required_tags:
+  Project: "campus247"
+  Environment: "environment_name"
+  ManagedBy: "aws-cdk"
+  Owner: "stable_role"
+  CostCenter: "UNRESOLVED_until_finance_approval"
+  DataClassification: "resource_specific"
+  DataMode: "synthetic_only"
+  Criticality: "resource_specific"
+  BackupPolicy: "resource_specific"
+
+validation:
+  unknown_environment_behavior: "fail"
+  unknown_key_behavior: "fail"
+  production_null_required_field_behavior: "block_deploy"
+  mock_auth_in_production_behavior: "fail_startup"
+  real_data_without_approval_behavior: "fail_startup_and_deploy"
+  cross_environment_reference_behavior: "fail_deploy"
+

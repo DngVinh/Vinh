@@ -1,0 +1,62 @@
+schema_version: "1.0"
+id: "TASK-API-EXAMPLE-999"
+phase: "P00"
+title: "Replace with one observable objective"
+status: "draft"
+objective: "Implement one testable behavior without changing any normative source."
+layer: "api"
+bounded_context: "example"
+priority: "P1"
+estimated_minutes: 30
+sensitivity: "low"
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: ["REQ-F-EXAMPLE-001"]
+  design: ["ARCH-003"]
+  contracts: ["API-EXAMPLE-001"]
+  controls: []
+  evals: []
+dependencies: []
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: "full"
+  - path: "docs/example.md"
+    load: "section"
+    ids: ["REQ-F-EXAMPLE-001"]
+write_scope:
+  allowed_paths: ["services/api/src/example.py", "tests/api/test_example.py"]
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 2
+  max_added_lines: 150
+preconditions:
+  - "Every dependency is accepted and referenced sources are approved."
+steps:
+  - "Read all inputs and inspect the nearest existing implementation and test pattern."
+  - "Implement only the stated behavior through the approved application boundary."
+  - "Add focused positive and failure-path tests, then run verification."
+acceptance_criteria:
+  - id: "AC-TASK-API-EXAMPLE-999-01"
+    assertion: "The requested behavior is observable through the approved boundary."
+  - id: "AC-TASK-API-EXAMPLE-999-02"
+    assertion: "The failure path is deterministic and causes no unintended side effect."
+verification:
+  - command: "python -m pytest -q tests/api/test_example.py"
+    expected_exit_code: 0
+    proves: "Focused behavior and failure-path tests pass."
+evidence_required: ["changed-file list", "command exit codes", "acceptance-to-test mapping"]
+recovery:
+  strategy: "reverse_patch"
+  steps: ["Apply a reviewed reverse patch limited to this task's changed files."]
+stop_conditions:
+  - "A required contract is missing, conflicting or not approved."
+  - "Completion requires a path outside write_scope or a new dependency."
+parallelism:
+  eligible: true
+  conflict_keys: ["example-api"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

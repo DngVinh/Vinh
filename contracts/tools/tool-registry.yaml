@@ -1,0 +1,183 @@
+document_id: "DOC-TOOL-003"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+approvers: ["AI Architecture Lead", "Security Architect", "Product Owner"]
+last_updated: "2026-09-21"
+schema_version: "1.0"
+registry_id: "TOOL-REGISTRY-V1"
+defaults:
+  deny_unknown_tools: true
+  validate_formats: true
+  audit_required: true
+  trusted_context_from_model_forbidden: true
+  write_requires_idempotency: true
+tools:
+  - tool_id: "TOOL-SCHEDULE-001"
+    name: "student_schedule_get"
+    contract_version: "1.0.0"
+    description_for_model: "Tra cứu lịch của chính người dùng trong khoảng ngày giới hạn. Không nhận student_id."
+    side_effect: "read"
+    input_schema_ref: "student-schedule-get.schema.yaml#/$defs/input"
+    output_schema_ref: "student-schedule-get.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_owns_schedule_or_staff_scope"
+      subject_source: "trusted_context"
+      disclose_not_found: false
+    confirmation:
+      mode: "none"
+    execution:
+      timeout_ms: 2500
+      max_attempts: 2
+      retry_safe: true
+      circuit_breaker: "schedule-read"
+    result_privacy: "personal"
+    audit_events: ["candidate_validated", "authorization_decided", "execution_started", "execution_succeeded", "execution_failed", "result_disclosed"]
+
+  - tool_id: "TOOL-TICKET-001"
+    name: "ticket_create"
+    contract_version: "1.0.0"
+    description_for_model: "Tạo yêu cầu hỗ trợ sau khi hiển thị preview và người dùng xác nhận."
+    side_effect: "write"
+    input_schema_ref: "ticket-create.schema.yaml#/$defs/input"
+    output_schema_ref: "ticket-create.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_may_create_ticket_for_self_or_authorized_staff_subject"
+      requester_source: "trusted_context"
+      queue_mapping_source: "approved_routing_table"
+    confirmation:
+      mode: "required"
+      expires_in_seconds: 600
+      schema_ref: "confirmation.schema.yaml#/$defs/resume_input"
+    idempotency:
+      required: true
+      payload_fields: ["category", "subject", "description", "contact_preference", "attachment_refs"]
+    execution:
+      timeout_ms: 5000
+      max_attempts: 1
+      retry_safe: false
+      reconcile_on_uncertain: true
+      circuit_breaker: "ticket-write"
+    result_privacy: "personal"
+    audit_events: ["candidate_validated", "authorization_decided", "preview_created", "confirmation_requested", "confirmation_approved", "confirmation_rejected", "confirmation_expired", "execution_started", "execution_succeeded", "execution_failed", "execution_uncertain", "result_disclosed"]
+
+  - tool_id: "TOOL-TICKET-002"
+    name: "ticket_get"
+    contract_version: "1.0.0"
+    description_for_model: "Xem một ticket khi người dùng là chủ sở hữu hoặc cán bộ được phân công."
+    side_effect: "read"
+    input_schema_ref: "ticket-get.schema.yaml#/$defs/input"
+    output_schema_ref: "ticket-get.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_owns_ticket_or_is_authorized_assignee"
+      resource_attributes_source: "server_lookup"
+      disclose_not_found: false
+    confirmation:
+      mode: "none"
+    execution:
+      timeout_ms: 2500
+      max_attempts: 2
+      retry_safe: true
+      circuit_breaker: "ticket-read"
+    result_privacy: "personal"
+    audit_events: ["candidate_validated", "authorization_decided", "execution_started", "execution_succeeded", "execution_failed", "result_disclosed"]
+
+  - tool_id: "TOOL-DOCUMENT-001"
+    name: "document_request_create"
+    contract_version: "1.0.0"
+    description_for_model: "Tạo yêu cầu cấp giấy tờ thuộc danh mục cho phép sau preview và xác nhận."
+    side_effect: "write"
+    input_schema_ref: "document-request-create.schema.yaml#/$defs/input"
+    output_schema_ref: "document-request-create.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_may_request_allowed_document_for_self"
+      requester_source: "trusted_context"
+      allowed_types_source: "document_type_registry"
+    confirmation:
+      mode: "required"
+      expires_in_seconds: 600
+      schema_ref: "confirmation.schema.yaml#/$defs/resume_input"
+    idempotency:
+      required: true
+      payload_fields: ["document_type", "purpose", "delivery_method", "copies"]
+    execution:
+      timeout_ms: 5000
+      max_attempts: 1
+      retry_safe: false
+      reconcile_on_uncertain: true
+      circuit_breaker: "document-request-write"
+    result_privacy: "personal"
+    audit_events: ["candidate_validated", "authorization_decided", "preview_created", "confirmation_requested", "confirmation_approved", "confirmation_rejected", "confirmation_expired", "execution_started", "execution_succeeded", "execution_failed", "execution_uncertain", "result_disclosed"]
+
+  - tool_id: "TOOL-ROOM-001"
+    name: "room_availability_search"
+    contract_version: "1.0.0"
+    description_for_model: "Tìm phòng trống theo thời gian, sức chứa và thiết bị; không đặt phòng."
+    side_effect: "read"
+    input_schema_ref: "room-availability-search.schema.yaml#/$defs/input"
+    output_schema_ref: "room-availability-search.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "authenticated_actor_may_search_rooms"
+    confirmation:
+      mode: "none"
+    execution:
+      timeout_ms: 2500
+      max_attempts: 2
+      retry_safe: true
+      circuit_breaker: "room-read"
+    result_privacy: "internal"
+    audit_events: ["candidate_validated", "authorization_decided", "execution_started", "execution_succeeded", "execution_failed", "result_disclosed"]
+
+  - tool_id: "TOOL-ROOM-002"
+    name: "room_booking_create"
+    contract_version: "1.0.0"
+    description_for_model: "Đặt một phòng đã chọn sau kiểm tra lại availability, preview và xác nhận."
+    side_effect: "write"
+    input_schema_ref: "room-booking-create.schema.yaml#/$defs/input"
+    output_schema_ref: "room-booking-create.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_may_book_room_for_authorized_purpose"
+      requester_source: "trusted_context"
+      resource_attributes_source: "server_lookup"
+    confirmation:
+      mode: "required"
+      expires_in_seconds: 600
+      schema_ref: "confirmation.schema.yaml#/$defs/resume_input"
+    idempotency:
+      required: true
+      payload_fields: ["room_id", "starts_at", "ends_at", "purpose", "attendee_count"]
+    execution:
+      timeout_ms: 5000
+      max_attempts: 1
+      retry_safe: false
+      reconcile_on_uncertain: true
+      circuit_breaker: "room-write"
+      precondition_recheck: "room_still_available"
+    result_privacy: "internal"
+    audit_events: ["candidate_validated", "authorization_decided", "preview_created", "confirmation_requested", "confirmation_approved", "confirmation_rejected", "confirmation_expired", "execution_started", "execution_succeeded", "execution_failed", "execution_uncertain", "result_disclosed"]
+
+  - tool_id: "TOOL-HITL-001"
+    name: "handover_create"
+    contract_version: "1.0.0"
+    description_for_model: "Chuyển yêu cầu cho hàng chờ hỗ trợ được hệ thống lựa chọn; không liên hệ cơ quan bên ngoài."
+    side_effect: "write"
+    input_schema_ref: "handover-create.schema.yaml#/$defs/input"
+    output_schema_ref: "handover-create.schema.yaml#/$defs/output"
+    authorization:
+      policy_rule: "actor_or_approved_safety_policy_may_create_handover"
+      queue_mapping_source: "approved_routing_table"
+    confirmation:
+      mode: "policy_exception"
+      exception_rule: "critical_or_high_sensitive_case_internal_queue_only"
+    idempotency:
+      required: true
+      payload_fields: ["category", "severity", "summary", "reason_codes", "related_reference_ids"]
+    execution:
+      timeout_ms: 3000
+      max_attempts: 2
+      retry_safe: true
+      reconcile_on_uncertain: true
+      circuit_breaker: "handover-write"
+    result_privacy: "sensitive"
+    audit_events: ["candidate_validated", "authorization_decided", "execution_started", "execution_succeeded", "execution_failed", "execution_uncertain", "result_disclosed"]
+

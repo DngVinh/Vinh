@@ -1,0 +1,34 @@
+schema_version: "1.1"
+id: TASK-API-CHAT-003
+phase: P05
+title: Persist structured actor-owned answer feedback
+status: accepted
+objective: Implement validated structured answer feedback tied to immutable answer, source, model and prompt references without changing conversation history.
+layer: api
+bounded_context: answer-feedback
+priority: P1
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: [REQ-F-CHAT-007]
+  acceptance_criteria: [AC-REQ-F-CHAT-007-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: [ARCH-004]
+  contracts: [API-CONV-001]
+  controls: [SEC-AUTHZ-002]
+  evals: []
+dependencies: [TASK-API-CHAT-001]
+inputs: [{path: docs/00-governance/DOCUMENT_CONTROL.md, load: full}, {path: docs/01-product/requirements.yaml, load: section, ids: [REQ-F-CHAT-007, AC-REQ-F-CHAT-007-01]}]
+write_scope: {allowed_paths: [services/api/src/campus247/application/conversations/feedback.py, services/api/src/campus247/presentation/feedback.py, tests/api/test_answer_feedback.py], forbidden_paths: [docs/**, contracts/**, .git/**], max_files: 3, max_added_lines: 220}
+preconditions: [Every dependency is accepted and every normative input is approved for this environment., The orchestrator has confirmed a clean non-overlapping write lease for this task.]
+steps: [Read inputs and ownership patterns., Implement only validated feedback persistence., Add ownership and storage-failure tests., Run verification and return schema-valid evidence.]
+acceptance_criteria: [{id: AC-TASK-API-CHAT-003-01, assertion: Feedback retains immutable answer source model and prompt references.}, {id: AC-TASK-API-CHAT-003-02, assertion: A storage failure is retryable and does not alter conversation history.}, {id: AC-TASK-API-CHAT-003-03, assertion: All changed files are within the declared scope.}]
+verification: [{command: python -m pytest -q tests/api/test_answer_feedback.py, expected_exit_code: 0, proves: Feedback ownership and failure behavior pass.}]
+evidence_required: [initial and final git status, changed-file and diff summary, commands with exit codes, acceptance-to-evidence mapping]
+recovery: {strategy: reverse_patch, steps: [Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.]}
+stop_conditions: [A required source is missing conflicting changed after review or not approved., Completion requires an unlisted file dependency network call secret or destructive operation.]
+parallelism: {eligible: true, conflict_keys: [answer-feedback]}
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}

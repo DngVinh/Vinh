@@ -1,0 +1,45 @@
+document_id: "DOC-TOOL-SCHEMA-002"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+approvers: ["Security Architect", "AI Architecture Lead"]
+last_updated: "2026-09-21"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/tool-invocation.schema.yaml"
+title: "Internal tool broker invocation"
+type: "object"
+additionalProperties: false
+required: ["schema_version", "invocation_id", "request_id", "turn_id", "tool_id", "contract_version", "arguments", "trusted_context_ref", "registry_version"]
+properties:
+  schema_version:
+    const: "1.0"
+  invocation_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  request_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  turn_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  tool_id:
+    type: "string"
+    pattern: "^TOOL-[A-Z]+-[0-9]{3}$"
+  contract_version:
+    type: "string"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  arguments:
+    type: "object"
+  trusted_context_ref:
+    $ref: "common.schema.yaml#/$defs/reference_id"
+  registry_version:
+    type: "string"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  preview_id:
+    oneOf:
+      - $ref: "common.schema.yaml#/$defs/uuid"
+      - type: "null"
+  confirmation_token:
+    type: ["string", "null"]
+    minLength: 20
+    maxLength: 4096
+  idempotency_key:
+    type: ["string", "null"]
+    pattern: "^[A-Za-z0-9_-]{20,128}$"

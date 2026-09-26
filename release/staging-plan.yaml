@@ -1,0 +1,30 @@
+schema_version: "1.0"
+plan_id: "PLAN-STAGING-20260922-01"
+environment: "synthetic-staging"
+release_candidate: "1.0.0-rc1"
+data_classification: "SYNTHETIC_ONLY"
+target_stacks:
+  - "NetworkStack"
+  - "DatabaseStack"
+  - "CacheStack"
+  - "AsyncStack"
+  - "ComputeStack"
+  - "EdgeStack"
+  - "MonitoringStack"
+preflight_checks:
+  catalog_valid: true
+  contracts_valid: true
+  regression_suite_passed: true
+  zero_real_pii_confirmed: true
+smoke_suite:
+  - endpoint: "/health/live"
+    expected_status: 200
+  - endpoint: "/health/ready"
+    expected_status: 200
+  - endpoint: "/v1/capabilities"
+    expected_status: 200
+rollback_strategy:
+  type: "fast_failover"
+  steps:
+    - "Divert traffic at ALB level"
+    - "Preserve isolated staging logs and snapshot"

@@ -1,0 +1,89 @@
+schema_version: '1.0'
+id: TASK-TEST-SOAK-001
+phase: P09
+title: Run staging soak failover and alert drill
+status: accepted
+objective: Implement run staging soak failover and alert drill as one bounded, testable deliverable without changing upstream
+  behavior.
+layer: test
+bounded_context: staging-deploy
+priority: P0
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- paid_service
+- security_policy
+traceability:
+  requirements: [REQ-NF-SCALE-002]
+  acceptance_criteria: [AC-REQ-NF-SCALE-002-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - ARCH-005
+  - ARCH-007
+  contracts: []
+  controls:
+  - SEC-AUDIT-018
+  - SEC-CTRL-020
+  evals: []
+dependencies:
+- TASK-OPS-STAGING-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/04-architecture/core/ARCH-005_DEPLOYMENT_TOPOLOGY.md
+  load: full
+write_scope:
+  allowed_paths:
+  - release/staging-soak.yaml
+  - release/staging-alert-drill.yaml
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement run staging soak failover and alert drill as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-TEST-SOAK-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement run staging soak failover and alert drill as one bounded,
+    testable deliverable without changing upstream behavior.'
+- id: AC-TASK-TEST-SOAK-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-TEST-SOAK-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q
+  expected_exit_code: 0
+  proves: The relevant automated regression suite passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: false
+  conflict_keys:
+  - staging-deploy
+execution_policy:
+  max_fix_attempts: 2
+  network_access: true
+  paid_services: true
+  destructive_operations: false

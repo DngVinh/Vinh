@@ -1,0 +1,76 @@
+schema_version: "1.1"
+id: TASK-TEST-WEB-002
+phase: P09
+title: "Verify the redesigned journeys in real browser evidence"
+status: draft
+objective: "Produce auditable real-browser evidence for every redesigned P0 journey across mobile, tablet, desktop, keyboard and 200-percent zoom."
+layer: test
+bounded_context: redesign-browser-evidence
+priority: P0
+estimated_minutes: 45
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: ["REQ-NF-A11Y-001", "REQ-NF-A11Y-004"]
+  acceptance_criteria: ["AC-REQ-NF-A11Y-001-01", "AC-REQ-NF-A11Y-004-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: ["UX-A11Y-001"]
+  contracts: []
+  controls: []
+  evals: []
+dependencies: ["TASK-WEB-HOME-002", "TASK-WEB-CITE-002", "TASK-WEB-SCHED-003", "TASK-WEB-TICK-003", "TASK-WEB-DOCREQ-002", "TASK-WEB-ROOM-003", "TASK-WEB-SAFE-001", "TASK-WEB-STAFF-002", "TASK-WEB-KNOW-002", "TASK-WEB-OPS-002", "TASK-WEB-PRIV-002"]
+inputs: [{path: "docs/00-governance/DOCUMENT_CONTROL.md", load: "full"}, {path: "docs/03-ux/ACCESSIBILITY.md", load: "full"}, {path: "docs/03-ux/UI_STATE_MATRIX.yaml", load: "full"}]
+write_scope:
+  allowed_paths: ["tests/pilot/test_ui_redesign_evidence.py", "tests/pilot/ui-redesign-manifest.yaml", "release/evidence/ui-redesign-report.md"]
+  forbidden_paths: [docs/**, contracts/**, .git/**]
+  max_files: 3
+  max_added_lines: 300
+preconditions:
+  - Every dependency is accepted and every normative input is approved for this environment.
+  - The assigned task status is ready and any required human approval names this task and exact scope.
+  - The orchestrator confirmed a clean non-overlapping write lease and the executor preserved all pre-existing workspace changes.
+steps:
+  - Read every input and each existing allowed target before editing.
+  - "Run the built app in an approved browser environment, exercise named user goals and failure states at 360, 768 and 1280 CSS pixels, record screenshot and observation references, verify focus and reflow manually, and label any unavailable browser check not_verified rather than substituting jsdom."
+  - Implement only the stated objective within the allowed paths and do not change requirements contracts routes authorization or expected results.
+  - Add or update focused positive keyboard responsive and failure-path evidence that fits this objective.
+  - Run every verification command in order then inspect git status and the exact changed-file set.
+  - Return one JSON object conforming to tasks/task-output.schema.json with acceptance-to-evidence mapping.
+acceptance_criteria:
+  - id: AC-TASK-TEST-WEB-002-01
+    assertion: "Produce auditable real-browser evidence for every redesigned P0 journey across mobile, tablet, desktop, keyboard and 200-percent zoom."
+  - id: AC-TASK-TEST-WEB-002-02
+    assertion: "Run the built app in an approved browser environment, exercise named user goals and failure states at 360, 768 and 1280 CSS pixels, record screenshot and observation references, verify focus and reflow manually, and label any unavailable browser check not_verified rather than substituting jsdom."
+  - id: AC-TASK-TEST-WEB-002-03
+    assertion: Required failure keyboard and responsive states have reproducible evidence with no fabricated success or data.
+  - id: AC-TASK-TEST-WEB-002-04
+    assertion: Every changed file is inside the declared scope and no unrelated workspace state was altered.
+verification:
+  - command: "python -m pytest -q tests/pilot/test_ui_redesign_evidence.py"
+    expected_exit_code: 0
+    proves: "The evidence manifest covers required journeys, viewports, keyboard, zoom, outcomes and artifact references."
+evidence_required:
+  - initial and final git status
+  - changed-file and diff summary
+  - commands with exit codes
+  - acceptance-to-evidence mapping
+  - browser or manual evidence marked not_verified when unavailable
+recovery:
+  strategy: reverse_patch
+  steps:
+    - Keep the patch unpromoted and apply only a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+  - A required source is missing conflicting changed after approval or not approved.
+  - Completion needs an unlisted file dependency network call secret destructive action or a change to a higher-authority artifact.
+  - Visual or browser claims cannot be reproduced in the available environment.
+parallelism:
+  eligible: false
+  conflict_keys: ["redesign-browser-evidence"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

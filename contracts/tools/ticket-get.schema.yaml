@@ -1,0 +1,64 @@
+document_id: "DOC-TOOL-TICKET-002"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/ticket-get.schema.yaml"
+title: "ticket_get contract"
+description: "Ownership and assignment checks use server-side resource attributes and trusted identity."
+$defs:
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["ticket_id"]
+    properties:
+      ticket_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+  result:
+    type: "object"
+    additionalProperties: false
+    required: ["ticket_id", "category", "priority", "status", "subject", "description", "queue_key", "created_at", "updated_at", "version"]
+    properties:
+      ticket_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      category:
+        type: "string"
+        enum: ["GENERAL_SUPPORT", "ACADEMIC_POLICY", "DOCUMENT_REQUEST_SUPPORT", "FACILITY", "COMPLAINT", "OTHER"]
+      priority: {type: "string", enum: ["LOW", "NORMAL", "HIGH", "CRITICAL"]}
+      status:
+        type: "string"
+        enum: ["DRAFT", "CONFIRMATION_REQUIRED", "OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_STUDENT", "RESOLVED", "CLOSED", "ESCALATED", "CANCELLED"]
+      subject: {type: "string", minLength: 1, maxLength: 200}
+      description: {type: "string", minLength: 1, maxLength: 5000}
+      queue_key: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      assigned_user_id:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/uuid"
+          - type: "null"
+      sla_due_at: {type: ["string", "null"], format: "date-time"}
+      created_at: {type: "string", format: "date-time"}
+      updated_at: {type: "string", format: "date-time"}
+      version: {type: "integer", minimum: 1}
+  output:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "result", "error"]
+    properties:
+      status: {type: "string", enum: ["succeeded", "failed", "uncertain"]}
+      result:
+        oneOf:
+          - $ref: "#/$defs/result"
+          - type: "null"
+      error:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/tool_error"
+          - type: "null"
+    allOf:
+      - if: {properties: {status: {const: "succeeded"}}}
+        then:
+          properties:
+            result: {$ref: "#/$defs/result"}
+            error: {type: "null"}
+      - if: {properties: {status: {enum: ["failed", "uncertain"]}}}
+        then:
+          properties:
+            result: {type: "null"}
+            error: {$ref: "common.schema.yaml#/$defs/tool_error"}

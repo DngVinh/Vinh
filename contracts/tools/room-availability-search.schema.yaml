@@ -1,0 +1,75 @@
+document_id: "DOC-TOOL-ROOM-001"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/room-availability-search.schema.yaml"
+title: "room_availability_search contract"
+description: "Advisory search only; availability must be rechecked atomically before a booking write."
+$defs:
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["starts_at", "ends_at", "minimum_capacity", "required_features"]
+    properties:
+      starts_at: {type: "string", format: "date-time"}
+      ends_at: {type: "string", format: "date-time"}
+      minimum_capacity: {type: "integer", minimum: 1, maximum: 1000}
+      required_features:
+        type: "array"
+        maxItems: 20
+        uniqueItems: true
+        items: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      max_results: {type: "integer", minimum: 1, maximum: 50, default: 20}
+  room_match:
+    type: "object"
+    additionalProperties: false
+    required: ["room_id", "room_code", "display_name", "capacity", "features", "available"]
+    properties:
+      room_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      room_code: {type: "string", minLength: 1, maxLength: 32}
+      display_name: {type: "string", minLength: 1, maxLength: 160}
+      capacity: {type: "integer", minimum: 1, maximum: 1000}
+      features:
+        type: "array"
+        uniqueItems: true
+        items: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+      available: {type: "boolean"}
+  result:
+    type: "object"
+    additionalProperties: false
+    required: ["starts_at", "ends_at", "rooms", "advisory", "searched_at"]
+    properties:
+      starts_at: {type: "string", format: "date-time"}
+      ends_at: {type: "string", format: "date-time"}
+      rooms:
+        type: "array"
+        maxItems: 50
+        items: {$ref: "#/$defs/room_match"}
+      advisory: {const: true}
+      searched_at: {type: "string", format: "date-time"}
+  output:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "result", "error"]
+    properties:
+      status: {type: "string", enum: ["succeeded", "failed", "uncertain"]}
+      result:
+        oneOf:
+          - $ref: "#/$defs/result"
+          - type: "null"
+      error:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/tool_error"
+          - type: "null"
+    allOf:
+      - if: {properties: {status: {const: "succeeded"}}}
+        then:
+          properties:
+            result: {$ref: "#/$defs/result"}
+            error: {type: "null"}
+      - if: {properties: {status: {enum: ["failed", "uncertain"]}}}
+        then:
+          properties:
+            result: {type: "null"}
+            error: {$ref: "common.schema.yaml#/$defs/tool_error"}

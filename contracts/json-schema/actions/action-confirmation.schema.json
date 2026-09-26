@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/actions/action-confirmation.schema.json",
+  "title": "ActionConfirmationRequest",
+  "description": "Explicit confirmation request for exactly one immutable action preview.",
+  "x-document-control": {
+    "document_id": "API-SCHEMA-ACTION-CONFIRM-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "API Architect",
+    "approvers": ["Security Lead", "Product Owner"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "preview_id",
+    "confirmation_token",
+    "accepted",
+    "client_confirmed_at"
+  ],
+  "properties": {
+    "preview_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "confirmation_token": {
+      "type": "string",
+      "minLength": 22,
+      "maxLength": 512,
+      "writeOnly": true
+    },
+    "accepted": {"type": "boolean", "const": true},
+    "client_confirmed_at": {"type": "string", "format": "date-time"}
+  }
+}

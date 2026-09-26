@@ -1,0 +1,20 @@
+seed: 2026
+sources_count: 15
+documents_count: 15
+topics:
+  - hoc_phi
+  - tin_chi
+  - thu_tuc_giay_to
+  - muon_phong_hoc
+  - khan_cap_y_te
+  - tot_nghiep
+  - hoc_bong
+  - diem_ren_luyen
+  - canh_bao_hoc_tap
+  - phuc_khao_hoan_thi
+  - song_bang_chuyen_nganh
+  - ky_tuc_xa
+  - tam_hoan_nghia_vu
+  - do_an_tot_nghiep_cntt
+  - chuan_dau_ra_ngoai_ngu
+environment: HUCE Demo synthetic-only

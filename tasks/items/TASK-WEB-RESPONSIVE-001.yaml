@@ -1,0 +1,87 @@
+schema_version: '1.0'
+id: TASK-WEB-RESPONSIVE-001
+phase: P06
+title: Add small medium and desktop viewport snapshots
+status: accepted
+objective: Implement add small medium and desktop viewport snapshots as one bounded, testable deliverable without changing
+  upstream behavior.
+layer: test
+bounded_context: web-accessibility
+priority: P1
+estimated_minutes: 30
+sensitivity: low
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: [REQ-NF-A11Y-004]
+  acceptance_criteria: [AC-REQ-NF-A11Y-004-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - ASM-005
+  - UX-A11Y-001
+  contracts: []
+  controls: []
+  evals: []
+dependencies:
+- TASK-WEB-HITL-001
+- TASK-WEB-STAFF-001
+- TASK-WEB-KNOW-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/03-ux/README.md
+  load: full
+write_scope:
+  allowed_paths:
+  - apps/web/e2e/responsive.spec.ts
+  - apps/web/e2e/responsive.snapshots.json
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement add small medium and desktop viewport snapshots as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-WEB-RESPONSIVE-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement add small medium and desktop viewport snapshots as
+    one bounded, testable deliverable without changing upstream behavior.'
+- id: AC-TASK-WEB-RESPONSIVE-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-WEB-RESPONSIVE-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: corepack pnpm --dir apps/web exec playwright test apps/web/e2e/responsive.spec.ts
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - shared-snapshots
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

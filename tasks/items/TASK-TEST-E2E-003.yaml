@@ -1,0 +1,87 @@
+schema_version: '1.0'
+id: TASK-TEST-E2E-003
+phase: P07
+title: Add sensitive handover browser journey
+status: accepted
+objective: Implement add sensitive handover browser journey as one bounded, testable deliverable without changing upstream
+  behavior.
+layer: test
+bounded_context: end-to-end
+priority: P0
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- security_policy
+- legal_privacy
+traceability:
+  requirements:
+  - REQ-F-HITL-006
+  design:
+  - UX-HITL-001
+  contracts:
+  - TOOL-HITL-001
+  controls:
+  - SEC-CTRL-025
+  evals:
+  - EVAL-METRIC-009
+dependencies:
+- TASK-WEB-HITL-001
+- TASK-EVAL-SAFE-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/02-service-design/HANDOVER_AND_EMERGENCY_PLAYBOOK.md
+  load: full
+write_scope:
+  allowed_paths:
+  - apps/web/e2e/handover.spec.ts
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 1
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement add sensitive handover browser journey as one bounded, testable deliverable without
+  changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-TEST-E2E-003-01
+  assertion: 'The deliverable satisfies the single objective: Implement add sensitive handover browser journey as one bounded,
+    testable deliverable without changing upstream behavior.'
+- id: AC-TASK-TEST-E2E-003-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-TEST-E2E-003-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: corepack pnpm --dir apps/web exec playwright test apps/web/e2e/handover.spec.ts
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - end-to-end-test
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

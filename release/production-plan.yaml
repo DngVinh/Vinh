@@ -1,0 +1,25 @@
+schema_version: "1.0"
+change_ticket: "CHG-PROD-20260922-01"
+environment: "production-isolated-gate"
+target_release: "1.0.0-rc1"
+deployment_type: "human_gated_dry_run"
+governance_compliance:
+  launch_readiness_ref: "release/launch-readiness.yaml"
+  evidence_manifest_ref: "release/evidence-manifest.yaml"
+  institutional_gates_respected: true
+change_stages:
+  - stage: "preflight_validation"
+    action: "Verify 100% test passing and clean git working tree"
+  - stage: "security_and_egress_audit"
+    action: "Enforce zero egress to live DeepSeek or third-party networks"
+  - stage: "simulated_stack_provision"
+    action: "Verify CDK CloudFormation synthesis and container task definitions"
+  - stage: "smoke_and_audit_verification"
+    action: "Execute smoke checks on local/staging isolated container targets"
+  - stage: "rollback_assurance"
+    action: "Confirm reverse patch strategy and DNS failover readiness"
+rollback_plan:
+  type: "instant_standby_rollback"
+  steps:
+    - "Abort deployment pipeline"
+    - "Maintain existing immutable artifact revision"

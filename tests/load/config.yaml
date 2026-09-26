@@ -1,0 +1,22 @@
+schema_version: "1.0"
+plan_id: "HUCE-PEAK-200-CONCURRENT"
+workload:
+  peak_concurrent_users: 200
+  ramp_up_seconds: 10
+  steady_state_seconds: 30
+  target_slo:
+    p95_latency_ms: 2500
+    p99_latency_ms: 5000
+scenarios:
+  - id: "SCENARIO-FAQ-RAG"
+    weight_percent: 50
+    method: "POST"
+    path: "/api/v1/conversations/messages"
+  - id: "SCENARIO-SCHEDULE"
+    weight_percent: 30
+    method: "GET"
+    path: "/api/v1/schedule/own"
+  - id: "SCENARIO-TICKETS"
+    weight_percent: 20
+    method: "GET"
+    path: "/api/v1/tickets"

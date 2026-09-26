@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/common/error.schema.json",
+  "title": "Campus247ProblemDetails",
+  "description": "RFC 9457-compatible problem details with stable Campus 24/7 extensions.",
+  "x-document-control": {
+    "document_id": "API-SCHEMA-ERROR-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "API Architect",
+    "approvers": ["Solution Architect", "Security Lead"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "status",
+    "detail",
+    "instance",
+    "code",
+    "request_id",
+    "retryable"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://campus247\\.example/problems/[a-z0-9-]+$"
+    },
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "status": {"type": "integer", "minimum": 400, "maximum": 599},
+    "detail": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "instance": {"type": "string", "format": "uri-reference", "maxLength": 300},
+    "code": {
+      "type": "string",
+      "enum": [
+        "AUTHENTICATION_REQUIRED",
+        "IDENTITY_PROVIDER_NOT_ALLOWED",
+        "ROLE_MAPPING_FAILED",
+        "FORBIDDEN",
+        "RESOURCE_NOT_FOUND",
+        "VALIDATION_FAILED",
+        "UNSUPPORTED_MEDIA_TYPE",
+        "PAYLOAD_TOO_LARGE",
+        "VERSION_CONFLICT",
+        "INVALID_STATE_TRANSITION",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_REUSED",
+        "IDEMPOTENCY_IN_PROGRESS",
+        "ACTION_PREVIEW_EXPIRED",
+        "ACTION_PREVIEW_ALREADY_USED",
+        "ACTION_CONFIRMATION_INVALID",
+        "POLICY_DENIED",
+        "ROOM_SLOT_UNAVAILABLE",
+        "CITATION_UNRESOLVABLE",
+        "RATE_LIMITED",
+        "DEPENDENCY_UNAVAILABLE",
+        "INTEGRATION_NOT_ENABLED",
+        "EVENT_PUBLISH_FAILED",
+        "INTERNAL_ERROR"
+      ]
+    },
+    "request_id": {"$ref": "#/$defs/uuidV7"},
+    "retryable": {"type": "boolean"},
+    "errors": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {"$ref": "#/$defs/fieldError"}
+    }
+  },
+  "$defs": {
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "fieldError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "pointer", "detail"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+        "pointer": {
+          "type": "string",
+          "description": "RFC 6901 JSON Pointer; empty string denotes the whole document.",
+          "maxLength": 500
+        },
+        "detail": {"type": "string", "minLength": 1, "maxLength": 500}
+      }
+    }
+  }
+}

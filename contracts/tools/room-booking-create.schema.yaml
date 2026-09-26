@@ -1,0 +1,58 @@
+document_id: "DOC-TOOL-ROOM-002"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/room-booking-create.schema.yaml"
+title: "room_booking_create contract"
+description: "Requester and organization scope are trusted context; confirmation and atomic conflict checks are broker responsibilities."
+$defs:
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["room_id", "starts_at", "ends_at", "purpose", "attendee_count"]
+    properties:
+      room_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      starts_at: {type: "string", format: "date-time"}
+      ends_at: {type: "string", format: "date-time"}
+      purpose: {type: "string", minLength: 1, maxLength: 300}
+      attendee_count: {type: "integer", minimum: 1, maximum: 1000}
+  result:
+    type: "object"
+    additionalProperties: false
+    required: ["booking_id", "room_id", "starts_at", "ends_at", "purpose", "attendee_count", "status", "created_at", "version"]
+    properties:
+      booking_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      room_id: {$ref: "common.schema.yaml#/$defs/uuid"}
+      starts_at: {type: "string", format: "date-time"}
+      ends_at: {type: "string", format: "date-time"}
+      purpose: {type: "string", minLength: 1, maxLength: 300}
+      attendee_count: {type: "integer", minimum: 1, maximum: 1000}
+      status: {const: "CONFIRMED"}
+      created_at: {type: "string", format: "date-time"}
+      version: {type: "integer", minimum: 1}
+  output:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "result", "error"]
+    properties:
+      status: {type: "string", enum: ["succeeded", "failed", "uncertain"]}
+      result:
+        oneOf:
+          - $ref: "#/$defs/result"
+          - type: "null"
+      error:
+        oneOf:
+          - $ref: "common.schema.yaml#/$defs/tool_error"
+          - type: "null"
+    allOf:
+      - if: {properties: {status: {const: "succeeded"}}}
+        then:
+          properties:
+            result: {$ref: "#/$defs/result"}
+            error: {type: "null"}
+      - if: {properties: {status: {enum: ["failed", "uncertain"]}}}
+        then:
+          properties:
+            result: {type: "null"}
+            error: {$ref: "common.schema.yaml#/$defs/tool_error"}

@@ -1,0 +1,16 @@
+{
+  "name": "@campus247/infra-cdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AWS CDK TypeScript infrastructure definitions for Campus 24/7",
+  "scripts": {
+    "build": "tsc",
+    "synth": "node bin/app.js",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

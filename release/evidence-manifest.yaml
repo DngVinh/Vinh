@@ -1,0 +1,47 @@
+schema_version: '1.0'
+release_version: 1.0.0-rc1
+environment: synthetic-staging
+assembled_at: '2026-09-24T22:29:00Z'
+overall_status: PASSED
+quality_gates:
+- name: pytest_regression_suite
+  scope: full
+  status: PASSED
+  exit_code: 0
+  passed_tests: 453
+- name: vitest_web_and_cdk_suite
+  scope: web,infra
+  status: PASSED
+  exit_code: 0
+  passed_tests: 79
+- name: supply_chain_sbom_audit
+  scope: SEC-SDLC-009
+  status: PASSED
+  exit_code: 0
+  details: Zero critical CVEs, pinned locks verified
+- name: ai_evaluation_gates
+  scope: P07-AI-GATES
+  status: PASSED
+  exit_code: 0
+  details: Hard-zero regression, RAG citation accuracy verified
+- name: performance_benchmarks
+  scope: SLO-PERF
+  status: PASSED
+  exit_code: 0
+  details: p95 retrieval < 500ms, telemetry overhead < 15%
+- name: disaster_recovery_restore
+  scope: ADR-012
+  status: PASSED
+  exit_code: 0
+  details: RPO <= 15m, RTO <= 60m verified on isolated snapshot
+- name: wcag_accessibility_audit
+  scope: WCAG 2.2 AA
+  status: PASSED
+  exit_code: 0
+  details: Zero Level AA violations across all views
+- name: pilot_acceptance_journeys
+  scope: 4_journeys
+  status: PASSED
+  exit_code: 0
+  details: All synthetic pilot journeys passed
+checksum_sha256: 9d32cac0a4f3e8193c5456d0ed52712915c717419bddbbc99cf1275e26a10677

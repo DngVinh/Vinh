@@ -1,0 +1,34 @@
+schema_version: "1.1"
+id: TASK-API-STAFF-002
+phase: P05
+title: Append an immutable staff response and audit decision
+status: accepted
+objective: Implement one authorized staff response that appends immutable timeline and audit records or fails closed when mandatory audit recording is unavailable.
+layer: application
+bounded_context: staff-response-audit
+priority: P0
+estimated_minutes: 35
+sensitivity: critical
+human_approval_required: true
+approval_reasons: [authorization, security_policy]
+traceability:
+  requirements: [REQ-F-STAFF-004, REQ-F-STAFF-006]
+  acceptance_criteria: [AC-REQ-F-STAFF-004-01, AC-REQ-F-STAFF-006-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: [ARCH-004]
+  contracts: [EVT-BASE-001]
+  controls: [SEC-AUDIT-001, SEC-AUDIT-022]
+  evals: []
+dependencies: [TASK-API-STAFF-001, TASK-API-AUDIT-001]
+inputs: [{path: docs/00-governance/DOCUMENT_CONTROL.md, load: full}, {path: docs/01-product/requirements.yaml, load: section, ids: [REQ-F-STAFF-004, AC-REQ-F-STAFF-004-01, REQ-F-STAFF-006, AC-REQ-F-STAFF-006-01]}]
+write_scope: {allowed_paths: [services/api/src/campus247/application/staff/respond.py, tests/integration/staff/test_case_response.py], forbidden_paths: [docs/**, contracts/**, .git/**], max_files: 2, max_added_lines: 200}
+preconditions: [Every dependency is accepted and every normative input is approved for this environment., The orchestrator has confirmed a clean non-overlapping write lease for this task.]
+steps: [Read input and audit patterns., Implement only append-only response and audit decision., Add duplicate and audit-unavailable tests., Run verification and return schema-valid evidence.]
+acceptance_criteria: [{id: AC-TASK-API-STAFF-002-01, assertion: A permitted response produces one immutable timeline event with actor and time.}, {id: AC-TASK-API-STAFF-002-02, assertion: Mandatory audit failure prevents a high-impact mutation.}, {id: AC-TASK-API-STAFF-002-03, assertion: All changed files are within the declared scope.}]
+verification: [{command: python -m pytest -q tests/integration/staff/test_case_response.py, expected_exit_code: 0, proves: Staff response and audit failure tests pass.}]
+evidence_required: [initial and final git status, changed-file and diff summary, commands with exit codes, acceptance-to-evidence mapping]
+recovery: {strategy: reverse_patch, steps: [Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.]}
+stop_conditions: [A required source is missing conflicting changed after review or not approved., Completion requires an unlisted file dependency network call secret or destructive operation.]
+parallelism: {eligible: true, conflict_keys: [staff-response-audit]}
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}

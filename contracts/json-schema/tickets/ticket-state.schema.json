@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/tickets/ticket-state.schema.json",
+  "title": "TicketState",
+  "description": "Canonical Campus 24/7 ticket lifecycle state.",
+  "x-document-control": {
+    "document_id": "DATA-SCHEMA-TICKET-STATE-001",
+    "version": "1.0.0",
+    "status": "reviewed",
+    "owner": "Domain Architect",
+    "approvers": ["Product Owner", "Operations Lead"],
+    "last_updated": "2026-09-21"
+  },
+  "type": "string",
+  "enum": [
+    "DRAFT",
+    "CONFIRMATION_REQUIRED",
+    "OPEN",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "WAITING_STUDENT",
+    "RESOLVED",
+    "CLOSED",
+    "ESCALATED",
+    "CANCELLED"
+  ]
+}

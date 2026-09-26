@@ -1,0 +1,503 @@
+schema_version: "1.0.0"
+document:
+  id: "OPS-ALARM-SPEC-001"
+  status: "draft"
+  owner: "SRE Lead"
+  last_updated: "2026-09-22"
+
+policy:
+  namespace_prefix: "Campus247"
+  personal_dimensions_allowed: false
+  raw_payload_in_notification_allowed: false
+  page_requires_runbook: true
+  page_requires_primary_and_backup_owner: true
+  threshold_status: "initial_operational_defaults_requiring_staging_validation"
+  alarm_name_pattern: "campus247-{environment}-{alarm_id}"
+  missing_data_defaults:
+    availability: "breaching_when_expected_traffic_or_probe_exists"
+    sparse_security_event: "notBreaching"
+    continuous_resource_metric: "missing"
+  severity_routes:
+    critical: "on_call_page_and_incident"
+    high: "on_call_page"
+    warning: "operations_ticket"
+    info: "dashboard_only"
+
+alarms:
+  - id: "ALM-EDGE-001"
+    name: "edge-high-5xx"
+    severity: "high"
+    owner: "SRE Lead"
+    backup_owner: "Platform Lead"
+    runbook_id: "RB-API-001"
+    source: "AWS/ApplicationELB"
+    expression: "HTTPCode_ELB_5XX_Count + HTTPCode_Target_5XX_Count divided by RequestCount"
+    comparison: "GreaterThanThreshold"
+    threshold: 0.05
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "notBreaching"
+    dimensions: ["LoadBalancer"]
+    response: "page; correlate CloudFront/WAF/targets/release"
+  - id: "ALM-EDGE-002"
+    name: "alb-no-healthy-api-target"
+    severity: "critical"
+    owner: "SRE Lead"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-API-001"
+    source: "AWS/ApplicationELB"
+    metric: "HealthyHostCount"
+    statistic: "Minimum"
+    comparison: "LessThanThreshold"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 3
+    datapoints_to_alarm: 2
+    treat_missing_data: "breaching"
+    dimensions: ["LoadBalancer", "TargetGroupApi"]
+    response: "page and stop active rollout"
+  - id: "ALM-WEB-001"
+    name: "web-readiness-failure"
+    severity: "high"
+    owner: "Web Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-API-001"
+    source: "CloudWatchSyntheticsOrCustom"
+    metric: "web_readiness_success"
+    statistic: "Minimum"
+    comparison: "LessThanThreshold"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "breaching"
+    dimensions: ["Environment"]
+    response: "page; compare edge and ECS service"
+  - id: "ALM-API-001"
+    name: "api-readiness-failure"
+    severity: "critical"
+    owner: "Backend Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-API-001"
+    source: "CloudWatchSyntheticsOrCustom"
+    metric: "api_readiness_success"
+    statistic: "Minimum"
+    comparison: "LessThanThreshold"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "breaching"
+    dimensions: ["Environment"]
+    response: "page; identify required dependency and capability state"
+  - id: "ALM-API-002"
+    name: "api-fast-error-budget-burn"
+    severity: "critical"
+    owner: "SRE Lead"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-API-001"
+    source: "metric_math"
+    expression: "max(burn_rate_5m, burn_rate_30m) with both windows breaching configured fast thresholds"
+    comparison: "GreaterThanThreshold"
+    threshold: 1
+    period_seconds: 300
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "missing"
+    dimensions: ["Environment", "SLOId=SLO-API-001"]
+    configurable:
+      target_ratio: 0.999
+      burn_rate_short: 14.4
+      burn_rate_long: 6.0
+    response: "page; freeze risky release and inspect top failure slices"
+  - id: "ALM-API-003"
+    name: "api-slow-error-budget-burn"
+    severity: "warning"
+    owner: "SRE Lead"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-API-001"
+    source: "metric_math"
+    expression: "burn_rate_6h and burn_rate_24h exceed configured slow thresholds"
+    comparison: "GreaterThanThreshold"
+    threshold: 1
+    period_seconds: 3600
+    evaluation_periods: 6
+    datapoints_to_alarm: 4
+    treat_missing_data: "missing"
+    dimensions: ["Environment", "SLOId=SLO-API-001"]
+    configurable:
+      target_ratio: 0.999
+      burn_rate_short: 3.0
+      burn_rate_long: 1.0
+    response: "create operations ticket and reliability review"
+  - id: "ALM-ECS-001"
+    name: "api-cpu-sustained-high"
+    severity: "warning"
+    owner: "Platform Lead"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-API-001"
+    source: "AWS/ECS"
+    metric: "CPUUtilization"
+    statistic: "Average"
+    comparison: "GreaterThanThreshold"
+    threshold: 80
+    period_seconds: 300
+    evaluation_periods: 3
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["ClusterName", "ServiceName=api"]
+    response: "verify latency, pool and autoscaling headroom"
+  - id: "ALM-ECS-002"
+    name: "api-memory-sustained-high"
+    severity: "high"
+    owner: "Platform Lead"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-API-001"
+    source: "AWS/ECS"
+    metric: "MemoryUtilization"
+    statistic: "Average"
+    comparison: "GreaterThanThreshold"
+    threshold: 85
+    period_seconds: 300
+    evaluation_periods: 3
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["ClusterName", "ServiceName=api"]
+    response: "page if correlated with restart/OOM; do not scale beyond DB budget"
+  - id: "ALM-DB-001"
+    name: "rds-unavailable-or-failover"
+    severity: "critical"
+    owner: "Data Platform Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-DATA-001"
+    source: "RDS_event_and_application_readiness"
+    expression: "critical RDS availability event or sustained database dependency failure"
+    comparison: "BooleanTrue"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 2
+    datapoints_to_alarm: 1
+    treat_missing_data: "missing"
+    dimensions: ["DBInstanceIdentifier"]
+    response: "page; enter write-safe degraded mode"
+  - id: "ALM-DB-002"
+    name: "rds-connections-near-tested-limit"
+    severity: "high"
+    owner: "Data Platform Owner"
+    backup_owner: "Backend Lead"
+    runbook_id: "RB-DATA-001"
+    source: "metric_math"
+    expression: "DatabaseConnections divided by configured_tested_connection_limit"
+    comparison: "GreaterThanThreshold"
+    threshold: 0.80
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["DBInstanceIdentifier"]
+    required_configuration: ["tested_connection_limit"]
+    response: "page; cap concurrency and inspect pool wait"
+  - id: "ALM-DB-003"
+    name: "rds-free-storage-low"
+    severity: "high"
+    owner: "Data Platform Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-DATA-001"
+    source: "metric_math"
+    expression: "FreeStorageSpace divided by AllocatedStorageBytes"
+    comparison: "LessThanThreshold"
+    threshold: 0.20
+    period_seconds: 300
+    evaluation_periods: 3
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["DBInstanceIdentifier"]
+    response: "page; forecast growth, preserve recovery headroom"
+  - id: "ALM-DB-004"
+    name: "db-pool-wait-high"
+    severity: "high"
+    owner: "Backend Lead"
+    backup_owner: "Data Platform Owner"
+    runbook_id: "RB-DATA-001"
+    source: "Campus247/Application"
+    metric: "db_pool_wait_ms_p95"
+    statistic: "p95"
+    comparison: "GreaterThanThreshold"
+    threshold: null
+    required_configuration: ["T_db_pool_wait_p95_ms_from_load_test"]
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["Environment", "Service"]
+    response: "block production until threshold configured; then page"
+  - id: "ALM-CACHE-001"
+    name: "redis-primary-or-connectivity-failure"
+    severity: "high"
+    owner: "Data Platform Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-CACHE-001"
+    source: "ElastiCache_event_and_application_metric"
+    expression: "failover event or dependency error ratio above 0.20 for 5 minutes"
+    comparison: "BooleanTrue"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "missing"
+    dimensions: ["ReplicationGroupId"]
+    response: "page; verify safe bypass and DB load"
+  - id: "ALM-ASYNC-001"
+    name: "critical-outbox-oldest-age"
+    severity: "critical"
+    owner: "Backend Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-ASYNC-001"
+    source: "Campus247/Application"
+    metric: "outbox_oldest_age_seconds"
+    statistic: "Maximum"
+    comparison: "GreaterThanThreshold"
+    threshold: 5
+    period_seconds: 60
+    evaluation_periods: 2
+    datapoints_to_alarm: 2
+    treat_missing_data: "missing"
+    dimensions: ["Environment", "EventClass=critical"]
+    response: "page; preserve committed outbox, inspect relay/SQS"
+  - id: "ALM-ASYNC-002"
+    name: "queue-oldest-message-normal"
+    severity: "high"
+    owner: "Backend Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-ASYNC-001"
+    source: "AWS/SQS"
+    metric: "ApproximateAgeOfOldestMessage"
+    statistic: "Maximum"
+    comparison: "GreaterThanThreshold"
+    threshold: 300
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "notBreaching"
+    dimensions: ["QueueName"]
+    response: "page; stop noncritical ingestion and inspect consumer"
+  - id: "ALM-ASYNC-003"
+    name: "dlq-has-visible-message"
+    severity: "high"
+    owner: "Backend Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-ASYNC-001"
+    source: "AWS/SQS"
+    metric: "ApproximateNumberOfMessagesVisible"
+    statistic: "Maximum"
+    comparison: "GreaterThanThreshold"
+    threshold: 0
+    period_seconds: 60
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "notBreaching"
+    dimensions: ["DeadLetterQueueName"]
+    response: "page; no automatic redrive or purge"
+  - id: "ALM-LLM-001"
+    name: "llm-provider-error-ratio"
+    severity: "high"
+    owner: "AI Platform Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-LLM-001"
+    source: "Campus247/AI"
+    expression: "llm failed or timed_out requests divided by eligible llm requests"
+    comparison: "GreaterThanThreshold"
+    threshold: 0.20
+    period_seconds: 60
+    evaluation_periods: 5
+    datapoints_to_alarm: 3
+    treat_missing_data: "notBreaching"
+    dimensions: ["Environment", "ProviderAlias"]
+    response: "page; open circuit and enter DEGRADED_NO_LLM"
+  - id: "ALM-LLM-002"
+    name: "llm-circuit-open-sustained"
+    severity: "warning"
+    owner: "AI Platform Lead"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-LLM-001"
+    source: "Campus247/AI"
+    metric: "llm_circuit_state_open"
+    statistic: "Maximum"
+    comparison: "GreaterThanOrEqualToThreshold"
+    threshold: 1
+    period_seconds: 60
+    evaluation_periods: 10
+    datapoints_to_alarm: 10
+    treat_missing_data: "notBreaching"
+    dimensions: ["Environment", "ProviderAlias"]
+    response: "create incident/ticket; maintain degraded mode"
+  - id: "ALM-SEC-001"
+    name: "external-pii-egress-block"
+    severity: "critical"
+    owner: "Security Operations Owner"
+    backup_owner: "Privacy Owner"
+    runbook_id: "RB-SEC-001"
+    source: "Campus247/Security"
+    metric: "external_pii_block_total"
+    statistic: "Sum"
+    comparison: "GreaterThanThreshold"
+    threshold: 0
+    period_seconds: 60
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "notBreaching"
+    dimensions: ["Environment", "DestinationClass"]
+    response: "page security/privacy; block affected egress"
+  - id: "ALM-SEC-002"
+    name: "synthetic-data-guard-violation"
+    severity: "critical"
+    owner: "Security Operations Owner"
+    backup_owner: "Data Owner"
+    runbook_id: "RB-SEC-001"
+    source: "Campus247/Security"
+    metric: "synthetic_guard_violations_total"
+    statistic: "Sum"
+    comparison: "GreaterThanThreshold"
+    threshold: 0
+    period_seconds: 60
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "notBreaching"
+    dimensions: ["Environment", "Guard"]
+    response: "page and quarantine dataset/release"
+  - id: "ALM-AUDIT-001"
+    name: "audit-delivery-failure"
+    severity: "critical"
+    owner: "Security Operations Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-AUDIT-001"
+    source: "Campus247/Security"
+    metric: "audit_delivery_errors_total"
+    statistic: "Sum"
+    comparison: "GreaterThanThreshold"
+    threshold: 0
+    period_seconds: 60
+    evaluation_periods: 2
+    datapoints_to_alarm: 1
+    treat_missing_data: "breaching_when_writes_exist"
+    dimensions: ["Environment", "AuditSink"]
+    response: "page; fail high-risk paths closed"
+  - id: "ALM-BACKUP-001"
+    name: "backup-job-failed"
+    severity: "critical"
+    owner: "Data Resilience Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-BACKUP-001"
+    source: "AWS/Backup_events"
+    expression: "backup job state FAILED, ABORTED, or EXPIRED unexpectedly"
+    comparison: "BooleanTrue"
+    threshold: 1
+    period_seconds: 300
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "notBreaching"
+    dimensions: ["BackupVaultName"]
+    response: "page; assess recovery point gap"
+  - id: "ALM-BACKUP-002"
+    name: "recovery-point-age-exceeds-rpo"
+    severity: "critical"
+    owner: "Data Resilience Owner"
+    backup_owner: "Data Platform Owner"
+    runbook_id: "RB-BACKUP-001"
+    source: "Campus247/Operations"
+    metric: "latest_recoverable_point_age_seconds"
+    statistic: "Maximum"
+    comparison: "GreaterThanThreshold"
+    threshold: 900
+    period_seconds: 300
+    evaluation_periods: 2
+    datapoints_to_alarm: 2
+    treat_missing_data: "breaching"
+    dimensions: ["Environment", "ResourceClass"]
+    response: "page; production readiness/continuity at risk"
+  - id: "ALM-RETENTION-001"
+    name: "retention-job-lag"
+    severity: "warning"
+    owner: "Privacy Operations Owner"
+    backup_owner: "SRE Lead"
+    runbook_id: "RB-BACKUP-001"
+    source: "Campus247/Operations"
+    metric: "retention_job_lag_seconds"
+    statistic: "Maximum"
+    comparison: "GreaterThanThreshold"
+    threshold: 86400
+    period_seconds: 3600
+    evaluation_periods: 2
+    datapoints_to_alarm: 2
+    treat_missing_data: "breaching"
+    dimensions: ["Environment", "RetentionRule"]
+    response: "privacy operations ticket; assess sustained-failure write restriction"
+  - id: "ALM-COST-001"
+    name: "monthly-budget-forecast-50"
+    severity: "info"
+    owner: "Finance Owner"
+    backup_owner: "Platform Lead"
+    runbook_id: "RB-COST-001"
+    source: "AWS/Billing"
+    metric: "ForecastedChargesPercentOfApprovedBudget"
+    comparison: "GreaterThanOrEqualToThreshold"
+    threshold: 50
+    period_seconds: 21600
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "missing"
+    required_configuration: ["approved_monthly_budget", "currency", "billing_metric_access"]
+    response: "notify finance/platform; review forecast"
+  - id: "ALM-COST-002"
+    name: "monthly-budget-forecast-75"
+    severity: "warning"
+    owner: "Finance Owner"
+    backup_owner: "Platform Lead"
+    runbook_id: "RB-COST-001"
+    source: "AWS/Billing"
+    metric: "ForecastedChargesPercentOfApprovedBudget"
+    comparison: "GreaterThanOrEqualToThreshold"
+    threshold: 75
+    period_seconds: 21600
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "missing"
+    required_configuration: ["approved_monthly_budget", "currency", "billing_metric_access"]
+    response: "open cost incident and identify driver"
+  - id: "ALM-COST-003"
+    name: "monthly-budget-forecast-90"
+    severity: "high"
+    owner: "Finance Owner"
+    backup_owner: "Platform Lead"
+    runbook_id: "RB-COST-001"
+    source: "AWS/Billing"
+    metric: "ForecastedChargesPercentOfApprovedBudget"
+    comparison: "GreaterThanOrEqualToThreshold"
+    threshold: 90
+    period_seconds: 21600
+    evaluation_periods: 1
+    datapoints_to_alarm: 1
+    treat_missing_data: "missing"
+    required_configuration: ["approved_monthly_budget", "currency", "billing_metric_access"]
+    response: "page finance/platform; apply approved noncritical throttles"
+
+validation:
+  unique_alarm_ids: true
+  required_fields:
+    - "id"
+    - "severity"
+    - "owner"
+    - "backup_owner"
+    - "runbook_id"
+    - "source"
+    - "comparison"
+    - "threshold"
+    - "period_seconds"
+    - "evaluation_periods"
+    - "datapoints_to_alarm"
+    - "treat_missing_data"
+    - "response"
+  null_threshold_behavior: "block_deploy_until_required_configuration_is_resolved"
+  production_budget_alarm_behavior_when_budget_null: "block_production_readiness"
+

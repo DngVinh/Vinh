@@ -1,0 +1,62 @@
+document_id: "DOC-TOOL-SCHEMA-004"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+approvers: ["Security Architect", "Product Owner"]
+last_updated: "2026-09-21"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/action-preview.schema.yaml"
+title: "Write action preview"
+type: "object"
+additionalProperties: false
+required: ["schema_version", "preview_id", "tool_id", "contract_version", "payload_hash", "summary", "impact_message_key", "recipient_label", "created_at", "expires_at", "policy_version", "idempotency_key_ref"]
+properties:
+  schema_version: {const: "1.0"}
+  preview_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  tool_id:
+    type: "string"
+    pattern: "^TOOL-[A-Z]+-[0-9]{3}$"
+  contract_version:
+    type: "string"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  payload_hash:
+    $ref: "common.schema.yaml#/$defs/sha256"
+  summary:
+    type: "array"
+    minItems: 1
+    maxItems: 20
+    items:
+      type: "object"
+      additionalProperties: false
+      required: ["label_key", "display_value"]
+      properties:
+        label_key:
+          type: "string"
+          pattern: "^[a-z0-9_.-]{1,100}$"
+        display_value:
+          type: "string"
+          minLength: 1
+          maxLength: 500
+        redacted:
+          type: "boolean"
+          default: false
+  impact_message_key:
+    type: "string"
+    pattern: "^[a-z0-9_.-]{1,100}$"
+  recipient_label:
+    type: "string"
+    minLength: 1
+    maxLength: 200
+  created_at:
+    type: "string"
+    format: "date-time"
+  expires_at:
+    type: "string"
+    format: "date-time"
+  policy_version:
+    type: "string"
+    minLength: 1
+    maxLength: 50
+  idempotency_key_ref:
+    $ref: "common.schema.yaml#/$defs/reference_id"

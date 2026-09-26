@@ -1,0 +1,1515 @@
+openapi: 3.1.2
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+x-document-control:
+  document_id: API-OAS-V1-001
+  version: 1.1.0
+  status: reviewed
+  owner: API Architect
+  approvers:
+    - Solution Architect
+    - Security Lead
+    - Product Owner
+  last_updated: 2026-09-22
+info:
+  title: Campus 24/7 API
+  version: 1.1.0
+  description: >-
+    Contract-first HTTP API skeleton for the single-institution HUCE Demo V1.
+    All data is synthetic until real-data approvals exist. Write actions are
+    created only through preview and explicit confirmation.
+  contact:
+    name: Campus 24/7 Architecture
+servers:
+  - url: http://localhost:8000
+    description: Local development with synthetic data only
+  - url: https://api.staging.campus247.example
+    description: Staging placeholder; synthetic data only
+tags:
+  - name: System
+  - name: Identity
+  - name: Schedule
+  - name: Conversations
+  - name: Actions
+  - name: Tickets
+  - name: DocumentRequests
+  - name: Rooms
+  - name: RoomBookings
+  - name: Handovers
+  - name: Knowledge
+  - name: Operations
+  - name: Feedback
+  - name: Privacy
+security:
+  - bearerAuth: []
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      tags: [System]
+      security: []
+      x-contract-id: API-SYS-001
+      x-requirement-ids: [REQ-NF-REL-001]
+      x-control-ids: [SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-CONTRACT-001]
+      summary: Process liveness
+      responses:
+        "200":
+          description: Process is alive; does not assert dependency readiness.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        default:
+          $ref: "#/components/responses/Problem"
+  /health/ready:
+    get:
+      operationId: getReadiness
+      tags: [System]
+      security: []
+      x-contract-id: API-SYS-002
+      x-requirement-ids: [REQ-NF-REL-004, REQ-F-AUTH-004]
+      x-control-ids: [SEC-CTRL-002, SEC-CTRL-020]
+      x-test-ids: [TASK-TEST-OPENAPI-001, TASK-TEST-SEC-001]
+      summary: Dependency readiness
+      responses:
+        "200":
+          description: Required dependencies are ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessStatus"
+        "503":
+          $ref: "#/components/responses/Problem"
+  /v1/users/me:
+    get:
+      operationId: getCurrentUser
+      tags: [Identity]
+      x-contract-id: API-IDENTITY-001
+      x-requirement-ids: [REQ-F-AUTH-001, REQ-F-AUTH-002]
+      x-control-ids: [SEC-CTRL-002, SEC-CTRL-003]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Resolve the current user only from verified authentication context
+      responses:
+        "200":
+          description: Current synthetic user and effective role bindings.
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+        "401": {$ref: "#/components/responses/Problem"}
+        "403": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/auth/logout:
+    post:
+      operationId: logoutCurrentSession
+      tags: [Identity]
+      x-contract-id: API-AUTH-001
+      x-requirement-ids: [REQ-F-AUTH-003]
+      x-control-ids: [SEC-CTRL-002, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-SEC-001, TASK-TEST-CONTRACT-001]
+      summary: Invalidate the current authenticated session
+      description: >-
+        The server revokes the current session or token identifier before returning
+        success. This endpoint has no role-selection input and never creates a demo
+        identity. A revocation failure is an error; clients MUST NOT treat it as logout.
+      responses:
+        "204":
+          description: Current session is invalidated. The response has no body.
+        "401": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/students/me/schedule:
+    get:
+      operationId: listMySchedule
+      tags: [Schedule]
+      x-contract-id: API-SCHEDULE-001
+      x-requirement-ids: [REQ-F-SCHEDULE-001, REQ-F-SCHEDULE-002, REQ-F-SCHEDULE-003, REQ-F-SCHEDULE-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-001]
+      summary: List the authenticated student's synthetic schedule
+      parameters:
+        - $ref: "#/components/parameters/FromDateTime"
+        - $ref: "#/components/parameters/ToDateTime"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Schedule page ordered by starts_at ASC, id ASC.
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchedulePage"
+        "401": {$ref: "#/components/responses/Problem"}
+        "403": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/conversations:
+    get:
+      operationId: listMyConversations
+      tags: [Conversations]
+      x-contract-id: API-CONV-001
+      x-requirement-ids: [REQ-F-CHAT-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-001]
+      summary: List conversations owned by the current user
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Conversation page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationPage"
+        default: {$ref: "#/components/responses/Problem"}
+    post:
+      operationId: createConversation
+      tags: [Conversations]
+      x-contract-id: API-CONV-002
+      x-requirement-ids: [REQ-F-CHAT-001]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-CONTRACT-001, TASK-TEST-E2E-001]
+      summary: Create an empty conversation
+      description: >-
+        This is a reversible container creation and does not execute an external
+        business side effect. It still requires idempotency to prevent duplicates.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "201":
+          description: Conversation created.
+          headers:
+            Location:
+              required: true
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "400": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/conversations/{conversation_id}/messages:
+    get:
+      operationId: listConversationMessages
+      tags: [Conversations]
+      x-contract-id: API-CONV-003
+      x-requirement-ids: [REQ-F-CHAT-001, REQ-F-CHAT-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-001]
+      summary: List messages for an authorized conversation
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Messages ordered by sequence_no ASC.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagePage"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/conversations/{conversation_id}/messages:stream:
+    post:
+      operationId: streamConversationMessage
+      tags: [Conversations]
+      x-contract-id: API-CONV-004
+      x-requirement-ids: [REQ-F-CHAT-002, REQ-F-CHAT-003, REQ-F-CHAT-005, REQ-F-CHAT-006]
+      x-control-ids: [SEC-CTRL-006, SEC-CTRL-013, SEC-CTRL-014]
+      x-test-ids: [TASK-TEST-CONTRACT-001, TASK-TEST-SEC-001]
+      summary: Submit a message and stream the assistant response using SSE
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - name: Last-Event-ID
+          in: header
+          required: false
+          schema: {type: string, maxLength: 128}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageRequest"
+      responses:
+        "200":
+          description: >-
+            SSE stream with message.started, message.delta, citation.added,
+            message.completed or message.failed events. Only message.completed is final.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: UTF-8 Server-Sent Events stream.
+        "404": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/conversations/{conversation_id}/messages/{message_id}/feedback:
+    post:
+      operationId: createAnswerFeedback
+      tags: [Feedback]
+      x-contract-id: API-FEEDBACK-001
+      x-requirement-ids: [REQ-F-CHAT-007]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006, SEC-CTRL-015, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Record structured feedback for an owned assistant answer
+      description: >-
+        The server authorizes conversation and answer ownership, then binds the
+        rating to immutable server-side answer, source-version, model-version and
+        prompt-version references. Clients cannot submit or replace those references.
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/MessageId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAnswerFeedbackRequest"
+      responses:
+        "201":
+          description: Feedback recorded against immutable answer metadata.
+          headers:
+            Location:
+              required: true
+              schema: {type: string, format: uri-reference}
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerFeedbackReceipt"
+        "401": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/actions/preview:
+    post:
+      operationId: createActionPreview
+      tags: [Actions]
+      x-contract-id: API-ACTION-001
+      x-requirement-ids: [REQ-F-TICKET-003, REQ-F-DOC-003, REQ-F-ROOM-004, REQ-F-HITL-002, REQ-F-KNOW-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006, SEC-CTRL-008]
+      x-test-ids: [TASK-TEST-ACTION-001, TASK-TEST-CONTRACT-001]
+      summary: Validate and preview one write action without executing it
+      description: >-
+        The actor is always resolved from authentication context. The server
+        normalizes payload, evaluates policy and returns a one-time confirmation token.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionPreviewRequest"
+      responses:
+        "201":
+          description: Immutable action preview awaiting confirmation.
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "../../json-schema/actions/action-preview.schema.json"
+        "400": {$ref: "#/components/responses/Problem"}
+        "403": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/actions/{preview_id}/confirm:
+    post:
+      operationId: confirmAction
+      tags: [Actions]
+      x-contract-id: API-ACTION-002
+      x-requirement-ids: [REQ-F-TICKET-004, REQ-F-ROOM-005, REQ-F-HITL-003, REQ-F-KNOW-005]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-008, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-ACTION-001, TASK-TEST-SEC-001]
+      summary: Confirm and execute exactly the immutable preview
+      parameters:
+        - $ref: "#/components/parameters/PreviewId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../../json-schema/actions/action-confirmation.schema.json"
+      responses:
+        "202":
+          description: Execution accepted or idempotently replayed.
+          headers:
+            Location:
+              required: true
+              schema: {type: string, format: uri-reference}
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionExecution"
+        "403": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/action-executions/{execution_id}:
+    get:
+      operationId: getActionExecution
+      tags: [Actions]
+      x-contract-id: API-ACTION-003
+      x-requirement-ids: [REQ-F-TICKET-005, REQ-F-DOC-004, REQ-F-ROOM-005, REQ-F-HITL-004, REQ-F-KNOW-007]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-ACTION-001, TASK-TEST-E2E-002]
+      summary: Read an authorized action execution result
+      parameters:
+        - $ref: "#/components/parameters/ExecutionId"
+      responses:
+        "200":
+          description: Current execution status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionExecution"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/tickets:
+    get:
+      operationId: listMyTickets
+      tags: [Tickets]
+      x-contract-id: API-TICKET-001
+      x-requirement-ids: [REQ-F-TICKET-006, REQ-F-TICKET-007]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: List tickets visible to the current user
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            maxItems: 10
+            items:
+              $ref: "../../json-schema/tickets/ticket-state.schema.json"
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: Ticket page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketPage"
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/tickets/{ticket_id}:
+    get:
+      operationId: getTicket
+      tags: [Tickets]
+      x-contract-id: API-TICKET-002
+      x-requirement-ids: [REQ-F-TICKET-006, REQ-F-TICKET-007]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: Get an authorized ticket
+      parameters:
+        - $ref: "#/components/parameters/TicketId"
+      responses:
+        "200":
+          description: Ticket resource.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/document-requests:
+    get:
+      operationId: listMyDocumentRequests
+      tags: [DocumentRequests]
+      x-contract-id: API-DOC-001
+      x-requirement-ids: [REQ-F-DOC-001, REQ-F-DOC-002]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: List the current student's synthetic document requests
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Document request page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentRequestPage"
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/document-requests/{document_request_id}:
+    get:
+      operationId: getDocumentRequest
+      tags: [DocumentRequests]
+      x-contract-id: API-DOC-002
+      x-requirement-ids: [REQ-F-DOC-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: Get an authorized synthetic document request
+      parameters:
+        - $ref: "#/components/parameters/DocumentRequestId"
+      responses:
+        "200":
+          description: Document request. It MUST be visibly marked synthetic.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentRequest"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/rooms:
+    get:
+      operationId: listRooms
+      tags: [Rooms]
+      x-contract-id: API-ROOM-001
+      x-requirement-ids: [REQ-F-ROOM-001]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-CONTRACT-001, TASK-TEST-E2E-002]
+      summary: List synthetic rooms
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: minimum_capacity
+          in: query
+          required: false
+          schema: {type: integer, minimum: 1, maximum: 1000}
+      responses:
+        "200":
+          description: Room page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomPage"
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/rooms/{room_id}/availability:
+    get:
+      operationId: getRoomAvailability
+      tags: [Rooms]
+      x-contract-id: API-ROOM-002
+      x-requirement-ids: [REQ-F-ROOM-001, REQ-F-ROOM-003]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-CONTRACT-001, TASK-TEST-E2E-002]
+      summary: Get advisory room availability for a bounded range
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/FromDateTime"
+        - $ref: "#/components/parameters/ToDateTime"
+      responses:
+        "200":
+          description: Advisory availability; confirmation rechecks conflicts atomically.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomAvailability"
+        "404": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/room-bookings:
+    get:
+      operationId: listMyRoomBookings
+      tags: [RoomBookings]
+      x-contract-id: API-BOOKING-001
+      x-requirement-ids: [REQ-F-ROOM-002, REQ-F-ROOM-005, REQ-F-ROOM-008]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: List room bookings visible to the current user
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Room booking page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomBookingPage"
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/room-bookings/{booking_id}:
+    get:
+      operationId: getRoomBooking
+      tags: [RoomBookings]
+      x-contract-id: API-BOOKING-002
+      x-requirement-ids: [REQ-F-ROOM-005, REQ-F-ROOM-008]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-002]
+      summary: Get an authorized room booking
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Room booking.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomBooking"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/handovers/{handover_id}:
+    get:
+      operationId: getHandover
+      tags: [Handovers]
+      x-contract-id: API-HANDOVER-001
+      x-requirement-ids: [REQ-F-HITL-001, REQ-F-HITL-004, REQ-F-HITL-006]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015, SEC-CTRL-025]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-003]
+      summary: Get a handover visible to requester or authorized staff
+      parameters:
+        - $ref: "#/components/parameters/HandoverId"
+      responses:
+        "200":
+          description: Minimized handover resource.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "../../json-schema/handover/handover.schema.json"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/staff/handovers:
+    get:
+      operationId: listStaffHandovers
+      tags: [Handovers]
+      x-contract-id: API-HANDOVER-002
+      x-requirement-ids: [REQ-F-HITL-001, REQ-F-HITL-004, REQ-F-HITL-006]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015, SEC-CTRL-025]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-E2E-003]
+      summary: List handovers in queues allowed by staff role bindings
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: queue_key
+          in: query
+          required: false
+          schema: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        - name: risk_level
+          in: query
+          required: false
+          schema:
+            type: array
+            maxItems: 4
+            items: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: Queue-scoped handover page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HandoverPage"
+        "403": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/knowledge/sources:
+    get:
+      operationId: listKnowledgeSources
+      tags: [Knowledge]
+      x-contract-id: API-KNOW-001
+      x-requirement-ids: [REQ-F-KNOW-001, REQ-F-KNOW-003, REQ-F-KNOW-006]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-012]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: List knowledge sources for authorized knowledge administrators
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Knowledge source page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeSourcePage"
+        "403": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/knowledge/sources/{source_id}:
+    get:
+      operationId: getKnowledgeSource
+      tags: [Knowledge]
+      x-contract-id: API-KNOW-002
+      x-requirement-ids: [REQ-F-KNOW-003, REQ-F-KNOW-006]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-012]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Get source metadata and version summaries
+      parameters:
+        - $ref: "#/components/parameters/SourceId"
+      responses:
+        "200":
+          description: Knowledge source.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeSource"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/knowledge/document-versions/{document_version_id}:
+    get:
+      operationId: getDocumentVersion
+      tags: [Knowledge]
+      x-contract-id: API-KNOW-003
+      x-requirement-ids: [REQ-F-KNOW-005, REQ-F-KNOW-007, REQ-F-KNOW-008, REQ-F-KNOW-009, REQ-F-KNOW-010]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-012]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Get document-version metadata and processing status
+      parameters:
+        - $ref: "#/components/parameters/DocumentVersionId"
+      responses:
+        "200":
+          description: Document version metadata; private object key is never returned.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentVersion"
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/operations/metrics:
+    get:
+      operationId: getOperationsMetrics
+      tags: [Operations]
+      x-contract-id: API-OPS-001
+      x-requirement-ids: [REQ-F-OPS-001, REQ-F-OPS-002, REQ-F-OPS-003, REQ-F-OPS-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Read aggregated non-PII operations metrics
+      parameters:
+        - $ref: "#/components/parameters/FromDateTime"
+        - $ref: "#/components/parameters/ToDateTime"
+      responses:
+        "200":
+          description: Aggregated metrics only; no raw prompts or user-level export.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationsMetrics"
+        "403": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/privacy/notice:
+    get:
+      operationId: getActivePrivacyNotice
+      tags: [Privacy]
+      security: []
+      x-contract-id: API-PRIV-001
+      x-requirement-ids: [REQ-F-PRIV-001]
+      x-control-ids: [SEC-CTRL-006, SEC-CTRL-015]
+      x-test-ids: [TASK-TEST-CONTRACT-001, TASK-TEST-SEC-001]
+      summary: Read the currently active versioned privacy notice
+      description: >-
+        This public, cache-controlled resource identifies the synthetic-demo
+        status, data categories, purposes, configured retention and the current
+        contact-placeholder status. Optional data collection MUST remain disabled
+        if no active notice can be retrieved.
+      responses:
+        "200":
+          description: Active notice with immutable version and effective date.
+          headers:
+            ETag:
+              required: true
+              schema: {type: string, pattern: '^"[1-9][0-9]*"$'}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacyNotice"
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/privacy/consents:
+    get:
+      operationId: listMyConsentDecisions
+      tags: [Privacy]
+      x-contract-id: API-PRIV-002
+      x-requirement-ids: [REQ-F-PRIV-002]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: List the current actor's consent decisions
+      responses:
+        "200":
+          description: Consent decisions without other users' data.
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentDecisionPage"
+        "401": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+    post:
+      operationId: recordConsentDecision
+      tags: [Privacy]
+      x-contract-id: API-PRIV-003
+      x-requirement-ids: [REQ-F-PRIV-001, REQ-F-PRIV-002]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006, SEC-CTRL-015, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001, TASK-TEST-SEC-001]
+      summary: Record an affirmative or withdrawn consent decision
+      description: >-
+        The server verifies that notice_version is the active notice for the
+        purpose and rejects unknown purposes, stale notices and absent notice
+        configuration. Withdrawal applies prospectively; this operation does not
+        retroactively delete data or make legal-completion claims.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordConsentDecisionRequest"
+      responses:
+        "201":
+          description: Immutable consent-decision receipt.
+          headers:
+            Location:
+              required: true
+              schema: {type: string, format: uri-reference}
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentDecision"
+        "401": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/privacy/requests:
+    post:
+      operationId: createPrivacyRequest
+      tags: [Privacy]
+      x-contract-id: API-PRIV-004
+      x-requirement-ids: [REQ-F-PRIV-001, REQ-F-PRIV-003]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-006, SEC-CTRL-015, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001, TASK-TEST-SEC-001]
+      summary: Create an authorized privacy-request receipt
+      description: >-
+        This creates a request and immutable receipt only. It never auto-deletes
+        data, exports data or claims legal completion. Any fulfilment remains a
+        separately authorized, auditable lifecycle.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../../json-schema/privacy/privacy-request.schema.json#/$defs/createRequest"
+      responses:
+        "201":
+          description: Typed privacy request and receipt created exactly once.
+          headers:
+            Location:
+              required: true
+              schema: {type: string, format: uri-reference}
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "../../json-schema/privacy/privacy-request.schema.json#/$defs/receipt"
+        "401": {$ref: "#/components/responses/Problem"}
+        "409": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "503": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/privacy/requests/{privacy_request_id}:
+    get:
+      operationId: getMyPrivacyRequestStatus
+      tags: [Privacy]
+      x-contract-id: API-PRIV-005
+      x-requirement-ids: [REQ-F-PRIV-004]
+      x-control-ids: [SEC-CTRL-003, SEC-CTRL-015, SEC-CTRL-018]
+      x-test-ids: [TASK-TEST-AUTHZ-001, TASK-TEST-CONTRACT-001]
+      summary: Read only the current actor's safe privacy-request status
+      description: >-
+        A request owned by another actor is answered with a non-disclosing 404.
+        The representation excludes internal notes, reviewer identity, raw
+        evidence and other users' request data.
+      parameters:
+        - $ref: "#/components/parameters/PrivacyRequestId"
+      responses:
+        "200":
+          description: Owner-visible status with no internal case notes.
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: "../../json-schema/privacy/privacy-request.schema.json#/$defs/statusView"
+        "401": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        default: {$ref: "#/components/responses/Problem"}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Synthetic signed JWT in demo. Future Entra OIDC maps to the same internal
+        identity context; clients MUST NOT send actor/role overrides.
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema: {type: string, minLength: 16, maxLength: 2048}
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+    FromDateTime:
+      name: from
+      in: query
+      required: true
+      schema: {type: string, format: date-time}
+    ToDateTime:
+      name: to
+      in: query
+      required: true
+      schema: {type: string, format: date-time}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+        pattern: '^[!-~]+$'
+    ConversationId: {$ref: "#/components/parameters/UuidConversationId"}
+    UuidConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    MessageId:
+      name: message_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    PreviewId:
+      name: preview_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    ExecutionId:
+      name: execution_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    TicketId:
+      name: ticket_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    DocumentRequestId:
+      name: document_request_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    RoomId:
+      name: room_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    BookingId:
+      name: booking_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    HandoverId:
+      name: handover_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    SourceId:
+      name: source_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    DocumentVersionId:
+      name: document_version_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+    PrivacyRequestId:
+      name: privacy_request_id
+      in: path
+      required: true
+      schema: {$ref: "#/components/schemas/UuidV7"}
+  responses:
+    Problem:
+      description: RFC 9457 problem details. Exact status and code depend on operation.
+      headers:
+        X-Request-Id:
+          required: true
+          schema: {$ref: "#/components/schemas/UuidV7"}
+        Retry-After:
+          required: false
+          schema: {type: string, maxLength: 100}
+      content:
+        application/problem+json:
+          schema:
+            $ref: "../../json-schema/common/error.schema.json"
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    HealthStatus:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: {type: string, const: alive}
+    ReadinessStatus:
+      type: object
+      additionalProperties: false
+      required: [status, dependencies, security_configuration]
+      properties:
+        status: {type: string, enum: [ready, degraded]}
+        dependencies:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, status]
+            properties:
+              name: {type: string, pattern: '^[a-z][a-z0-9_-]{1,63}$'}
+              status: {type: string, enum: [ready, unavailable, disabled]}
+        security_configuration:
+          type: object
+          additionalProperties: false
+          required: [demo_auth_guard]
+          description: >-
+            Coarse startup evidence only. It never enables, names, or routes a
+            demo role switch and must not expose identity-provider secrets.
+          properties:
+            demo_auth_guard:
+              type: string
+              enum: [ENFORCED, NOT_APPLICABLE]
+    Role:
+      type: string
+      enum: [STUDENT, SUPPORT_OFFICER, KNOWLEDGE_ADMIN, SYSTEM_ADMIN]
+    CurrentUser:
+      type: object
+      additionalProperties: false
+      required: [user_id, display_name, roles, is_synthetic]
+      properties:
+        user_id: {$ref: "#/components/schemas/UuidV7"}
+        display_name: {type: string, minLength: 1, maxLength: 160}
+        primary_email: {type: string, format: email}
+        roles:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {$ref: "#/components/schemas/Role"}
+        faculty_code: {type: string, const: FIT}
+        student_code: {type: string, pattern: '^SYN[0-9]{8}$'}
+        is_synthetic: {type: boolean, const: true}
+    CreateAnswerFeedbackRequest:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating:
+          type: string
+          enum: [HELPFUL, NOT_HELPFUL]
+        comment:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Optional actor feedback; answer/model/source metadata is server-derived.
+    AnswerFeedbackReference:
+      type: object
+      additionalProperties: false
+      required: [answer_id, source_document_version_ids, model_version, prompt_version]
+      properties:
+        answer_id: {$ref: "#/components/schemas/UuidV7"}
+        source_document_version_ids:
+          type: array
+          uniqueItems: true
+          maxItems: 20
+          items: {$ref: "#/components/schemas/UuidV7"}
+        model_version:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Immutable provider/model release identifier; never a raw prompt.
+        prompt_version:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Immutable prompt-template version identifier; prompt contents are never returned.
+    AnswerFeedbackReceipt:
+      type: object
+      additionalProperties: false
+      required: [id, conversation_id, rating, answer_reference, recorded_at]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        conversation_id: {$ref: "#/components/schemas/UuidV7"}
+        rating: {type: string, enum: [HELPFUL, NOT_HELPFUL]}
+        comment_recorded: {type: boolean}
+        answer_reference: {$ref: "#/components/schemas/AnswerFeedbackReference"}
+        recorded_at: {type: string, format: date-time}
+    PrivacyNotice:
+      type: object
+      additionalProperties: false
+      required: [notice_id, version, effective_at, status, disclaimer, data_categories, purposes, retention_summary]
+      properties:
+        notice_id: {$ref: "#/components/schemas/UuidV7"}
+        version: {type: string, pattern: '^[0-9]+\\.[0-9]+\\.[0-9]+$'}
+        effective_at: {type: string, format: date-time}
+        status: {type: string, const: ACTIVE}
+        disclaimer:
+          $ref: "../../json-schema/config/disclaimer.schema.json#/$defs/syntheticServiceDisclaimer"
+        data_categories:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {type: string, enum: [ACCOUNT_CONTEXT, CONVERSATION_CONTENT, REQUEST_METADATA, AUDIT_METADATA]}
+        purposes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {type: string, enum: [SERVICE_DELIVERY, SAFETY_HANDOVER, QUALITY_FEEDBACK, SECURITY_AUDIT]}
+        retention_summary:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [data_class, configured_rule]
+            properties:
+              data_class: {type: string, minLength: 1, maxLength: 80}
+              configured_rule: {type: string, pattern: '^PRIV-RET-[0-9]{3}$'}
+    RecordConsentDecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [purpose, decision, notice_version]
+      properties:
+        purpose: {type: string, enum: [QUALITY_FEEDBACK, OPTIONAL_PERSONALIZATION]}
+        decision: {type: string, enum: [GRANTED, WITHDRAWN]}
+        notice_version: {type: string, pattern: '^[0-9]+\\.[0-9]+\\.[0-9]+$'}
+    ConsentDecision:
+      type: object
+      additionalProperties: false
+      required: [id, purpose, decision, notice_version, recorded_at]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        purpose: {type: string, enum: [QUALITY_FEEDBACK, OPTIONAL_PERSONALIZATION]}
+        decision: {type: string, enum: [GRANTED, WITHDRAWN]}
+        notice_version: {type: string, pattern: '^[0-9]+\\.[0-9]+\\.[0-9]+$'}
+        recorded_at: {type: string, format: date-time}
+    ConsentDecisionPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items: {$ref: "#/components/schemas/ConsentDecision"}
+    PageMeta:
+      type: object
+      additionalProperties: false
+      required: [next_cursor, has_more, limit]
+      properties:
+        next_cursor: {type: [string, "null"], maxLength: 2048}
+        has_more: {type: boolean}
+        limit: {type: integer, minimum: 1, maximum: 100}
+    ScheduleEntry:
+      type: object
+      additionalProperties: false
+      required: [id, course_code, course_name, starts_at, ends_at, source_system]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        course_code: {type: string, minLength: 1, maxLength: 32}
+        course_name: {type: string, minLength: 1, maxLength: 200}
+        starts_at: {type: string, format: date-time}
+        ends_at: {type: string, format: date-time}
+        location_label: {type: [string, "null"], maxLength: 160}
+        instructor_display_name: {type: [string, "null"], maxLength: 160}
+        source_system: {type: string, const: SYNTHETIC_SIS}
+    SchedulePage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/ScheduleEntry"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    CreateConversationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        title: {type: string, minLength: 1, maxLength: 160}
+    Conversation:
+      type: object
+      additionalProperties: false
+      required: [id, status, channel, created_at, retention_expires_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        status: {type: string, enum: [ACTIVE, HANDED_OVER, CLOSED, ARCHIVED]}
+        channel: {type: string, const: WEB}
+        title: {type: [string, "null"], maxLength: 160}
+        last_message_at: {type: [string, "null"], format: date-time}
+        created_at: {type: string, format: date-time}
+        retention_expires_at: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+    ConversationPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/Conversation"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    CreateMessageRequest:
+      type: object
+      additionalProperties: false
+      required: [content]
+      properties:
+        content: {type: string, minLength: 1, maxLength: 10000}
+    Message:
+      type: object
+      additionalProperties: false
+      required: [id, conversation_id, sequence_no, sender_type, content, content_format, citations, created_at]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        conversation_id: {$ref: "#/components/schemas/UuidV7"}
+        sequence_no: {type: integer, minimum: 1}
+        sender_type: {type: string, enum: [USER, ASSISTANT, STAFF, SYSTEM]}
+        content: {type: string, maxLength: 20000}
+        content_format: {type: string, enum: [PLAIN_TEXT, MARKDOWN_SAFE]}
+        citations:
+          type: array
+          maxItems: 20
+          items: {$ref: "../../json-schema/citations/citation.schema.json"}
+        created_at: {type: string, format: date-time}
+    MessagePage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/Message"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    ActionPreviewRequest:
+      oneOf:
+        - {$ref: "#/components/schemas/CreateTicketActionRequest"}
+        - {$ref: "#/components/schemas/SubmitDocumentActionRequest"}
+        - {$ref: "#/components/schemas/CreateRoomBookingActionRequest"}
+        - {$ref: "#/components/schemas/CancelActionRequest"}
+        - {$ref: "#/components/schemas/CreateHandoverActionRequest"}
+        - {$ref: "#/components/schemas/TransitionActionRequest"}
+        - {$ref: "#/components/schemas/CreateKnowledgeSourceActionRequest"}
+        - {$ref: "#/components/schemas/RegisterDocumentVersionActionRequest"}
+        - {$ref: "#/components/schemas/PublishKnowledgeActionRequest"}
+    CreateTicketActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: CREATE_TICKET}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/createTicketPayload"}
+    SubmitDocumentActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: SUBMIT_DOCUMENT_REQUEST}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/documentRequestPayload"}
+    CreateRoomBookingActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: CREATE_ROOM_BOOKING}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/roomBookingPayload"}
+    CancelActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, enum: [CANCEL_ROOM_BOOKING, CANCEL_DOCUMENT_REQUEST]}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/cancelPayload"}
+    CreateHandoverActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: CREATE_HANDOVER}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/createHandoverPayload"}
+    TransitionActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, enum: [TICKET_TRANSITION, HANDOVER_TRANSITION]}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/transitionPayload"}
+    CreateKnowledgeSourceActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: CREATE_KNOWLEDGE_SOURCE}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/createKnowledgeSourcePayload"}
+    RegisterDocumentVersionActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: REGISTER_DOCUMENT_VERSION}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/registerDocumentVersionPayload"}
+    PublishKnowledgeActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action_type, payload]
+      properties:
+        action_type: {type: string, const: PUBLISH_KNOWLEDGE_VERSION}
+        payload: {$ref: "../../json-schema/actions/action-preview.schema.json#/$defs/publishKnowledgePayload"}
+    ActionExecution:
+      type: object
+      additionalProperties: false
+      required: [execution_id, preview_id, action_type, status, attempt_count, created_at]
+      properties:
+        execution_id: {$ref: "#/components/schemas/UuidV7"}
+        preview_id: {$ref: "#/components/schemas/UuidV7"}
+        action_type: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        status: {type: string, enum: [PENDING, RUNNING, SUCCEEDED, FAILED, COMPENSATION_REQUIRED]}
+        target_type: {type: [string, "null"], pattern: '^[a-z][a-z0-9_]{1,63}$'}
+        target_id:
+          oneOf:
+            - {$ref: "#/components/schemas/UuidV7"}
+            - {type: "null"}
+        attempt_count: {type: integer, minimum: 0}
+        failure_code: {type: [string, "null"], pattern: '^[A-Z][A-Z0-9_]{1,99}$'}
+        created_at: {type: string, format: date-time}
+        completed_at: {type: [string, "null"], format: date-time}
+    Ticket:
+      type: object
+      additionalProperties: false
+      required: [id, category, priority, status, subject, description, queue_key, created_at, updated_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        category: {type: string, enum: [GENERAL_SUPPORT, ACADEMIC_POLICY, DOCUMENT_REQUEST_SUPPORT, FACILITY, COMPLAINT, OTHER]}
+        priority: {type: string, enum: [LOW, NORMAL, HIGH, CRITICAL]}
+        status: {$ref: "../../json-schema/tickets/ticket-state.schema.json"}
+        subject: {type: string, minLength: 1, maxLength: 200}
+        description: {type: string, minLength: 1, maxLength: 5000}
+        queue_key: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        assigned_user_id:
+          oneOf:
+            - {$ref: "#/components/schemas/UuidV7"}
+            - {type: "null"}
+        sla_due_at: {type: [string, "null"], format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+    TicketPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/Ticket"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    DocumentRequest:
+      type: object
+      additionalProperties: false
+      required: [id, document_type, purpose_code, delivery_method, status, is_synthetic, created_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        document_type: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        purpose_code: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        delivery_method: {type: string, enum: [DIGITAL, PICKUP]}
+        status: {type: string, enum: [DRAFT, PENDING_CONFIRMATION, SUBMITTED, VALIDATING, PROCESSING, READY, FULFILLED, REJECTED, CANCELLED]}
+        is_synthetic: {type: boolean, const: true}
+        disclaimer: {type: string, const: 'DỮ LIỆU MÔ PHỎNG — KHÔNG CÓ GIÁ TRỊ'}
+        created_at: {type: string, format: date-time}
+        submitted_at: {type: [string, "null"], format: date-time}
+        version: {type: integer, minimum: 1}
+    DocumentRequestPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/DocumentRequest"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    Room:
+      type: object
+      additionalProperties: false
+      required: [id, room_code, display_name, capacity, features, status]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        room_code: {type: string, minLength: 1, maxLength: 32}
+        display_name: {type: string, minLength: 1, maxLength: 160}
+        capacity: {type: integer, minimum: 1, maximum: 1000}
+        features:
+          type: array
+          uniqueItems: true
+          items: {type: string, pattern: '^[A-Z][A-Z0-9_]{1,63}$'}
+        status: {type: string, enum: [AVAILABLE, MAINTENANCE, INACTIVE]}
+    RoomPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/Room"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    RoomAvailability:
+      type: object
+      additionalProperties: false
+      required: [room_id, from, to, unavailable_intervals, advisory]
+      properties:
+        room_id: {$ref: "#/components/schemas/UuidV7"}
+        from: {type: string, format: date-time}
+        to: {type: string, format: date-time}
+        unavailable_intervals:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [starts_at, ends_at]
+            properties:
+              starts_at: {type: string, format: date-time}
+              ends_at: {type: string, format: date-time}
+        advisory: {type: boolean, const: true}
+    RoomBooking:
+      type: object
+      additionalProperties: false
+      required: [id, room_id, starts_at, ends_at, purpose, attendee_count, status, created_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        room_id: {$ref: "#/components/schemas/UuidV7"}
+        starts_at: {type: string, format: date-time}
+        ends_at: {type: string, format: date-time}
+        purpose: {type: string, minLength: 1, maxLength: 300}
+        attendee_count: {type: integer, minimum: 1, maximum: 1000}
+        status: {type: string, enum: [CONFIRMED, CANCELLED, COMPLETED]}
+        created_at: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+    RoomBookingPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/RoomBooking"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    HandoverPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items: {$ref: "../../json-schema/handover/handover.schema.json"}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    KnowledgeSource:
+      type: object
+      additionalProperties: false
+      required: [id, source_type, canonical_uri, title, owner_unit, authority_level, approval_status, is_synthetic, created_at, updated_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        source_type: {type: string, enum: [OFFICIAL_DOCUMENT, OFFICIAL_WEB, SYNTHETIC_DOCUMENT]}
+        canonical_uri: {type: string, format: uri, maxLength: 2000}
+        title: {type: string, minLength: 1, maxLength: 300}
+        owner_unit: {type: string, minLength: 1, maxLength: 160}
+        authority_level: {type: integer, minimum: 1, maximum: 100}
+        approval_status: {type: string, enum: [DRAFT, APPROVED, REJECTED]}
+        is_synthetic: {type: boolean}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+    KnowledgeSourcePage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/KnowledgeSource"}}
+        page: {$ref: "#/components/schemas/PageMeta"}
+    DocumentVersion:
+      type: object
+      additionalProperties: false
+      required: [id, source_id, version_label, content_checksum, status, created_at, version]
+      properties:
+        id: {$ref: "#/components/schemas/UuidV7"}
+        source_id: {$ref: "#/components/schemas/UuidV7"}
+        version_label: {type: string, minLength: 1, maxLength: 64}
+        content_checksum: {type: string, pattern: '^sha256:[0-9a-f]{64}$'}
+        effective_from: {type: [string, "null"], format: date-time}
+        effective_until: {type: [string, "null"], format: date-time}
+        status: {type: string, enum: [DRAFT, VALIDATING, READY_FOR_REVIEW, APPROVED, PUBLISHED, SUPERSEDED, REJECTED, FAILED]}
+        created_at: {type: string, format: date-time}
+        published_at: {type: [string, "null"], format: date-time}
+        version: {type: integer, minimum: 1}
+    OperationsMetrics:
+      type: object
+      additionalProperties: false
+      required: [from, to, generated_at, counters, latency_ms]
+      properties:
+        from: {type: string, format: date-time}
+        to: {type: string, format: date-time}
+        generated_at: {type: string, format: date-time}
+        counters:
+          type: object
+          additionalProperties: {type: integer, minimum: 0}
+        latency_ms:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: false
+            required: [p50, p95]
+            properties:
+              p50: {type: number, minimum: 0}
+              p95: {type: number, minimum: 0}

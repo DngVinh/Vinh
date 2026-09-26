@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.local/schemas/task-output.schema.json",
+  "title": "Campus 24/7 task execution output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "task_id", "result", "source_revision", "started_at", "completed_at",
+    "changed_files", "preexisting_changes", "resolved_upstream_traceability", "commands", "acceptance_results", "evidence",
+    "diff_summary", "scope_conformance", "deviations", "residual_risks", "blocker"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9]+-[A-Z0-9]+-[0-9]{3}$"},
+    "result": {"enum": ["completed", "blocked", "failed"]},
+    "source_revision": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "changed_files": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "preexisting_changes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "resolved_upstream_traceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolution_mode", "binding_ref", "requirements"],
+      "properties": {
+        "resolution_mode": {"enum": ["direct", "canonical", "mixed"]},
+        "binding_ref": {"type": ["string", "null"], "pattern": "^tasks/requirement-acceptance-bindings\\.yaml$"},
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["requirement_id", "acceptance_criteria"],
+            "properties": {
+              "requirement_id": {"type": "string", "pattern": "^REQ-(F|NF)-[A-Z0-9-]+$"},
+              "acceptance_criteria": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^AC-REQ-(F|NF)-[A-Z0-9-]+$"}}
+            }
+          }
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "working_directory", "exit_code", "result", "evidence_refs"],
+        "properties": {
+          "command": {"type": "string"},
+          "working_directory": {"type": "string"},
+          "exit_code": {"type": "integer"},
+          "result": {"enum": ["passed", "failed", "not_run"]},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "acceptance_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion_id", "status", "evidence_refs"],
+        "properties": {
+          "criterion_id": {"type": "string"},
+          "status": {"enum": ["passed", "failed", "not_verified"]},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "ref", "sha256"],
+        "properties": {
+          "kind": {"type": "string"},
+          "ref": {"type": "string"},
+          "sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "diff_summary": {"type": "string"},
+    "scope_conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "unexpected_files"],
+      "properties": {
+        "status": {"enum": ["passed", "failed"]},
+        "unexpected_files": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "deviations": {"type": "array", "items": {"type": "string"}},
+    "residual_risks": {"type": "array", "items": {"type": "string"}},
+    "blocker": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "summary", "evidence", "safe_state", "required_decision"],
+          "properties": {
+            "code": {"type": "string"},
+            "summary": {"type": "string"},
+            "evidence": {"type": "array", "items": {"type": "string"}},
+            "safe_state": {"type": "string"},
+            "required_decision": {"type": "string"}
+          }
+        }
+      ]
+    }
+  }
+}

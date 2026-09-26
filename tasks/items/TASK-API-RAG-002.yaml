@@ -1,0 +1,83 @@
+schema_version: '1.0'
+id: TASK-API-RAG-002
+phase: P04
+title: Implement bounded PostgreSQL lexical retrieval
+status: accepted
+objective: Implement implement bounded postgresql lexical retrieval as one bounded, testable deliverable without changing
+  upstream behavior.
+layer: application
+bounded_context: retrieval
+priority: P0
+estimated_minutes: 30
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design:
+  - ADR-005
+  contracts:
+  - RAG-LEXICAL
+  controls: []
+  evals:
+  - RAG-EVAL-006
+dependencies:
+- TASK-API-RAG-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/05-ai/RAG_PIPELINE.md
+  load: full
+write_scope:
+  allowed_paths:
+  - services/api/src/campus247/infrastructure/retrieval/lexical.py
+  - tests/integration/retrieval/test_lexical.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement implement bounded postgresql lexical retrieval as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-API-RAG-002-01
+  assertion: 'The deliverable satisfies the single objective: Implement implement bounded postgresql lexical retrieval as
+    one bounded, testable deliverable without changing upstream behavior.'
+- id: AC-TASK-API-RAG-002-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-API-RAG-002-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q tests/integration/retrieval/test_lexical.py
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - retrieval-application
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

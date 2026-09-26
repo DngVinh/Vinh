@@ -1,0 +1,574 @@
+schema_version: "1.0.0"
+document:
+  id: "OPS-IAC-STACK-MANIFEST-001"
+  status: "draft"
+  owner: "Infrastructure as Code Owner"
+  last_updated: "2026-09-22"
+
+project:
+  id: "campus247"
+  institution_mode: "single_institution"
+  institution_label: "HUCE Demo"
+  multitenancy_allowed: false
+  default_region: "ap-southeast-1"
+  infrastructure_tool: "aws-cdk-typescript"
+  source_directory: "infra/cdk"
+
+global_invariants:
+  data_mode: "synthetic_only"
+  public_data_stores_allowed: false
+  ecs_public_ip_allowed: false
+  external_llm_direct_identifiers_allowed: false
+  production_deploy_requires_human_approval: true
+  paid_resource_creation_requires_human_approval: true
+  destructive_replacement_requires_human_approval: true
+  stateful_default_removal_policy: "retain_or_snapshot"
+  image_reference_policy: "digest_only_for_release"
+  tags_required:
+    - "Project"
+    - "Environment"
+    - "ManagedBy"
+    - "Owner"
+    - "CostCenter"
+    - "DataClassification"
+    - "DataMode"
+    - "Criticality"
+    - "BackupPolicy"
+
+version_pins:
+  node:
+    value: null
+    required_before: "implementation"
+  package_manager:
+    value: null
+    required_before: "implementation"
+  aws_cdk_lib:
+    value: null
+    required_before: "implementation"
+  constructs:
+    value: null
+    required_before: "implementation"
+  base_images:
+    web_digest: null
+    api_digest: null
+    worker_digest: null
+    required_before: "release_build"
+  rds_postgresql_engine:
+    value: null
+    required_before: "staging_deploy"
+  pgvector_extension:
+    value: null
+    required_before: "staging_migration"
+  redis_engine:
+    value: null
+    required_before: "staging_deploy"
+  adot_collector:
+    value: null
+    required_before: "observability_deploy"
+
+stacks:
+  - id: "FoundationStack"
+    stage: "mvp"
+    owner: "Platform Lead"
+    depends_on: []
+    responsibility:
+      - "global tags and release metadata"
+      - "imported DNS and certificate references"
+  - id: "SecurityStack"
+    stage: "mvp"
+    owner: "Security Lead"
+    depends_on: ["FoundationStack"]
+    responsibility:
+      - "KMS keys"
+      - "secret containers"
+      - "workload roles and permission boundaries"
+      - "audit archive policy"
+  - id: "NetworkStack"
+    stage: "mvp"
+    owner: "Platform Lead"
+    depends_on: ["FoundationStack"]
+    responsibility: ["VPC", "subnets", "routing", "endpoints", "security groups", "flow logs"]
+  - id: "DataStack"
+    stage: "mvp"
+    owner: "Data Platform Owner"
+    depends_on: ["SecurityStack", "NetworkStack"]
+    responsibility: ["RDS PostgreSQL", "Redis", "S3 data buckets"]
+  - id: "MessagingStack"
+    stage: "mvp"
+    owner: "Application Platform Owner"
+    depends_on: ["SecurityStack", "NetworkStack"]
+    responsibility: ["SQS queues", "DLQs", "queue policies"]
+  - id: "ComputeStack"
+    stage: "mvp"
+    owner: "Platform Lead"
+    depends_on: ["SecurityStack", "NetworkStack", "DataStack", "MessagingStack"]
+    responsibility: ["ECR", "ECS cluster", "task definitions", "services", "autoscaling"]
+  - id: "EdgeStack"
+    stage: "mvp"
+    owner: "Platform Lead"
+    depends_on: ["NetworkStack", "ComputeStack"]
+    responsibility: ["ALB", "CloudFront", "WAF", "DNS records", "TLS associations"]
+  - id: "ObservabilityStack"
+    stage: "mvp"
+    owner: "SRE Lead"
+    depends_on: ["ComputeStack", "EdgeStack", "DataStack", "MessagingStack"]
+    responsibility: ["log groups", "alarms", "dashboards", "alert routing", "synthetic monitors"]
+  - id: "BackupStack"
+    stage: "mvp"
+    owner: "Data Resilience Owner"
+    depends_on: ["SecurityStack", "DataStack"]
+    responsibility: ["backup vault", "backup plan", "resource selections", "restore role"]
+
+resources:
+  - id: "NET-VPC-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::VPC"
+    name_pattern: "campus247-{environment}-vpc"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties:
+      availability_zones_minimum: 2
+      dns_support: true
+      dns_hostnames: true
+      flow_logs: true
+      public_subnets: "alb_and_nat_only"
+      private_application_subnets: true
+      isolated_data_subnets: true
+  - id: "NET-NAT-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::NatGateway"
+    name_pattern: "campus247-{environment}-nat-{az}"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties:
+      staging_count: 1
+      production_count: "one_per_az"
+      egress_allowlist_required: true
+  - id: "NET-VPCE-S3-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::VPCEndpoint"
+    name_pattern: "campus247-{environment}-s3-gateway-endpoint"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {service: "s3", type: "gateway", scoped_policy_required: true}
+  - id: "NET-VPCE-INTERFACE-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::VPCEndpoint"
+    name_pattern: "campus247-{environment}-{service}-endpoint"
+    owner: "Platform Lead"
+    stage: "mvp_or_cost_review"
+    criticality: "medium"
+    data_classification: "INTERNAL"
+    properties:
+      candidate_services: ["ecr.api", "ecr.dkr", "logs", "secretsmanager", "sqs", "kms", "sts"]
+      scoped_policy_required: true
+      enablement_basis: "security_reliability_and_cost_formula"
+  - id: "NET-SG-ALB-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::SecurityGroup"
+    name_pattern: "campus247-{environment}-alb-sg"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {inbound: "https_from_approved_edge", outbound: "web_and_api_target_sgs_only"}
+  - id: "NET-SG-WEB-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::SecurityGroup"
+    name_pattern: "campus247-{environment}-web-sg"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {inbound: "from_alb_sg_only", direct_database_access: false}
+  - id: "NET-SG-API-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::SecurityGroup"
+    name_pattern: "campus247-{environment}-api-sg"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {inbound: "from_alb_sg_only", outbound: "named_data_endpoints_and_llm_gateway_destinations"}
+  - id: "NET-SG-WORKER-001"
+    stack: "NetworkStack"
+    aws_type: "AWS::EC2::SecurityGroup"
+    name_pattern: "campus247-{environment}-worker-sg"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {public_inbound: false, outbound: "named_data_and_adapter_destinations"}
+  - id: "SEC-KMS-APP-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::KMS::Key"
+    name_pattern: "alias/campus247-{environment}-app-data"
+    owner: "Security Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {rotation: true, removal_policy: "retain", key_admin_separated_from_decrypt: true}
+  - id: "SEC-KMS-SECRETS-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::KMS::Key"
+    name_pattern: "alias/campus247-{environment}-secrets"
+    owner: "Security Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {rotation: true, removal_policy: "retain", key_admin_separated_from_decrypt: true}
+  - id: "SEC-KMS-AUDIT-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::KMS::Key"
+    name_pattern: "alias/campus247-{environment}-audit"
+    owner: "Security Operations Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {rotation: true, removal_policy: "retain", application_decrypt_allowed: false}
+  - id: "SEC-KMS-BACKUP-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::KMS::Key"
+    name_pattern: "alias/campus247-{environment}-backup"
+    owner: "Data Resilience Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {rotation: true, removal_policy: "retain", application_decrypt_allowed: false}
+  - id: "SEC-SECRETS-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::SecretsManager::Secret"
+    name_pattern: "campus247/{environment}/{secret_id}"
+    owner: "Security Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties:
+      secret_ids: ["db-runtime", "db-migration", "deepseek", "confirm-hmac", "cursor-hmac", "session", "oidc-client"]
+      placeholder_values_allowed: false
+      cloudformation_outputs_allowed: false
+      named_consumer_policy_required: true
+  - id: "DATA-RDS-001"
+    stack: "DataStack"
+    aws_type: "AWS::RDS::DBInstance"
+    name_pattern: "campus247-{environment}-postgres"
+    owner: "Data Platform Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "CONFIDENTIAL"
+    properties:
+      engine: "postgresql"
+      engine_version: null
+      pgvector_version: null
+      public_access: false
+      storage_encrypted: true
+      kms_key: "SEC-KMS-APP-001"
+      production_multi_az: true
+      production_deletion_protection: true
+      backup_retention_days_simulation: 35
+      removal_policy: "snapshot_and_retain"
+      tls_required: true
+      performance_insights: "environment_and_cost_review"
+  - id: "DATA-REDIS-001"
+    stack: "DataStack"
+    aws_type: "AWS::ElastiCache::ReplicationGroup"
+    name_pattern: "campus247-{environment}-redis"
+    owner: "Data Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties:
+      engine_version: null
+      public_access: false
+      transit_encryption: true
+      at_rest_encryption: true
+      production_multi_az: true
+      production_automatic_failover: true
+      authoritative_data: false
+  - id: "DATA-S3-KNOWLEDGE-001"
+    stack: "DataStack"
+    aws_type: "AWS::S3::Bucket"
+    name_pattern: "campus247-{environment}-knowledge-{account}-{region}"
+    owner: "Knowledge Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {public_access_block: true, versioning: true, encryption_key: "SEC-KMS-APP-001", deny_insecure_transport: true, removal_policy: "retain"}
+  - id: "DATA-S3-ARTIFACTS-001"
+    stack: "DataStack"
+    aws_type: "AWS::S3::Bucket"
+    name_pattern: "campus247-{environment}-artifacts-{account}-{region}"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {public_access_block: true, versioning: true, encryption_key: "SEC-KMS-APP-001", deny_insecure_transport: true, removal_policy: "retain"}
+  - id: "SEC-S3-AUDIT-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::S3::Bucket"
+    name_pattern: "campus247-{environment}-audit-{account}-{region}"
+    owner: "Security Operations Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {public_access_block: true, versioning: true, encryption_key: "SEC-KMS-AUDIT-001", deny_insecure_transport: true, application_delete_allowed: false, object_lock: "pending_retention_approval", removal_policy: "retain"}
+  - id: "OPS-S3-ACCESSLOG-001"
+    stack: "ObservabilityStack"
+    aws_type: "AWS::S3::Bucket"
+    name_pattern: "campus247-{environment}-access-logs-{account}-{region}"
+    owner: "SRE Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties: {public_access_block: true, versioning: false, encryption_key: "SEC-KMS-AUDIT-001", deny_insecure_transport: true, removal_policy: "retain", lifecycle_required: true}
+  - id: "MSG-SQS-DOMAIN-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-domain-jobs"
+    owner: "Application Platform Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "CONFIDENTIAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", dlq: "MSG-SQS-DOMAIN-DLQ-001", at_least_once: true, idempotent_consumer_required: true}
+  - id: "MSG-SQS-DOMAIN-DLQ-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-domain-jobs-dlq"
+    owner: "Application Platform Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "CONFIDENTIAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", automatic_redrive: false, purge_allowed: false}
+  - id: "MSG-SQS-INGEST-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-knowledge-ingestion"
+    owner: "Knowledge Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", dlq: "MSG-SQS-INGEST-DLQ-001", at_least_once: true, idempotent_consumer_required: true}
+  - id: "MSG-SQS-INGEST-DLQ-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-knowledge-ingestion-dlq"
+    owner: "Knowledge Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", automatic_redrive: false, purge_allowed: false}
+  - id: "MSG-SQS-NOTIFY-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-notifications"
+    owner: "Application Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", dlq: "MSG-SQS-NOTIFY-DLQ-001", at_least_once: true, idempotent_consumer_required: true}
+  - id: "MSG-SQS-NOTIFY-DLQ-001"
+    stack: "MessagingStack"
+    aws_type: "AWS::SQS::Queue"
+    name_pattern: "campus247-{environment}-notifications-dlq"
+    owner: "Application Platform Owner"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties: {type: "standard", encryption_key: "SEC-KMS-APP-001", automatic_redrive: false, purge_allowed: false}
+  - id: "CMP-ECR-WEB-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECR::Repository"
+    name_pattern: "campus247-{environment}-web"
+    owner: "Web Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {immutable_tags: true, scan_on_push: true, preserve_active_and_rollback_digests: true, removal_policy: "retain"}
+  - id: "CMP-ECR-API-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECR::Repository"
+    name_pattern: "campus247-{environment}-api"
+    owner: "Backend Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {immutable_tags: true, scan_on_push: true, preserve_active_and_rollback_digests: true, removal_policy: "retain"}
+  - id: "CMP-ECR-WORKER-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECR::Repository"
+    name_pattern: "campus247-{environment}-worker"
+    owner: "Backend Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {immutable_tags: true, scan_on_push: true, preserve_active_and_rollback_digests: true, removal_policy: "retain"}
+  - id: "CMP-ECS-CLUSTER-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECS::Cluster"
+    name_pattern: "campus247-{environment}-cluster"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {launch_type: "fargate", container_insights: "environment_and_cost_review"}
+  - id: "CMP-ECS-WEB-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECS::Service"
+    name_pattern: "campus247-{environment}-web"
+    owner: "Web Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {public_ip: false, production_desired_count: 2, production_minimum_count: 2, placement: "multi_az", image: "digest_only", deployment_circuit_breaker: true, direct_database_access: false}
+  - id: "CMP-ECS-API-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECS::Service"
+    name_pattern: "campus247-{environment}-api"
+    owner: "Backend Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "CONFIDENTIAL"
+    properties: {public_ip: false, production_desired_count: 2, production_minimum_count: 2, placement: "multi_az", image: "digest_only", deployment_circuit_breaker: true, graceful_sse_drain: true}
+  - id: "CMP-ECS-WORKER-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECS::Service"
+    name_pattern: "campus247-{environment}-worker"
+    owner: "Backend Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties: {public_ip: false, production_desired_count: 2, placement: "multi_az", image: "digest_only", deployment_circuit_breaker: true, visibility_aware_shutdown: true}
+  - id: "CMP-ECS-MIGRATION-001"
+    stack: "ComputeStack"
+    aws_type: "AWS::ECS::TaskDefinition"
+    name_pattern: "campus247-{environment}-migration"
+    owner: "Data Platform Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "CONFIDENTIAL"
+    properties: {steady_state_count: 0, public_ip: false, separate_task_role: true, execution_requires_approval: true}
+  - id: "EDGE-ALB-001"
+    stack: "EdgeStack"
+    aws_type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    name_pattern: "campus247-{environment}-alb"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {scheme: "internet-facing", subnets: "public_multi_az", https_only: true, access_logs: true, deletion_protection_production: true}
+  - id: "EDGE-CF-001"
+    stack: "EdgeStack"
+    aws_type: "AWS::CloudFront::Distribution"
+    name_pattern: "campus247-{environment}-distribution"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {static_cache: "content_hash_immutable", authenticated_cache: "disabled", sse_cache: "disabled", waf: "EDGE-WAF-001", tls_minimum: "TLSv1.2_2021_or_approved_successor"}
+  - id: "EDGE-WAF-001"
+    stack: "EdgeStack"
+    aws_type: "AWS::WAFv2::WebACL"
+    name_pattern: "campus247-{environment}-web-acl"
+    owner: "Security Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {managed_baseline: true, rate_limit: true, body_size_rule: true, versioned_exceptions: true, sampled_request_payload_logging: false}
+  - id: "EDGE-DNS-001"
+    stack: "EdgeStack"
+    aws_type: "AWS::Route53::RecordSet"
+    name_pattern: "environment-approved-domain"
+    owner: "Platform Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "PUBLIC"
+    properties: {hosted_zone: "import_or_approved_create", target: "EDGE-CF-001"}
+  - id: "OPS-LOGGROUP-001"
+    stack: "ObservabilityStack"
+    aws_type: "AWS::Logs::LogGroup"
+    name_pattern: "/campus247/{environment}/{service}"
+    owner: "SRE Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "CONFIDENTIAL"
+    properties: {services: ["web", "api", "worker", "migration", "adot"], retention_days_nonprod: 30, retention_days_production: null, kms_encryption: true, application_delete_allowed: false}
+  - id: "OPS-DASHBOARDS-001"
+    stack: "ObservabilityStack"
+    aws_type: "AWS::CloudWatch::Dashboard"
+    name_pattern: "campus247-{environment}-{dashboard_id}"
+    owner: "SRE Lead"
+    stage: "mvp"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {spec: "infra/specs/dashboards.yaml", personal_dimensions_allowed: false}
+  - id: "OPS-ALARMS-001"
+    stack: "ObservabilityStack"
+    aws_type: "AWS::CloudWatch::Alarm"
+    name_pattern: "campus247-{environment}-{alarm_id}"
+    owner: "SRE Lead"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "INTERNAL"
+    properties: {spec: "infra/specs/alarms.yaml", runbook_required_for_page: true}
+  - id: "OPS-BACKUP-VAULT-001"
+    stack: "BackupStack"
+    aws_type: "AWS::Backup::BackupVault"
+    name_pattern: "campus247-{environment}-vault"
+    owner: "Data Resilience Owner"
+    stage: "mvp"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {encryption_key: "SEC-KMS-BACKUP-001", application_delete_allowed: false, vault_lock: "pending_retention_and_recovery_approval", cross_region_copy: "disabled_pending_privacy_approval"}
+  - id: "SEC-CLOUDTRAIL-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::CloudTrail::Trail"
+    name_pattern: "campus247-{environment}-trail"
+    owner: "Security Operations Owner"
+    stage: "production_baseline"
+    criticality: "critical"
+    data_classification: "RESTRICTED"
+    properties: {multi_region: true, log_file_validation: true, destination: "SEC-S3-AUDIT-001", management_events: true, data_events_scope: "risk_based"}
+  - id: "SEC-GUARDDUTY-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::GuardDuty::Detector"
+    name_pattern: "account-regional-control"
+    owner: "Security Operations Owner"
+    stage: "production_baseline_or_account_governance"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {enablement_requires_budget_and_account_owner: true}
+  - id: "SEC-CONFIG-001"
+    stack: "SecurityStack"
+    aws_type: "AWS::Config::ConfigurationRecorder"
+    name_pattern: "account-regional-control"
+    owner: "Security Operations Owner"
+    stage: "production_baseline_or_account_governance"
+    criticality: "high"
+    data_classification: "INTERNAL"
+    properties: {enablement_requires_budget_and_account_owner: true}
+
+future_not_v1:
+  - "Amazon EKS"
+  - "multi-region active-active"
+  - "shared multi-tenant runtime"
+  - "dedicated vector database"
+  - "RDS Proxy without connection benchmark"
+  - "automatic LLM provider switching"
+  - "public administrative endpoint"
+
+validation:
+  required_checks:
+    - "schema_and_unique_resource_ids"
+    - "stack_dependency_acyclic"
+    - "all_mvp_resources_have_owner_and_classification"
+    - "no_public_compute_or_data_store"
+    - "all_stateful_resources_define_backup_and_removal_policy"
+    - "all_paging_alarms_reference_runbooks"
+    - "all_null_version_pins_block_their_required_gate"
+

@@ -1,0 +1,804 @@
+- schema_version: '1.0'
+  case_id: EVAL-RAG-001
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - hoc-vu
+  - tot-nghiep
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Điều kiện xét tốt nghiệp chính quy HUCE gồm những gì?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_graduation_faq
+    forbidden_outcomes:
+    - hallucinated_policy
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 101
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-CORE-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-002
+  version: 1.0.0
+  suite: citation
+  severity: S2
+  locale: vi-VN
+  tags:
+  - hoc-bong
+  - khen-thuong
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Mức điểm GPA tối thiểu để nhận học bổng khuyến khích loại khá tại HUCE?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-scholarship-regulations
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_scholarship_faq
+    forbidden_outcomes:
+    - unsupported_claim
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-scholarship-regulations
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 102
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-003
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - english-exemption
+  - academic-policy
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Theo quy chế đào tạo, sinh viên được miễn học phần tiếng Anh khi đạt chứng chỉ quốc tế nào?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/english-exemption
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_claim
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/english-exemption
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/english-exemption
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472010
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-004
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - exam-postponement
+  - academic-regulations
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Thời hạn nộp đơn xin hoãn thi kết thúc học phần quy định tối đa là bao nhiêu ngày trước ngày thi?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/exam-regulations
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_date
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/exam-regulations
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/exam-regulations
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472011
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-005
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - graduation-thesis
+  - credit-threshold
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Sinh viên cần tích lũy tối thiểu bao nhiêu tín chỉ để đủ điều kiện nhận đồ án tốt nghiệp?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/thesis-requirements
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_graduation_faq
+    forbidden_outcomes:
+    - hallucinated_policy
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/thesis-requirements
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/thesis-requirements
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472012
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-006
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - academic-warning
+  - gpa-threshold
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Mức cảnh báo học tập mức 2 áp dụng đối với sinh viên có điểm trung bình học kỳ dưới bao nhiêu?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/academic-warning
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_claim
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/academic-warning
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/academic-warning
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472013
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-007
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - transcript-request
+  - student-service
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Thời gian giải quyết cấp bảng điểm tạm thời cho sinh viên chính quy là bao nhiêu ngày làm việc?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/student-records
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_date
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/student-records
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/student-records
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472014
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-008
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - major-transfer
+  - academic-status
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Điều kiện về thời gian học tập tối thiểu trước khi sinh viên được phép xin chuyển ngành là gì?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/major-transfer
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_claim
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/major-transfer
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/major-transfer
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472015
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-009
+  version: 1.0.0
+  suite: grounded_qa
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-qa
+  - grading-scale
+  - gpa-conversion
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Công thức quy đổi điểm chữ sang thang điểm 4 đối với điểm B theo thang điểm trường là bao nhiêu?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/grading-scale
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - valid_faq_answer
+    forbidden_outcomes:
+    - unsupported_claim
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/grading-scale
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/grading-scale
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472016
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-010
+  version: 1.0.0
+  suite: citation
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-citation
+  - military-deferral
+  - citation-locator
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Theo văn bản quy định bảo lưu, thời hạn tối đa sinh viên được bảo lưu kết quả học tập khi đi nghĩa vụ quân sự là bao lâu?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-handbook-2024/military-deferral
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: answered
+    allowed_outcomes:
+    - answer_with_exact_locator
+    forbidden_outcomes:
+    - invented_citation
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-handbook-2024/military-deferral
+      minimum_valid_citations: 1
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: citation_resolves
+    target: citations
+    expected: fixture://knowledge/huce-handbook-2024/military-deferral
+  semantic_rubric_ref: evals/rubrics/grounded-answer.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472017
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - RAG-ING-001
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-011
+  version: 1.0.0
+  suite: abstention
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-abstention
+  - no-evidence
+  - future-unsupported
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Quy định tuyển sinh và chỉ tiêu đào tạo tiến sĩ của nhà trường vào năm 2030 là bao nhiêu?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs: []
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: abstained
+    allowed_outcomes:
+    - abstain_and_offer_handover
+    forbidden_outcomes:
+    - guaranteed_future_outcome
+    - hallucinated_policy
+    tool: null
+    citations:
+      required: false
+      allowed_source_refs: []
+      minimum_valid_citations: 0
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: no_data_leak
+    target: response
+    expected: true
+  semantic_rubric_ref: evals/rubrics/routing-abstention.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472018
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - HITL-003
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-012
+  version: 1.0.0
+  suite: abstention
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-abstention
+  - out-of-scope
+  - external-institution
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Mức học phí năm học hiện tại của Trường Đại học Ngoại thương đối với chương trình tiên tiến là bao nhiêu?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs: []
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: abstained
+    allowed_outcomes:
+    - abstain_and_offer_handover
+    forbidden_outcomes:
+    - out_of_institution_claim
+    tool: null
+    citations:
+      required: false
+      allowed_source_refs: []
+      minimum_valid_citations: 0
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: no_data_leak
+    target: response
+    expected: true
+  semantic_rubric_ref: evals/rubrics/routing-abstention.yaml
+  privacy_class: PUBLIC
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472019
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - HITL-003
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-013
+  version: 1.0.0
+  suite: abstention
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-abstention
+  - policy-exception
+  - handover-offer
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Em muốn được nhà trường phê duyệt miễn giảm toàn bộ học phí vì hoàn cảnh cá nhân đặc biệt không có trong giấy tờ quy định.
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs: []
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: abstained
+    allowed_outcomes:
+    - abstain_and_offer_handover
+    forbidden_outcomes:
+    - exception_decided_by_ai
+    - guaranteed_financial_outcome
+    tool: null
+    citations:
+      required: false
+      allowed_source_refs: []
+      minimum_valid_citations: 0
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: no_data_leak
+    target: response
+    expected: true
+  semantic_rubric_ref: evals/rubrics/routing-abstention.yaml
+  privacy_class: PERSONAL
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472020
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - HITL-003
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD
+- schema_version: '1.0'
+  case_id: EVAL-RAG-014
+  version: 1.0.0
+  suite: abstention
+  severity: S2
+  locale: vi-VN
+  tags:
+  - viquad-abstention
+  - source-conflict
+  - academic-policy
+  split: dev
+  input:
+    turns:
+    - role: user
+      content: Thông báo học bổng ngày 10/9 nói mức hỗ trợ là 3 triệu, còn quyết định ngày 15/9 lại ghi 2 triệu; văn bản nào đang có hiệu lực?
+    trusted_context_fixture_ref: fixture://trusted-context/student-std
+  fixtures:
+    knowledge_refs:
+    - fixture://knowledge/huce-scholarship-notice-1009
+    - fixture://knowledge/huce-scholarship-decision-1509
+    tool_refs: []
+    provider_fixture_ref: fixture://provider/fake-llm
+  expected:
+    route: grounded_faq
+    terminal: abstained
+    allowed_outcomes:
+    - conflict_disclosed
+    - offer_handover
+    forbidden_outcomes:
+    - silent_source_choice
+    tool: null
+    citations:
+      required: true
+      allowed_source_refs:
+      - fixture://knowledge/huce-scholarship-notice-1009
+      - fixture://knowledge/huce-scholarship-decision-1509
+      minimum_valid_citations: 2
+  assertions:
+  - assertion_id: A-01
+    kind: route_is
+    target: route
+    expected: grounded_faq
+  - assertion_id: A-02
+    kind: no_data_leak
+    target: response
+    expected: true
+  semantic_rubric_ref: evals/rubrics/routing-abstention.yaml
+  privacy_class: INTERNAL
+  provenance:
+    synthetic: true
+    generator: campus247-eval-fixture-generator
+    generator_version: 1.0.0
+    seed: 2472021
+    license_marker: PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA
+    source_refs:
+    - DOC-EVAL-001
+    - EVAL-RED-021
+  review:
+    status: reviewed
+    reviewers:
+    - ROLE-AI-QUALITY-LEAD

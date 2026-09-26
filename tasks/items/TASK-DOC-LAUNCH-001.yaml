@@ -1,0 +1,86 @@
+schema_version: '1.0'
+id: TASK-DOC-LAUNCH-001
+phase: P09
+title: Close or explicitly block every real-launch prerequisite
+status: accepted
+objective: Record authoritative closure evidence or an explicit blocker for every OQ and production launch gate; do not fabricate
+  closure.
+layer: governance
+bounded_context: launch-governance
+priority: P0
+estimated_minutes: 45
+sensitivity: critical
+human_approval_required: true
+approval_reasons:
+- legal_privacy
+- security_policy
+- production_deploy
+traceability:
+  requirements: []
+  design:
+  - OQ-001
+  - OQ-008
+  - ARCH-009
+  contracts: []
+  controls:
+  - SEC-SDLC-007
+  evals: []
+dependencies:
+- TASK-TEST-SOAK-001
+- TASK-TEST-RELEASE-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/00-governance/ASSUMPTIONS_AND_OPEN_QUESTIONS.md
+  load: full
+write_scope:
+  allowed_paths:
+  - release/launch-readiness.yaml
+  forbidden_paths:
+  - .git/**
+  - tasks/**
+  max_files: 1
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Record authoritative closure evidence or an explicit blocker for every OQ and production
+  launch gate; do not fabricate closure.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-DOC-LAUNCH-001-01
+  assertion: 'The deliverable satisfies the single objective: Record authoritative closure evidence or an explicit blocker
+    for every OQ and production launch gate; do not fabricate closure.'
+- id: AC-TASK-DOC-LAUNCH-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-DOC-LAUNCH-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python tasks/tools/validate_catalog.py
+  expected_exit_code: 0
+  proves: Task metadata and dependency catalog remain valid after governance review.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: stop_before_promotion
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: false
+  conflict_keys:
+  - release-manifest
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

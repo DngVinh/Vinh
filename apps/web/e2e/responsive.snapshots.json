@@ -1,0 +1,28 @@
+{
+  "viewports": {
+    "mobile": {
+      "name": "Mobile Portrait (Small)",
+      "width": 375,
+      "height": 667,
+      "hasHorizontalOverflow": false,
+      "disclaimerVisible": true,
+      "minTargetSizePx": 44
+    },
+    "tablet": {
+      "name": "Tablet Portrait (Medium)",
+      "width": 768,
+      "height": 1024,
+      "hasHorizontalOverflow": false,
+      "disclaimerVisible": true,
+      "minTargetSizePx": 44
+    },
+    "desktop": {
+      "name": "Desktop (Large)",
+      "width": 1280,
+      "height": 800,
+      "hasHorizontalOverflow": false,
+      "disclaimerVisible": true,
+      "minTargetSizePx": 44
+    }
+  }
+}

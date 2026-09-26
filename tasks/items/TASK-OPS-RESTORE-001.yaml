@@ -1,0 +1,89 @@
+schema_version: '1.0'
+id: TASK-OPS-RESTORE-001
+phase: P08
+title: Script isolated PostgreSQL restore verification
+status: accepted
+objective: Implement script isolated postgresql restore verification as one bounded, testable deliverable without changing
+  upstream behavior.
+layer: operations
+bounded_context: disaster-recovery
+priority: P0
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- security_policy
+- paid_service
+traceability:
+  requirements: [REQ-NF-REL-002, REQ-NF-REL-003, REQ-NF-REL-005]
+  acceptance_criteria: [AC-REQ-NF-REL-002-01, AC-REQ-NF-REL-003-01, AC-REQ-NF-REL-005-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - ADR-012
+  - ARCH-007
+  contracts: []
+  controls:
+  - SEC-CTRL-020
+  evals: []
+dependencies:
+- TASK-INFRA-DATA-001
+- TASK-DATA-SEED-002
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/04-architecture/core/ARCH-007_RELIABILITY_SCALABILITY_CACHING.md
+  load: full
+write_scope:
+  allowed_paths:
+  - scripts/dr/verify-postgres-restore.ps1
+  - tests/operations/test_restore_script.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement script isolated postgresql restore verification as one bounded, testable deliverable
+  without changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-OPS-RESTORE-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement script isolated postgresql restore verification as
+    one bounded, testable deliverable without changing upstream behavior.'
+- id: AC-TASK-OPS-RESTORE-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-OPS-RESTORE-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q tests/operations/test_restore_script.py
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - staging-drill
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

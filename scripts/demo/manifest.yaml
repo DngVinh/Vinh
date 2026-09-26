@@ -1,0 +1,27 @@
+schema_version: "1.0"
+manifest_version: "1.0"
+environment: "synthetic-pilot"
+dataset_name: "HUCE-V1-PILOT-PREWARMED"
+description: "Pre-warmed synthetic pilot demo scenario data pack for HUCE V1"
+created_at: "2026-09-22T00:00:00Z"
+synthetic_compliance:
+  all_records_synthetic: true
+  allowed_email_domain: "@synthetic.huce.edu.vn"
+  mandatory_flag: "is_synthetic"
+scenarios:
+  - id: "SCENARIO-01"
+    name: "freshman_faq_and_schedule"
+    description: "New student inquiring about course schedule and library rules"
+    target_roles: ["student"]
+  - id: "SCENARIO-02"
+    name: "study_room_reservation"
+    description: "Student reserves group study room in building H1"
+    target_roles: ["student"]
+  - id: "SCENARIO-03"
+    name: "transcript_request"
+    description: "Student requests official grade transcript with preview and confirmation"
+    target_roles: ["student"]
+  - id: "SCENARIO-04"
+    name: "crisis_handover_escalation"
+    description: "Urgent student distress request safely handed over to staff queue"
+    target_roles: ["student", "staff"]

@@ -1,0 +1,89 @@
+schema_version: '1.0'
+id: TASK-AGENT-LLM-005
+phase: P04
+title: Implement DeepSeek adapter behind canonical gateway
+status: accepted
+objective: Implement the disabled-by-default DeepSeek adapter using approved synthetic fixtures and contract tests; do not
+  perform a live call.
+layer: integration
+bounded_context: llm-gateway
+priority: P1
+estimated_minutes: 30
+sensitivity: high
+human_approval_required: true
+approval_reasons:
+- paid_service
+- real_secret_or_data
+traceability:
+  requirements: []
+  design:
+  - ADR-007
+  - ARCH-008
+  contracts:
+  - INT-LLM-001
+  controls:
+  - SEC-CTRL-016
+  evals:
+  - AI-GW-003
+  - AI-GW-009
+dependencies:
+- TASK-AGENT-LLM-004
+- TASK-REPO-ENV-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/05-ai/LLM_GATEWAY.md
+  load: full
+write_scope:
+  allowed_paths:
+  - services/api/src/campus247/infrastructure/llm/deepseek.py
+  - tests/contract/ai/test_deepseek_adapter.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement the disabled-by-default DeepSeek adapter using approved synthetic fixtures and
+  contract tests; do not perform a live call.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-AGENT-LLM-005-01
+  assertion: 'The deliverable satisfies the single objective: Implement the disabled-by-default DeepSeek adapter using approved
+    synthetic fixtures and contract tests; do not perform a live call.'
+- id: AC-TASK-AGENT-LLM-005-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-AGENT-LLM-005-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q tests/contract/ai/test_deepseek_adapter.py
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: true
+  conflict_keys:
+  - llm-gateway-integration
+execution_policy:
+  max_fix_attempts: 2
+  network_access: true
+  paid_services: true
+  destructive_operations: false

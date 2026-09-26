@@ -1,0 +1,1467 @@
+schema_version: '1.0'
+max_parallel_tasks: 4
+parallel_rule: Run together only when resolved write scopes and conflict keys are disjoint and all dependencies are accepted.
+nodes:
+- id: TASK-DOC-GOV-001
+  phase: P00
+  dependencies: []
+  conflict_keys:
+  - product-governance-governance
+  human_approval_required: true
+- id: TASK-DOC-ARCH-001
+  phase: P00
+  dependencies: []
+  conflict_keys:
+  - architecture-governance-governance
+  human_approval_required: true
+- id: TASK-DOC-CONTRACT-001
+  phase: P00
+  dependencies: []
+  conflict_keys:
+  - contract-governance-governance
+  human_approval_required: true
+- id: TASK-DOC-AI-001
+  phase: P00
+  dependencies: []
+  conflict_keys:
+  - ai-governance-governance
+  human_approval_required: true
+- id: TASK-DOC-SEC-001
+  phase: P00
+  dependencies: []
+  conflict_keys:
+  - security-governance-governance
+  human_approval_required: true
+- id: TASK-DOC-STACK-001
+  phase: P00
+  dependencies:
+  - TASK-DOC-ARCH-001
+  - TASK-DOC-SEC-001
+  conflict_keys:
+  - root-config
+  human_approval_required: true
+- id: TASK-REPO-SCAFFOLD-001
+  phase: P00
+  dependencies:
+  - TASK-DOC-GOV-001
+  - TASK-DOC-ARCH-001
+  - TASK-DOC-CONTRACT-001
+  - TASK-DOC-AI-001
+  - TASK-DOC-SEC-001
+  conflict_keys:
+  - root-layout
+  human_approval_required: false
+- id: TASK-REPO-CONFIG-001
+  phase: P00
+  dependencies:
+  - TASK-REPO-SCAFFOLD-001
+  conflict_keys:
+  - root-config
+  human_approval_required: false
+- id: TASK-TEST-CATALOG-001
+  phase: P00
+  dependencies:
+  - TASK-REPO-SCAFFOLD-001
+  conflict_keys:
+  - delivery-tests
+  human_approval_required: false
+- id: TASK-DOC-DEV-001
+  phase: P00
+  dependencies:
+  - TASK-DOC-STACK-001
+  - TASK-REPO-CONFIG-001
+  conflict_keys:
+  - developer-experience-governance
+  human_approval_required: false
+- id: TASK-REPO-PYTHON-001
+  phase: P01
+  dependencies:
+  - TASK-DOC-STACK-001
+  - TASK-REPO-SCAFFOLD-001
+  conflict_keys:
+  - python-lock
+  human_approval_required: false
+- id: TASK-REPO-WEB-001
+  phase: P01
+  dependencies:
+  - TASK-DOC-STACK-001
+  - TASK-REPO-SCAFFOLD-001
+  conflict_keys:
+  - web-lock
+  human_approval_required: false
+- id: TASK-API-BOOT-001
+  phase: P01
+  dependencies:
+  - TASK-REPO-PYTHON-001
+  conflict_keys:
+  - bootstrap-api
+  human_approval_required: false
+- id: TASK-WORKER-BOOT-001
+  phase: P01
+  dependencies:
+  - TASK-REPO-PYTHON-001
+  conflict_keys:
+  - bootstrap-worker
+  human_approval_required: false
+- id: TASK-WEB-BOOT-001
+  phase: P01
+  dependencies:
+  - TASK-REPO-WEB-001
+  conflict_keys:
+  - web-shell
+  human_approval_required: false
+- id: TASK-REPO-ENV-001
+  phase: P01
+  dependencies:
+  - TASK-API-BOOT-001
+  conflict_keys:
+  - root-config
+  human_approval_required: false
+- id: TASK-INFRA-LOCAL-001
+  phase: P01
+  dependencies:
+  - TASK-REPO-CONFIG-001
+  conflict_keys:
+  - local-compose
+  human_approval_required: false
+- id: TASK-INFRA-LOCAL-002
+  phase: P01
+  dependencies:
+  - TASK-INFRA-LOCAL-001
+  conflict_keys:
+  - local-compose
+  human_approval_required: false
+- id: TASK-API-HEALTH-001
+  phase: P01
+  dependencies:
+  - TASK-API-BOOT-001
+  conflict_keys:
+  - operations-api
+  human_approval_required: false
+- id: TASK-API-HEALTH-002
+  phase: P01
+  dependencies:
+  - TASK-API-HEALTH-001
+  - TASK-REPO-ENV-001
+  conflict_keys:
+  - operations-api
+  human_approval_required: false
+- id: TASK-TEST-CI-001
+  phase: P01
+  dependencies:
+  - TASK-REPO-PYTHON-001
+  - TASK-REPO-WEB-001
+  - TASK-TEST-CATALOG-001
+  conflict_keys:
+  - ci-workflow
+  human_approval_required: false
+- id: TASK-TEST-BOUNDARY-001
+  phase: P01
+  dependencies:
+  - TASK-API-BOOT-001
+  - TASK-WORKER-BOOT-001
+  conflict_keys:
+  - architecture-conformance-test
+  human_approval_required: false
+- id: TASK-TEST-SCHEMA-001
+  phase: P02
+  dependencies:
+  - TASK-DOC-CONTRACT-001
+  - TASK-REPO-PYTHON-001
+  conflict_keys:
+  - contracts-test
+  human_approval_required: false
+- id: TASK-TEST-OPENAPI-001
+  phase: P02
+  dependencies:
+  - TASK-TEST-SCHEMA-001
+  conflict_keys:
+  - contracts-test
+  human_approval_required: false
+- id: TASK-TEST-ASYNCAPI-001
+  phase: P02
+  dependencies:
+  - TASK-TEST-SCHEMA-001
+  conflict_keys:
+  - contracts-test
+  human_approval_required: false
+- id: TASK-DATA-KERNEL-001
+  phase: P02
+  dependencies:
+  - TASK-REPO-PYTHON-001
+  - TASK-TEST-SCHEMA-001
+  conflict_keys:
+  - shared-kernel-domain
+  human_approval_required: false
+- id: TASK-DB-BASE-001
+  phase: P02
+  dependencies:
+  - TASK-REPO-ENV-001
+  - TASK-INFRA-LOCAL-001
+  conflict_keys:
+  - db-foundation
+  human_approval_required: false
+- id: TASK-DB-MIG-001
+  phase: P02
+  dependencies:
+  - TASK-DB-BASE-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-IDENTITY-001
+  phase: P02
+  dependencies:
+  - TASK-DB-MIG-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-KNOWLEDGE-001
+  phase: P02
+  dependencies:
+  - TASK-DB-IDENTITY-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-CONVERSATION-001
+  phase: P02
+  dependencies:
+  - TASK-DB-KNOWLEDGE-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-ACTION-001
+  phase: P02
+  dependencies:
+  - TASK-DB-CONVERSATION-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-TICKET-001
+  phase: P02
+  dependencies:
+  - TASK-DB-ACTION-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-DOCREQ-001
+  phase: P02
+  dependencies:
+  - TASK-DB-TICKET-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-BOOKING-001
+  phase: P02
+  dependencies:
+  - TASK-DB-DOCREQ-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DB-OUTBOX-001
+  phase: P02
+  dependencies:
+  - TASK-DB-BOOKING-001
+  conflict_keys:
+  - db-migration-head
+  human_approval_required: false
+- id: TASK-DATA-SEED-001
+  phase: P02
+  dependencies:
+  - TASK-DB-IDENTITY-001
+  conflict_keys:
+  - synthetic-data-data
+  human_approval_required: false
+- id: TASK-DATA-SEED-002
+  phase: P02
+  dependencies:
+  - TASK-DATA-SEED-001
+  - TASK-DB-OUTBOX-001
+  conflict_keys:
+  - synthetic-data-data
+  human_approval_required: false
+- id: TASK-API-IDENTITY-001
+  phase: P03
+  dependencies:
+  - TASK-DATA-KERNEL-001
+  - TASK-DOC-SEC-001
+  conflict_keys:
+  - identity-application
+  human_approval_required: true
+- id: TASK-API-IDENTITY-002
+  phase: P03
+  dependencies:
+  - TASK-API-IDENTITY-001
+  - TASK-DATA-SEED-001
+  conflict_keys:
+  - identity-integration
+  human_approval_required: true
+- id: TASK-API-IDENTITY-003
+  phase: P03
+  dependencies:
+  - TASK-API-IDENTITY-002
+  - TASK-API-BOOT-001
+  conflict_keys:
+  - identity-api
+  human_approval_required: true
+- id: TASK-API-POLICY-001
+  phase: P03
+  dependencies:
+  - TASK-API-IDENTITY-001
+  conflict_keys:
+  - policy-application
+  human_approval_required: true
+- id: TASK-API-POLICY-002
+  phase: P03
+  dependencies:
+  - TASK-API-POLICY-001
+  conflict_keys:
+  - policy-domain
+  human_approval_required: true
+- id: TASK-API-POLICY-003
+  phase: P03
+  dependencies:
+  - TASK-API-POLICY-001
+  conflict_keys:
+  - policy-domain
+  human_approval_required: true
+- id: TASK-API-ACTION-001
+  phase: P03
+  dependencies:
+  - TASK-DATA-KERNEL-001
+  - TASK-DB-ACTION-001
+  conflict_keys:
+  - action-control-domain
+  human_approval_required: true
+- id: TASK-API-ACTION-002
+  phase: P03
+  dependencies:
+  - TASK-API-ACTION-001
+  conflict_keys:
+  - action-control-domain
+  human_approval_required: true
+- id: TASK-API-ACTION-003
+  phase: P03
+  dependencies:
+  - TASK-API-ACTION-001
+  - TASK-DB-ACTION-001
+  conflict_keys:
+  - action-control-application
+  human_approval_required: true
+- id: TASK-API-AUDIT-001
+  phase: P03
+  dependencies:
+  - TASK-DB-OUTBOX-001
+  - TASK-API-IDENTITY-001
+  conflict_keys:
+  - audit-application
+  human_approval_required: true
+- id: TASK-WORKER-OUTBOX-001
+  phase: P03
+  dependencies:
+  - TASK-DB-OUTBOX-001
+  - TASK-WORKER-BOOT-001
+  conflict_keys:
+  - audit-outbox-worker
+  human_approval_required: false
+- id: TASK-WORKER-EVENT-001
+  phase: P03
+  dependencies:
+  - TASK-DB-OUTBOX-001
+  - TASK-WORKER-BOOT-001
+  conflict_keys:
+  - audit-outbox-worker
+  human_approval_required: false
+- id: TASK-TEST-AUTHZ-001
+  phase: P03
+  dependencies:
+  - TASK-API-POLICY-002
+  - TASK-API-POLICY-003
+  conflict_keys:
+  - policy-test
+  human_approval_required: false
+- id: TASK-TEST-ACTION-001
+  phase: P03
+  dependencies:
+  - TASK-API-ACTION-002
+  - TASK-API-ACTION-003
+  conflict_keys:
+  - action-control-test
+  human_approval_required: false
+- id: TASK-AGENT-LLM-001
+  phase: P04
+  dependencies:
+  - TASK-DOC-AI-001
+  - TASK-DATA-KERNEL-001
+  conflict_keys:
+  - llm-gateway-agent
+  human_approval_required: false
+- id: TASK-AGENT-LLM-002
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-001
+  conflict_keys:
+  - llm-gateway-agent
+  human_approval_required: false
+- id: TASK-AGENT-LLM-003
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-001
+  - TASK-TEST-SCHEMA-001
+  conflict_keys:
+  - llm-gateway-agent
+  human_approval_required: false
+- id: TASK-AGENT-PROMPT-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-003
+  conflict_keys:
+  - prompt-registry
+  human_approval_required: false
+- id: TASK-AGENT-LLM-004
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-002
+  - TASK-AGENT-LLM-003
+  conflict_keys:
+  - llm-gateway-agent
+  human_approval_required: false
+- id: TASK-AGENT-LLM-005
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-004
+  - TASK-REPO-ENV-001
+  conflict_keys:
+  - llm-gateway-integration
+  human_approval_required: true
+- id: TASK-DATA-CORPUS-001
+  phase: P04
+  dependencies:
+  - TASK-DATA-SEED-001
+  conflict_keys:
+  - knowledge-data
+  human_approval_required: false
+- id: TASK-WORKER-INGEST-001
+  phase: P04
+  dependencies:
+  - TASK-DB-KNOWLEDGE-001
+  - TASK-WORKER-EVENT-001
+  conflict_keys:
+  - knowledge-worker
+  human_approval_required: false
+- id: TASK-WORKER-INGEST-002
+  phase: P04
+  dependencies:
+  - TASK-WORKER-INGEST-001
+  conflict_keys:
+  - knowledge-worker
+  human_approval_required: false
+- id: TASK-WORKER-INGEST-003
+  phase: P04
+  dependencies:
+  - TASK-WORKER-INGEST-002
+  conflict_keys:
+  - knowledge-worker
+  human_approval_required: false
+- id: TASK-WORKER-EMBED-001
+  phase: P04
+  dependencies:
+  - TASK-WORKER-INGEST-003
+  conflict_keys:
+  - knowledge-worker
+  human_approval_required: false
+- id: TASK-WORKER-INDEX-001
+  phase: P04
+  dependencies:
+  - TASK-WORKER-EMBED-001
+  - TASK-DB-KNOWLEDGE-001
+  conflict_keys:
+  - knowledge-worker
+  human_approval_required: false
+- id: TASK-API-RAG-001
+  phase: P04
+  dependencies:
+  - TASK-WORKER-INDEX-001
+  - TASK-API-POLICY-001
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-API-RAG-002
+  phase: P04
+  dependencies:
+  - TASK-API-RAG-001
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-API-RAG-003
+  phase: P04
+  dependencies:
+  - TASK-API-RAG-001
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-API-RAG-004
+  phase: P04
+  dependencies:
+  - TASK-API-RAG-002
+  - TASK-API-RAG-003
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-AGENT-RERANK-001
+  phase: P04
+  dependencies:
+  - TASK-API-RAG-004
+  - TASK-AGENT-LLM-004
+  conflict_keys:
+  - retrieval-agent
+  human_approval_required: false
+- id: TASK-API-CITATION-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-RERANK-001
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-API-EVIDENCE-001
+  phase: P04
+  dependencies:
+  - TASK-API-CITATION-001
+  conflict_keys:
+  - retrieval-application
+  human_approval_required: false
+- id: TASK-AGENT-STATE-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-LLM-001
+  - TASK-API-EVIDENCE-001
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: false
+- id: TASK-AGENT-SAFETY-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-STATE-001
+  conflict_keys:
+  - safety-agent
+  human_approval_required: true
+- id: TASK-AGENT-ROUTE-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-STATE-001
+  - TASK-AGENT-LLM-004
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: false
+- id: TASK-AGENT-RAG-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-ROUTE-001
+  - TASK-API-EVIDENCE-001
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: false
+- id: TASK-AGENT-COMPOSE-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-RAG-001
+  - TASK-AGENT-PROMPT-001
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: false
+- id: TASK-AGENT-TOOL-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-STATE-001
+  - TASK-API-POLICY-001
+  conflict_keys:
+  - tool-broker-agent
+  human_approval_required: true
+- id: TASK-AGENT-TOOL-002
+  phase: P04
+  dependencies:
+  - TASK-AGENT-TOOL-001
+  - TASK-API-ACTION-003
+  conflict_keys:
+  - tool-broker-agent
+  human_approval_required: true
+- id: TASK-AGENT-GRAPH-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-SAFETY-001
+  - TASK-AGENT-COMPOSE-001
+  - TASK-AGENT-TOOL-002
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: true
+- id: TASK-AGENT-CHECKPOINT-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-GRAPH-001
+  - TASK-DB-CONVERSATION-001
+  conflict_keys:
+  - agent-orchestration-agent
+  human_approval_required: false
+- id: TASK-AGENT-MEMORY-001
+  phase: P04
+  dependencies:
+  - TASK-AGENT-CHECKPOINT-001
+  conflict_keys:
+  - memory-agent
+  human_approval_required: true
+- id: TASK-API-SCHEDULE-001
+  phase: P05
+  dependencies:
+  - TASK-API-IDENTITY-003
+  - TASK-API-POLICY-002
+  conflict_keys:
+  - schedule-application
+  human_approval_required: false
+- id: TASK-API-SCHEDULE-002
+  phase: P05
+  dependencies:
+  - TASK-API-SCHEDULE-001
+  - TASK-DATA-SEED-002
+  conflict_keys:
+  - schedule-integration
+  human_approval_required: false
+- id: TASK-API-SCHEDULE-003
+  phase: P05
+  dependencies:
+  - TASK-API-SCHEDULE-002
+  conflict_keys:
+  - schedule-api
+  human_approval_required: true
+- id: TASK-API-CHAT-001
+  phase: P05
+  dependencies:
+  - TASK-DB-CONVERSATION-001
+  - TASK-API-IDENTITY-003
+  conflict_keys:
+  - conversation-application
+  human_approval_required: false
+- id: TASK-API-CHAT-002
+  phase: P05
+  dependencies:
+  - TASK-API-CHAT-001
+  - TASK-AGENT-CHECKPOINT-001
+  conflict_keys:
+  - conversation-api
+  human_approval_required: false
+- id: TASK-API-TICKET-001
+  phase: P05
+  dependencies:
+  - TASK-DB-TICKET-001
+  - TASK-API-ACTION-001
+  conflict_keys:
+  - ticket-domain
+  human_approval_required: false
+- id: TASK-API-TICKET-002
+  phase: P05
+  dependencies:
+  - TASK-API-TICKET-001
+  - TASK-API-ACTION-002
+  conflict_keys:
+  - ticket-application
+  human_approval_required: true
+- id: TASK-API-TICKET-003
+  phase: P05
+  dependencies:
+  - TASK-API-TICKET-002
+  - TASK-API-ACTION-003
+  - TASK-API-AUDIT-001
+  conflict_keys:
+  - ticket-application
+  human_approval_required: true
+- id: TASK-API-TICKET-004
+  phase: P05
+  dependencies:
+  - TASK-API-TICKET-003
+  conflict_keys:
+  - ticket-api
+  human_approval_required: true
+- id: TASK-API-TICKET-005
+  phase: P05
+  dependencies:
+  - TASK-API-TICKET-001
+  - TASK-API-POLICY-002
+  conflict_keys:
+  - ticket-api
+  human_approval_required: true
+- id: TASK-API-TICKET-006
+  phase: P05
+  dependencies:
+  - TASK-API-TICKET-001
+  - TASK-API-POLICY-003
+  - TASK-API-AUDIT-001
+  conflict_keys:
+  - ticket-application
+  human_approval_required: true
+- id: TASK-API-DOCREQ-001
+  phase: P05
+  dependencies:
+  - TASK-DB-DOCREQ-001
+  - TASK-API-ACTION-001
+  conflict_keys:
+  - document-request-domain
+  human_approval_required: false
+- id: TASK-API-DOCREQ-002
+  phase: P05
+  dependencies:
+  - TASK-API-DOCREQ-001
+  - TASK-API-ACTION-003
+  conflict_keys:
+  - document-request-api
+  human_approval_required: true
+- id: TASK-API-ROOM-001
+  phase: P05
+  dependencies:
+  - TASK-DB-BOOKING-001
+  conflict_keys:
+  - booking-application
+  human_approval_required: false
+- id: TASK-API-ROOM-002
+  phase: P05
+  dependencies:
+  - TASK-API-ROOM-001
+  - TASK-API-ACTION-003
+  conflict_keys:
+  - booking-domain
+  human_approval_required: true
+- id: TASK-API-ROOM-003
+  phase: P05
+  dependencies:
+  - TASK-API-ROOM-002
+  conflict_keys:
+  - booking-api
+  human_approval_required: true
+- id: TASK-API-HITL-001
+  phase: P05
+  dependencies:
+  - TASK-DB-CONVERSATION-001
+  - TASK-API-AUDIT-001
+  conflict_keys:
+  - handover-domain
+  human_approval_required: true
+- id: TASK-API-HITL-002
+  phase: P05
+  dependencies:
+  - TASK-API-HITL-001
+  - TASK-API-POLICY-003
+  conflict_keys:
+  - handover-application
+  human_approval_required: true
+- id: TASK-API-HITL-003
+  phase: P05
+  dependencies:
+  - TASK-API-HITL-002
+  conflict_keys:
+  - handover-api
+  human_approval_required: true
+- id: TASK-API-KNOW-001
+  phase: P05
+  dependencies:
+  - TASK-WORKER-INDEX-001
+  - TASK-API-POLICY-003
+  conflict_keys:
+  - knowledge-application
+  human_approval_required: true
+- id: TASK-API-KNOW-002
+  phase: P05
+  dependencies:
+  - TASK-API-KNOW-001
+  conflict_keys:
+  - knowledge-api
+  human_approval_required: true
+- id: TASK-API-OPS-001
+  phase: P05
+  dependencies:
+  - TASK-API-HEALTH-002
+  - TASK-AGENT-LLM-004
+  conflict_keys:
+  - operations-api
+  human_approval_required: false
+- id: TASK-WEB-DESIGN-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-BOOT-001
+  conflict_keys:
+  - web-design-system
+  human_approval_required: false
+- id: TASK-WEB-SHELL-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-DESIGN-001
+  conflict_keys:
+  - web-shell
+  human_approval_required: false
+- id: TASK-WEB-STATE-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-DESIGN-001
+  conflict_keys:
+  - web-design-system
+  human_approval_required: false
+- id: TASK-WEB-API-001
+  phase: P06
+  dependencies:
+  - TASK-TEST-OPENAPI-001
+  - TASK-REPO-WEB-001
+  conflict_keys:
+  - openapi-generated
+  human_approval_required: false
+- id: TASK-WEB-CHAT-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-SHELL-001
+  - TASK-WEB-API-001
+  - TASK-API-CHAT-002
+  conflict_keys:
+  - conversation-web
+  human_approval_required: false
+- id: TASK-WEB-CITE-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-CHAT-001
+  conflict_keys:
+  - conversation-web
+  human_approval_required: false
+- id: TASK-WEB-SCHEDULE-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-API-001
+  - TASK-API-SCHEDULE-003
+  conflict_keys:
+  - schedule-web
+  human_approval_required: false
+- id: TASK-WEB-TICKET-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-API-001
+  - TASK-API-TICKET-005
+  conflict_keys:
+  - ticket-web
+  human_approval_required: false
+- id: TASK-WEB-CONFIRM-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-API-001
+  - TASK-API-TICKET-004
+  conflict_keys:
+  - action-control-web
+  human_approval_required: true
+- id: TASK-WEB-DOCREQ-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-CONFIRM-001
+  - TASK-API-DOCREQ-002
+  conflict_keys:
+  - document-request-web
+  human_approval_required: false
+- id: TASK-WEB-ROOM-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-CONFIRM-001
+  - TASK-API-ROOM-003
+  conflict_keys:
+  - booking-web
+  human_approval_required: false
+- id: TASK-WEB-HITL-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-API-001
+  - TASK-API-HITL-002
+  conflict_keys:
+  - handover-web
+  human_approval_required: true
+- id: TASK-WEB-STAFF-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-TICKET-001
+  - TASK-API-TICKET-006
+  conflict_keys:
+  - ticket-web
+  human_approval_required: true
+- id: TASK-WEB-KNOW-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-API-001
+  - TASK-API-KNOW-002
+  conflict_keys:
+  - knowledge-web
+  human_approval_required: true
+- id: TASK-WEB-OPS-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-SHELL-001
+  - TASK-API-OPS-001
+  conflict_keys:
+  - operations-web
+  human_approval_required: false
+- id: TASK-WEB-A11Y-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-CHAT-001
+  - TASK-WEB-SCHEDULE-001
+  - TASK-WEB-CONFIRM-001
+  conflict_keys:
+  - web-accessibility-test
+  human_approval_required: false
+- id: TASK-WEB-RESPONSIVE-001
+  phase: P06
+  dependencies:
+  - TASK-WEB-HITL-001
+  - TASK-WEB-STAFF-001
+  - TASK-WEB-KNOW-001
+  conflict_keys:
+  - shared-snapshots
+  human_approval_required: false
+- id: TASK-EVAL-SCHEMA-001
+  phase: P07
+  dependencies:
+  - TASK-TEST-SCHEMA-001
+  - TASK-DOC-AI-001
+  conflict_keys:
+  - evaluation-eval
+  human_approval_required: false
+- id: TASK-EVAL-RAG-001
+  phase: P07
+  dependencies:
+  - TASK-DATA-CORPUS-001
+  - TASK-EVAL-SCHEMA-001
+  conflict_keys:
+  - evaluation-eval
+  human_approval_required: false
+- id: TASK-EVAL-SAFE-001
+  phase: P07
+  dependencies:
+  - TASK-EVAL-SCHEMA-001
+  - TASK-AGENT-SAFETY-001
+  conflict_keys:
+  - safety-eval
+  human_approval_required: true
+- id: TASK-EVAL-RED-001
+  phase: P07
+  dependencies:
+  - TASK-EVAL-SCHEMA-001
+  - TASK-AGENT-GRAPH-001
+  conflict_keys:
+  - security-testing-eval
+  human_approval_required: false
+- id: TASK-EVAL-RUNNER-001
+  phase: P07
+  dependencies:
+  - TASK-EVAL-RAG-001
+  - TASK-EVAL-SAFE-001
+  - TASK-EVAL-RED-001
+  - TASK-AGENT-LLM-002
+  conflict_keys:
+  - evaluation-eval
+  human_approval_required: false
+- id: TASK-EVAL-GATE-001
+  phase: P07
+  dependencies:
+  - TASK-EVAL-RUNNER-001
+  conflict_keys:
+  - evaluation-eval
+  human_approval_required: true
+- id: TASK-TEST-CONTRACT-001
+  phase: P07
+  dependencies:
+  - TASK-API-CHAT-002
+  - TASK-API-ROOM-003
+  - TASK-API-KNOW-002
+  - TASK-WORKER-EVENT-001
+  conflict_keys:
+  - contracts-test
+  human_approval_required: false
+- id: TASK-TEST-E2E-001
+  phase: P07
+  dependencies:
+  - TASK-WEB-CITE-001
+  - TASK-EVAL-RAG-001
+  conflict_keys:
+  - end-to-end-test
+  human_approval_required: false
+- id: TASK-TEST-E2E-002
+  phase: P07
+  dependencies:
+  - TASK-WEB-CONFIRM-001
+  - TASK-WEB-TICKET-001
+  conflict_keys:
+  - end-to-end-test
+  human_approval_required: false
+- id: TASK-TEST-E2E-003
+  phase: P07
+  dependencies:
+  - TASK-WEB-HITL-001
+  - TASK-EVAL-SAFE-001
+  conflict_keys:
+  - end-to-end-test
+  human_approval_required: true
+- id: TASK-TEST-SEC-001
+  phase: P07
+  dependencies:
+  - TASK-API-AUDIT-001
+  - TASK-AGENT-LLM-005
+  conflict_keys:
+  - security-testing-test
+  human_approval_required: false
+- id: TASK-TEST-SEC-002
+  phase: P07
+  dependencies:
+  - TASK-WEB-CITE-001
+  - TASK-AGENT-TOOL-001
+  conflict_keys:
+  - security-testing-test
+  human_approval_required: false
+- id: TASK-TEST-SEC-003
+  phase: P07
+  dependencies:
+  - TASK-WORKER-INGEST-003
+  - TASK-API-KNOW-001
+  conflict_keys:
+  - security-testing-test
+  human_approval_required: false
+- id: TASK-TEST-SEC-004
+  phase: P07
+  dependencies:
+  - TASK-API-IDENTITY-003
+  - TASK-WEB-SHELL-001
+  conflict_keys:
+  - security-testing-test
+  human_approval_required: false
+- id: TASK-TEST-SUPPLY-001
+  phase: P07
+  dependencies:
+  - TASK-TEST-CI-001
+  - TASK-REPO-PYTHON-001
+  - TASK-REPO-WEB-001
+  conflict_keys:
+  - ci-workflow
+  human_approval_required: true
+- id: TASK-TEST-LOAD-001
+  phase: P07
+  dependencies:
+  - TASK-API-CHAT-002
+  - TASK-API-TICKET-004
+  - TASK-API-SCHEDULE-003
+  conflict_keys:
+  - performance-test
+  human_approval_required: false
+- id: TASK-INFRA-CDK-001
+  phase: P08
+  dependencies:
+  - TASK-DOC-STACK-001
+  - TASK-REPO-WEB-001
+  conflict_keys:
+  - cdk-context
+  human_approval_required: true
+- id: TASK-INFRA-NET-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-CDK-001
+  conflict_keys:
+  - aws-network
+  human_approval_required: true
+- id: TASK-INFRA-DATA-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-NET-001
+  conflict_keys:
+  - aws-data
+  human_approval_required: true
+- id: TASK-INFRA-CACHE-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-NET-001
+  conflict_keys:
+  - aws-data
+  human_approval_required: true
+- id: TASK-INFRA-ASYNC-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-NET-001
+  conflict_keys:
+  - aws-async
+  human_approval_required: true
+- id: TASK-INFRA-COMPUTE-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-NET-001
+  - TASK-INFRA-DATA-001
+  - TASK-INFRA-ASYNC-001
+  conflict_keys:
+  - aws-compute
+  human_approval_required: true
+- id: TASK-INFRA-EDGE-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-COMPUTE-001
+  conflict_keys:
+  - aws-edge
+  human_approval_required: true
+- id: TASK-INFRA-IAM-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-COMPUTE-001
+  - TASK-INFRA-ASYNC-001
+  conflict_keys:
+  - aws-iam
+  human_approval_required: true
+- id: TASK-OPS-OTEL-001
+  phase: P08
+  dependencies:
+  - TASK-API-BOOT-001
+  - TASK-API-AUDIT-001
+  conflict_keys:
+  - operations-observability
+  human_approval_required: true
+- id: TASK-OPS-METRIC-001
+  phase: P08
+  dependencies:
+  - TASK-OPS-OTEL-001
+  - TASK-AGENT-GRAPH-001
+  conflict_keys:
+  - operations-observability
+  human_approval_required: true
+- id: TASK-INFRA-MON-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-COMPUTE-001
+  - TASK-OPS-METRIC-001
+  conflict_keys:
+  - aws-monitoring
+  human_approval_required: true
+- id: TASK-OPS-COST-001
+  phase: P08
+  dependencies:
+  - TASK-AGENT-LLM-004
+  - TASK-OPS-METRIC-001
+  conflict_keys:
+  - cost-control-operations
+  human_approval_required: true
+- id: TASK-TEST-PERF-001
+  phase: P08
+  dependencies:
+  - TASK-TEST-LOAD-001
+  - TASK-EVAL-RAG-001
+  - TASK-API-RAG-004
+  conflict_keys:
+  - performance-test
+  human_approval_required: false
+- id: TASK-TEST-PERF-002
+  phase: P08
+  dependencies:
+  - TASK-TEST-LOAD-001
+  - TASK-OPS-OTEL-001
+  conflict_keys:
+  - performance-test
+  human_approval_required: false
+- id: TASK-TEST-CHAOS-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-LOCAL-002
+  - TASK-API-TICKET-003
+  conflict_keys:
+  - reliability-test
+  human_approval_required: false
+- id: TASK-TEST-CHAOS-002
+  phase: P08
+  dependencies:
+  - TASK-AGENT-LLM-004
+  - TASK-API-OPS-001
+  conflict_keys:
+  - reliability-test
+  human_approval_required: false
+- id: TASK-OPS-RESTORE-001
+  phase: P08
+  dependencies:
+  - TASK-INFRA-DATA-001
+  - TASK-DATA-SEED-002
+  conflict_keys:
+  - staging-drill
+  human_approval_required: true
+- id: TASK-OPS-DELETION-001
+  phase: P08
+  dependencies:
+  - TASK-DB-CONVERSATION-001
+  - TASK-WORKER-BOOT-001
+  conflict_keys:
+  - privacy-lifecycle-worker
+  human_approval_required: true
+- id: TASK-OPS-FLAG-001
+  phase: P09
+  dependencies:
+  - TASK-API-OPS-001
+  - TASK-REPO-ENV-001
+  conflict_keys:
+  - release-control-operations
+  human_approval_required: true
+- id: TASK-OPS-DEMO-001
+  phase: P09
+  dependencies:
+  - TASK-DATA-SEED-002
+  - TASK-DATA-CORPUS-001
+  - TASK-EVAL-GATE-001
+  conflict_keys:
+  - pilot-operations
+  human_approval_required: false
+- id: TASK-DOC-RUNBOOK-001
+  phase: P09
+  dependencies:
+  - TASK-OPS-FLAG-001
+  - TASK-TEST-CHAOS-002
+  conflict_keys:
+  - runbooks-operations
+  human_approval_required: false
+- id: TASK-DOC-RUNBOOK-002
+  phase: P09
+  dependencies:
+  - TASK-OPS-RESTORE-001
+  conflict_keys:
+  - runbooks-operations
+  human_approval_required: false
+- id: TASK-TEST-PILOT-001
+  phase: P09
+  dependencies:
+  - TASK-TEST-E2E-001
+  - TASK-TEST-E2E-002
+  - TASK-TEST-E2E-003
+  - TASK-OPS-DEMO-001
+  conflict_keys:
+  - pilot-environment
+  human_approval_required: false
+- id: TASK-TEST-A11Y-001
+  phase: P09
+  dependencies:
+  - TASK-WEB-A11Y-001
+  - TASK-WEB-RESPONSIVE-001
+  - TASK-TEST-PILOT-001
+  conflict_keys:
+  - pilot-environment
+  human_approval_required: false
+- id: TASK-TEST-RELEASE-001
+  phase: P09
+  dependencies:
+  - TASK-TEST-PILOT-001
+  - TASK-TEST-A11Y-001
+  - TASK-TEST-SUPPLY-001
+  - TASK-TEST-PERF-002
+  - TASK-OPS-RESTORE-001
+  conflict_keys:
+  - release-manifest
+  human_approval_required: true
+- id: TASK-OPS-STAGING-001
+  phase: P09
+  dependencies:
+  - TASK-INFRA-IAM-001
+  - TASK-INFRA-EDGE-001
+  - TASK-INFRA-MON-001
+  - TASK-TEST-RELEASE-001
+  conflict_keys:
+  - staging-deploy
+  human_approval_required: true
+- id: TASK-TEST-SOAK-001
+  phase: P09
+  dependencies:
+  - TASK-OPS-STAGING-001
+  conflict_keys:
+  - staging-deploy
+  human_approval_required: true
+- id: TASK-DOC-LAUNCH-001
+  phase: P09
+  dependencies:
+  - TASK-TEST-SOAK-001
+  - TASK-TEST-RELEASE-001
+  conflict_keys:
+  - release-manifest
+  human_approval_required: true
+- id: TASK-OPS-PROD-001
+  phase: P09
+  dependencies:
+  - TASK-DOC-LAUNCH-001
+  conflict_keys:
+  - production-deploy
+  human_approval_required: true
+- id: TASK-OPS-POSTREL-001
+  phase: P09
+  dependencies:
+  - TASK-OPS-PROD-001
+  conflict_keys:
+  - production-deploy
+  human_approval_required: true
+- id: TASK-API-IDENTITY-004
+  phase: P03
+  dependencies: [TASK-API-IDENTITY-002]
+  conflict_keys: [identity-session]
+  human_approval_required: true
+- id: TASK-API-IDENTITY-005
+  phase: P03
+  dependencies: [TASK-API-IDENTITY-002]
+  conflict_keys: [identity-production-config]
+  human_approval_required: true
+- id: TASK-API-CHAT-003
+  phase: P05
+  dependencies: [TASK-API-CHAT-001]
+  conflict_keys: [answer-feedback]
+  human_approval_required: false
+- id: TASK-API-STAFF-001
+  phase: P05
+  dependencies: [TASK-API-HITL-003]
+  conflict_keys: [staff-case-claim]
+  human_approval_required: true
+- id: TASK-API-STAFF-002
+  phase: P05
+  dependencies: [TASK-API-STAFF-001, TASK-API-AUDIT-001]
+  conflict_keys: [staff-response-audit]
+  human_approval_required: true
+- id: TASK-API-STAFF-003
+  phase: P05
+  dependencies: [TASK-API-STAFF-001, TASK-API-TICKET-006]
+  conflict_keys: [staff-case-transfer]
+  human_approval_required: true
+- id: TASK-API-PRIV-001
+  phase: P05
+  dependencies: [TASK-API-IDENTITY-003]
+  conflict_keys: [privacy-notice-consent]
+  human_approval_required: true
+- id: TASK-API-PRIV-002
+  phase: P05
+  dependencies: [TASK-API-PRIV-001]
+  conflict_keys: [privacy-request-lifecycle]
+  human_approval_required: true
+- id: TASK-WEB-CHAT-002
+  phase: P06
+  dependencies: [TASK-WEB-CHAT-001, TASK-API-CHAT-003]
+  conflict_keys: [chat-feedback-ui]
+  human_approval_required: false
+- id: TASK-WEB-PRIV-001
+  phase: P06
+  dependencies: [TASK-API-PRIV-001, TASK-API-PRIV-002, TASK-WEB-SHELL-001]
+  conflict_keys: [privacy-center-ui]
+  human_approval_required: true
+- id: TASK-DOC-UX-001
+  phase: P00
+  dependencies: [TASK-DOC-GOV-001]
+  conflict_keys: [ux-foundations]
+  human_approval_required: true
+- id: TASK-DOC-UX-002
+  phase: P00
+  dependencies: [TASK-DOC-GOV-001]
+  conflict_keys: [ux-state-model]
+  human_approval_required: true
+- id: TASK-DOC-UX-003
+  phase: P00
+  dependencies: [TASK-DOC-GOV-001]
+  conflict_keys: [ux-trust-content]
+  human_approval_required: true
+- id: TASK-DOC-UX-004
+  phase: P00
+  dependencies: [TASK-DOC-GOV-001]
+  conflict_keys: [ux-accessibility]
+  human_approval_required: true
+- id: TASK-WEB-DESIGN-002
+  phase: P06
+  dependencies: [TASK-WEB-DESIGN-001, TASK-DOC-UX-004]
+  conflict_keys: [redesign-foundation]
+  human_approval_required: false
+- id: TASK-WEB-A11Y-002
+  phase: P06
+  dependencies: [TASK-WEB-DESIGN-002]
+  conflict_keys: [redesign-accessibility]
+  human_approval_required: false
+- id: TASK-WEB-SHELL-002
+  phase: P06
+  dependencies: [TASK-WEB-SHELL-001, TASK-WEB-A11Y-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-shell]
+  human_approval_required: false
+- id: TASK-WEB-STATE-002
+  phase: P06
+  dependencies: [TASK-WEB-STATE-001, TASK-WEB-DESIGN-002, TASK-DOC-UX-002]
+  conflict_keys: [redesign-system-states]
+  human_approval_required: false
+- id: TASK-WEB-HOME-002
+  phase: P06
+  dependencies: [TASK-WEB-SHELL-002, TASK-WEB-STATE-002]
+  conflict_keys: [redesign-student-home]
+  human_approval_required: false
+- id: TASK-WEB-AUTH-002
+  phase: P06
+  dependencies: [TASK-WEB-API-001, TASK-API-IDENTITY-002]
+  conflict_keys: [web-session-boundary]
+  human_approval_required: true
+- id: TASK-WEB-CHAT-003
+  phase: P06
+  dependencies: [TASK-WEB-CHAT-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-WEB-AUTH-002, TASK-DOC-UX-003]
+  conflict_keys: [redesign-chat]
+  human_approval_required: false
+- id: TASK-WEB-CITE-002
+  phase: P06
+  dependencies: [TASK-WEB-CITE-001, TASK-WEB-CHAT-003, TASK-DOC-UX-003]
+  conflict_keys: [redesign-citations]
+  human_approval_required: false
+- id: TASK-WEB-SCHED-002
+  phase: P06
+  dependencies: [TASK-WEB-SCHEDULE-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-schedule]
+  human_approval_required: false
+- id: TASK-WEB-SCHED-003
+  phase: P06
+  dependencies: [TASK-WEB-SCHED-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  conflict_keys: [schedule-page-adapter]
+  human_approval_required: false
+- id: TASK-WEB-TICK-002
+  phase: P06
+  dependencies: [TASK-WEB-TICKET-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-tickets]
+  human_approval_required: false
+- id: TASK-WEB-TICK-003
+  phase: P06
+  dependencies: [TASK-WEB-TICK-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  conflict_keys: [ticket-page-adapter]
+  human_approval_required: false
+- id: TASK-WEB-DOCREQ-002
+  phase: P06
+  dependencies: [TASK-WEB-DOCREQ-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  conflict_keys: [redesign-document-requests]
+  human_approval_required: false
+- id: TASK-WEB-ROOM-002
+  phase: P06
+  dependencies: [TASK-WEB-ROOM-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  conflict_keys: [redesign-rooms]
+  human_approval_required: false
+- id: TASK-WEB-ROOM-003
+  phase: P06
+  dependencies: [TASK-WEB-ROOM-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  conflict_keys: [room-page-adapter]
+  human_approval_required: false
+- id: TASK-WEB-SAFE-001
+  phase: P06
+  dependencies: [TASK-WEB-HITL-001, TASK-DOC-UX-003, TASK-DOC-UX-004]
+  conflict_keys: [redesign-safety-handover]
+  human_approval_required: true
+- id: TASK-WEB-STAFF-002
+  phase: P06
+  dependencies: [TASK-WEB-STAFF-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-staff]
+  human_approval_required: false
+- id: TASK-WEB-KNOW-002
+  phase: P06
+  dependencies: [TASK-WEB-KNOW-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-knowledge]
+  human_approval_required: false
+- id: TASK-WEB-OPS-002
+  phase: P06
+  dependencies: [TASK-WEB-OPS-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  conflict_keys: [redesign-operations]
+  human_approval_required: false
+- id: TASK-WEB-PRIV-002
+  phase: P06
+  dependencies: [TASK-WEB-PRIV-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  conflict_keys: [redesign-privacy]
+  human_approval_required: true
+- id: TASK-TEST-WEB-002
+  phase: P09
+  dependencies: [TASK-WEB-HOME-002, TASK-WEB-CITE-002, TASK-WEB-SCHED-003, TASK-WEB-TICK-003, TASK-WEB-DOCREQ-002, TASK-WEB-ROOM-003, TASK-WEB-SAFE-001, TASK-WEB-STAFF-002, TASK-WEB-KNOW-002, TASK-WEB-OPS-002, TASK-WEB-PRIV-002]
+  conflict_keys: [redesign-browser-evidence]
+  human_approval_required: false

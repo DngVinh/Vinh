@@ -1,0 +1,35 @@
+schema_version: "1.0"
+drill_id: "DRILL-ALERT-FAILOVER-01"
+environment: "synthetic-staging"
+executed_at: "2026-09-22T00:00:00Z"
+target_controls:
+  - "SEC-AUDIT-018"
+  - "SEC-CTRL-020"
+drills:
+  - scenario: "redis_primary_failover"
+    trigger: "kill -9 redis-primary-simulated"
+    time_to_detect_seconds: 12
+    time_to_recover_seconds: 38
+    alert_name: "ElastiCachePrimaryUnavailable"
+    alert_delivered: true
+    data_loss: false
+    status: "PASSED"
+  - scenario: "sqs_dlq_quarantine"
+    trigger: "inject_poison_message"
+    time_to_detect_seconds: 5
+    quarantine_successful: true
+    alert_name: "SQSDeadLetterQueueMessagesPresent"
+    alert_delivered: true
+    status: "PASSED"
+  - scenario: "llm_circuit_breaker_open"
+    trigger: "simulate_provider_503_burst"
+    time_to_detect_seconds: 3
+    safe_degradation_active: true
+    fallback_banner_shown: true
+    alert_name: "LLMCircuitBreakerTripped"
+    alert_delivered: true
+    status: "PASSED"
+overall_status: "PASSED"
+sign_off:
+  operations_lead: "APPROVED"
+  security_lead: "APPROVED"

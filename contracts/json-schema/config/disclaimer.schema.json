@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/config/disclaimer.schema.json",
+  "title": "Campus 24/7 synthetic-service disclaimer",
+  "description": "Canonical public disclosure for the HUCE Demo V1. This schema intentionally models only the synthetic, non-official service posture and does not authorize a production launch.",
+  "$defs": {
+    "syntheticServiceDisclaimer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_label",
+        "service_status",
+        "data_status",
+        "official_service_status",
+        "contact_status"
+      ],
+      "properties": {
+        "service_label": {
+          "type": "string",
+          "const": "HUCE Demo"
+        },
+        "service_status": {
+          "type": "string",
+          "const": "SIMULATION_ONLY"
+        },
+        "data_status": {
+          "type": "string",
+          "const": "SYNTHETIC_DATA_ONLY"
+        },
+        "official_service_status": {
+          "type": "string",
+          "const": "NOT_AN_OFFICIAL_UNIVERSITY_SERVICE"
+        },
+        "contact_status": {
+          "type": "string",
+          "const": "OFFICIAL_CONTACT_NOT_CONFIGURED"
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/syntheticServiceDisclaimer"
+}

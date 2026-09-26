@@ -1,0 +1,88 @@
+schema_version: '1.0'
+id: TASK-OPS-PROD-001
+phase: P09
+title: Execute approved production deployment and smoke checks
+status: accepted
+objective: Execute only the separately approved production change plan, then record smoke, audit, model, egress and rollback
+  evidence.
+layer: release
+bounded_context: production-deploy
+priority: P0
+estimated_minutes: 45
+sensitivity: critical
+human_approval_required: true
+approval_reasons:
+- production_deploy
+- paid_service
+- real_secret_or_data
+- legal_privacy
+- security_policy
+traceability:
+  requirements: []
+  design:
+  - ARCH-005
+  contracts: []
+  controls:
+  - SEC-SDLC-007
+  - SEC-SDLC-008
+  evals: []
+dependencies:
+- TASK-DOC-LAUNCH-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/06-security/13_SECURE_SDLC_GATES.md
+  load: full
+write_scope:
+  allowed_paths:
+  - release/production-plan.yaml
+  - release/production-result.yaml
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 2
+  max_added_lines: 160
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Execute only the separately approved production change plan, then record smoke, audit, model,
+  egress and rollback evidence.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-OPS-PROD-001-01
+  assertion: 'The deliverable satisfies the single objective: Execute only the separately approved production change plan,
+    then record smoke, audit, model, egress and rollback evidence.'
+- id: AC-TASK-OPS-PROD-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-OPS-PROD-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q
+  expected_exit_code: 0
+  proves: The relevant automated regression suite passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: stop_before_promotion
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: false
+  conflict_keys:
+  - production-deploy
+execution_policy:
+  max_fix_attempts: 2
+  network_access: true
+  paid_services: true
+  destructive_operations: false

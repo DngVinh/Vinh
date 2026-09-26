@@ -1,0 +1,55 @@
+document_id: "DOC-TOOL-SCHEMA-003"
+version: "1.0.0"
+status: "reviewed"
+owner: "Backend Architecture Lead"
+approvers: ["QA Lead", "AI Architecture Lead"]
+last_updated: "2026-09-21"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/tools/tool-result.schema.yaml"
+title: "Normalized tool result envelope"
+type: "object"
+additionalProperties: false
+required: ["schema_version", "invocation_id", "tool_id", "contract_version", "status", "result", "error", "executed_at", "audit_correlation_id"]
+properties:
+  schema_version:
+    const: "1.0"
+  invocation_id:
+    $ref: "common.schema.yaml#/$defs/uuid"
+  tool_id:
+    type: "string"
+    pattern: "^TOOL-[A-Z]+-[0-9]{3}$"
+  contract_version:
+    type: "string"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  status:
+    type: "string"
+    enum: ["succeeded", "failed", "uncertain"]
+  result:
+    type: ["object", "null"]
+  error:
+    oneOf:
+      - $ref: "common.schema.yaml#/$defs/tool_error"
+      - type: "null"
+  executed_at:
+    type: "string"
+    format: "date-time"
+  idempotency_key:
+    type: ["string", "null"]
+    pattern: "^[A-Za-z0-9_-]{20,128}$"
+  audit_correlation_id:
+    $ref: "common.schema.yaml#/$defs/reference_id"
+allOf:
+  - if:
+      properties:
+        status: {const: "succeeded"}
+    then:
+      properties:
+        result: {type: "object"}
+        error: {type: "null"}
+  - if:
+      properties:
+        status: {enum: ["failed", "uncertain"]}
+    then:
+      properties:
+        error:
+          $ref: "common.schema.yaml#/$defs/tool_error"

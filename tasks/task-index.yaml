@@ -1,0 +1,1604 @@
+schema_version: '1.0'
+catalog: campus247-v1
+generated_by: tasks/tools/generate_catalog.py
+task_count: 201
+phases:
+- id: P00
+  title: Normative readiness and repository bootstrap
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-DOC-GOV-001
+    path: tasks/items/TASK-DOC-GOV-001.yaml
+    title: Approve the product requirement baseline for synthetic implementation
+    status: accepted
+    dependencies: []
+    human_approval_required: true
+  - id: TASK-DOC-ARCH-001
+    path: tasks/items/TASK-DOC-ARCH-001.yaml
+    title: Approve architecture and ADR baseline
+    status: accepted
+    dependencies: []
+    human_approval_required: true
+  - id: TASK-DOC-CONTRACT-001
+    path: tasks/items/TASK-DOC-CONTRACT-001.yaml
+    title: Approve API data event and tool contracts
+    status: accepted
+    dependencies: []
+    human_approval_required: true
+  - id: TASK-DOC-AI-001
+    path: tasks/items/TASK-DOC-AI-001.yaml
+    title: Approve AI RAG agent and evaluation baseline
+    status: accepted
+    dependencies: []
+    human_approval_required: true
+  - id: TASK-DOC-SEC-001
+    path: tasks/items/TASK-DOC-SEC-001.yaml
+    title: Approve security privacy and threat baseline
+    status: accepted
+    dependencies: []
+    human_approval_required: true
+  - id: TASK-DOC-STACK-001
+    path: tasks/items/TASK-DOC-STACK-001.yaml
+    title: Approve pinned dependency and runtime allowlist
+    status: accepted
+    dependencies:
+    - TASK-DOC-ARCH-001
+    - TASK-DOC-SEC-001
+    human_approval_required: true
+  - id: TASK-REPO-SCAFFOLD-001
+    path: tasks/items/TASK-REPO-SCAFFOLD-001.yaml
+    title: Create top-level implementation directory skeleton
+    status: accepted
+    dependencies:
+    - TASK-DOC-GOV-001
+    - TASK-DOC-ARCH-001
+    - TASK-DOC-CONTRACT-001
+    - TASK-DOC-AI-001
+    - TASK-DOC-SEC-001
+    human_approval_required: false
+  - id: TASK-REPO-CONFIG-001
+    path: tasks/items/TASK-REPO-CONFIG-001.yaml
+    title: Add safe repository ignore and editor defaults
+    status: accepted
+    dependencies:
+    - TASK-REPO-SCAFFOLD-001
+    human_approval_required: false
+  - id: TASK-TEST-CATALOG-001
+    path: tasks/items/TASK-TEST-CATALOG-001.yaml
+    title: Wire task catalog validation into preflight
+    status: accepted
+    dependencies:
+    - TASK-REPO-SCAFFOLD-001
+    human_approval_required: false
+  - id: TASK-DOC-DEV-001
+    path: tasks/items/TASK-DOC-DEV-001.yaml
+    title: Document local bootstrap without secrets
+    status: accepted
+    dependencies:
+    - TASK-DOC-STACK-001
+    - TASK-REPO-CONFIG-001
+    human_approval_required: false
+- id: P01
+  title: Runnable local foundation and CI
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-REPO-PYTHON-001
+    path: tasks/items/TASK-REPO-PYTHON-001.yaml
+    title: Create pinned Python workspace manifest
+    status: accepted
+    dependencies:
+    - TASK-DOC-STACK-001
+    - TASK-REPO-SCAFFOLD-001
+    human_approval_required: false
+  - id: TASK-REPO-WEB-001
+    path: tasks/items/TASK-REPO-WEB-001.yaml
+    title: Create pinned web workspace manifest
+    status: accepted
+    dependencies:
+    - TASK-DOC-STACK-001
+    - TASK-REPO-SCAFFOLD-001
+    human_approval_required: false
+  - id: TASK-API-BOOT-001
+    path: tasks/items/TASK-API-BOOT-001.yaml
+    title: Create FastAPI application factory
+    status: accepted
+    dependencies:
+    - TASK-REPO-PYTHON-001
+    human_approval_required: false
+  - id: TASK-WORKER-BOOT-001
+    path: tasks/items/TASK-WORKER-BOOT-001.yaml
+    title: Create worker process bootstrap
+    status: accepted
+    dependencies:
+    - TASK-REPO-PYTHON-001
+    human_approval_required: false
+  - id: TASK-WEB-BOOT-001
+    path: tasks/items/TASK-WEB-BOOT-001.yaml
+    title: Create Next.js application shell
+    status: accepted
+    dependencies:
+    - TASK-REPO-WEB-001
+    human_approval_required: false
+  - id: TASK-REPO-ENV-001
+    path: tasks/items/TASK-REPO-ENV-001.yaml
+    title: Define validated non-secret environment settings
+    status: accepted
+    dependencies:
+    - TASK-API-BOOT-001
+    human_approval_required: false
+  - id: TASK-INFRA-LOCAL-001
+    path: tasks/items/TASK-INFRA-LOCAL-001.yaml
+    title: Add local PostgreSQL pgvector compose service
+    status: accepted
+    dependencies:
+    - TASK-REPO-CONFIG-001
+    human_approval_required: false
+  - id: TASK-INFRA-LOCAL-002
+    path: tasks/items/TASK-INFRA-LOCAL-002.yaml
+    title: Add local Redis compose service
+    status: accepted
+    dependencies:
+    - TASK-INFRA-LOCAL-001
+    human_approval_required: false
+  - id: TASK-API-HEALTH-001
+    path: tasks/items/TASK-API-HEALTH-001.yaml
+    title: Implement liveness endpoint
+    status: accepted
+    dependencies:
+    - TASK-API-BOOT-001
+    human_approval_required: false
+  - id: TASK-API-HEALTH-002
+    path: tasks/items/TASK-API-HEALTH-002.yaml
+    title: Implement bounded readiness endpoint
+    status: accepted
+    dependencies:
+    - TASK-API-HEALTH-001
+    - TASK-REPO-ENV-001
+    human_approval_required: false
+  - id: TASK-TEST-CI-001
+    path: tasks/items/TASK-TEST-CI-001.yaml
+    title: Create offline lint type and unit CI job
+    status: accepted
+    dependencies:
+    - TASK-REPO-PYTHON-001
+    - TASK-REPO-WEB-001
+    - TASK-TEST-CATALOG-001
+    human_approval_required: false
+  - id: TASK-TEST-BOUNDARY-001
+    path: tasks/items/TASK-TEST-BOUNDARY-001.yaml
+    title: Add architecture import-boundary test
+    status: accepted
+    dependencies:
+    - TASK-API-BOOT-001
+    - TASK-WORKER-BOOT-001
+    human_approval_required: false
+- id: P02
+  title: Data model, migrations and synthetic fixtures
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-TEST-SCHEMA-001
+    path: tasks/items/TASK-TEST-SCHEMA-001.yaml
+    title: Compile every JSON Schema contract
+    status: accepted
+    dependencies:
+    - TASK-DOC-CONTRACT-001
+    - TASK-REPO-PYTHON-001
+    human_approval_required: false
+  - id: TASK-TEST-OPENAPI-001
+    path: tasks/items/TASK-TEST-OPENAPI-001.yaml
+    title: Validate OpenAPI and referenced schemas
+    status: accepted
+    dependencies:
+    - TASK-TEST-SCHEMA-001
+    human_approval_required: false
+  - id: TASK-TEST-ASYNCAPI-001
+    path: tasks/items/TASK-TEST-ASYNCAPI-001.yaml
+    title: Validate AsyncAPI event contract
+    status: accepted
+    dependencies:
+    - TASK-TEST-SCHEMA-001
+    human_approval_required: false
+  - id: TASK-DATA-KERNEL-001
+    path: tasks/items/TASK-DATA-KERNEL-001.yaml
+    title: Implement shared IDs timestamps and error values
+    status: accepted
+    dependencies:
+    - TASK-REPO-PYTHON-001
+    - TASK-TEST-SCHEMA-001
+    human_approval_required: false
+  - id: TASK-DB-BASE-001
+    path: tasks/items/TASK-DB-BASE-001.yaml
+    title: Create database engine and transaction unit
+    status: accepted
+    dependencies:
+    - TASK-REPO-ENV-001
+    - TASK-INFRA-LOCAL-001
+    human_approval_required: false
+  - id: TASK-DB-MIG-001
+    path: tasks/items/TASK-DB-MIG-001.yaml
+    title: Initialize additive migration framework
+    status: accepted
+    dependencies:
+    - TASK-DB-BASE-001
+    human_approval_required: false
+  - id: TASK-DB-IDENTITY-001
+    path: tasks/items/TASK-DB-IDENTITY-001.yaml
+    title: Add identity and role-binding migration
+    status: accepted
+    dependencies:
+    - TASK-DB-MIG-001
+    human_approval_required: false
+  - id: TASK-DB-KNOWLEDGE-001
+    path: tasks/items/TASK-DB-KNOWLEDGE-001.yaml
+    title: Add knowledge source version and chunk migration
+    status: accepted
+    dependencies:
+    - TASK-DB-IDENTITY-001
+    human_approval_required: false
+  - id: TASK-DB-CONVERSATION-001
+    path: tasks/items/TASK-DB-CONVERSATION-001.yaml
+    title: Add conversation message and handover migration
+    status: accepted
+    dependencies:
+    - TASK-DB-KNOWLEDGE-001
+    human_approval_required: false
+  - id: TASK-DB-ACTION-001
+    path: tasks/items/TASK-DB-ACTION-001.yaml
+    title: Add preview confirmation and idempotency migration
+    status: accepted
+    dependencies:
+    - TASK-DB-CONVERSATION-001
+    human_approval_required: false
+  - id: TASK-DB-TICKET-001
+    path: tasks/items/TASK-DB-TICKET-001.yaml
+    title: Add ticket and immutable ticket-event migration
+    status: accepted
+    dependencies:
+    - TASK-DB-ACTION-001
+    human_approval_required: false
+  - id: TASK-DB-DOCREQ-001
+    path: tasks/items/TASK-DB-DOCREQ-001.yaml
+    title: Add document-request migration
+    status: accepted
+    dependencies:
+    - TASK-DB-TICKET-001
+    human_approval_required: false
+  - id: TASK-DB-BOOKING-001
+    path: tasks/items/TASK-DB-BOOKING-001.yaml
+    title: Add room and booking migration
+    status: accepted
+    dependencies:
+    - TASK-DB-DOCREQ-001
+    human_approval_required: false
+  - id: TASK-DB-OUTBOX-001
+    path: tasks/items/TASK-DB-OUTBOX-001.yaml
+    title: Add audit outbox and processed-event migration
+    status: accepted
+    dependencies:
+    - TASK-DB-BOOKING-001
+    human_approval_required: false
+  - id: TASK-DATA-SEED-001
+    path: tasks/items/TASK-DATA-SEED-001.yaml
+    title: Generate deterministic synthetic identities
+    status: accepted
+    dependencies:
+    - TASK-DB-IDENTITY-001
+    human_approval_required: false
+  - id: TASK-DATA-SEED-002
+    path: tasks/items/TASK-DATA-SEED-002.yaml
+    title: Generate deterministic service records
+    status: accepted
+    dependencies:
+    - TASK-DATA-SEED-001
+    - TASK-DB-OUTBOX-001
+    human_approval_required: false
+- id: P03
+  title: Identity, authorization, action control, audit and outbox
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-API-IDENTITY-001
+    path: tasks/items/TASK-API-IDENTITY-001.yaml
+    title: Define provider-neutral identity context port
+    status: accepted
+    dependencies:
+    - TASK-DATA-KERNEL-001
+    - TASK-DOC-SEC-001
+    human_approval_required: true
+  - id: TASK-API-IDENTITY-002
+    path: tasks/items/TASK-API-IDENTITY-002.yaml
+    title: Implement synthetic signed-session identity adapter
+    status: accepted
+    dependencies:
+    - TASK-API-IDENTITY-001
+    - TASK-DATA-SEED-001
+    human_approval_required: true
+  - id: TASK-API-IDENTITY-003
+    path: tasks/items/TASK-API-IDENTITY-003.yaml
+    title: Add identity middleware and trusted request context
+    status: accepted
+    dependencies:
+    - TASK-API-IDENTITY-002
+    - TASK-API-BOOT-001
+    human_approval_required: true
+  - id: TASK-API-POLICY-001
+    path: tasks/items/TASK-API-POLICY-001.yaml
+    title: Define explicit authorization decision port
+    status: accepted
+    dependencies:
+    - TASK-API-IDENTITY-001
+    human_approval_required: true
+  - id: TASK-API-POLICY-002
+    path: tasks/items/TASK-API-POLICY-002.yaml
+    title: Implement student ownership policies
+    status: accepted
+    dependencies:
+    - TASK-API-POLICY-001
+    human_approval_required: true
+  - id: TASK-API-POLICY-003
+    path: tasks/items/TASK-API-POLICY-003.yaml
+    title: Implement staff queue-scope policies
+    status: accepted
+    dependencies:
+    - TASK-API-POLICY-001
+    human_approval_required: true
+  - id: TASK-API-ACTION-001
+    path: tasks/items/TASK-API-ACTION-001.yaml
+    title: Implement immutable action preview value
+    status: accepted
+    dependencies:
+    - TASK-DATA-KERNEL-001
+    - TASK-DB-ACTION-001
+    human_approval_required: true
+  - id: TASK-API-ACTION-002
+    path: tasks/items/TASK-API-ACTION-002.yaml
+    title: Implement actor payload and expiry-bound confirmation token
+    status: accepted
+    dependencies:
+    - TASK-API-ACTION-001
+    human_approval_required: true
+  - id: TASK-API-ACTION-003
+    path: tasks/items/TASK-API-ACTION-003.yaml
+    title: Implement durable idempotency reservation ledger
+    status: accepted
+    dependencies:
+    - TASK-API-ACTION-001
+    - TASK-DB-ACTION-001
+    human_approval_required: true
+  - id: TASK-API-AUDIT-001
+    path: tasks/items/TASK-API-AUDIT-001.yaml
+    title: Implement minimized append-only audit writer
+    status: accepted
+    dependencies:
+    - TASK-DB-OUTBOX-001
+    - TASK-API-IDENTITY-001
+    human_approval_required: true
+  - id: TASK-WORKER-OUTBOX-001
+    path: tasks/items/TASK-WORKER-OUTBOX-001.yaml
+    title: Implement concurrent-safe outbox relay claim
+    status: accepted
+    dependencies:
+    - TASK-DB-OUTBOX-001
+    - TASK-WORKER-BOOT-001
+    human_approval_required: false
+  - id: TASK-WORKER-EVENT-001
+    path: tasks/items/TASK-WORKER-EVENT-001.yaml
+    title: Implement processed-event duplicate guard
+    status: accepted
+    dependencies:
+    - TASK-DB-OUTBOX-001
+    - TASK-WORKER-BOOT-001
+    human_approval_required: false
+  - id: TASK-TEST-AUTHZ-001
+    path: tasks/items/TASK-TEST-AUTHZ-001.yaml
+    title: Add cross-user and wrong-role negative policy suite
+    status: accepted
+    dependencies:
+    - TASK-API-POLICY-002
+    - TASK-API-POLICY-003
+    human_approval_required: false
+  - id: TASK-TEST-ACTION-001
+    path: tasks/items/TASK-TEST-ACTION-001.yaml
+    title: Add confirmation tamper replay and expiry suite
+    status: accepted
+    dependencies:
+    - TASK-API-ACTION-002
+    - TASK-API-ACTION-003
+    human_approval_required: false
+- id: P04
+  title: RAG, LLM gateway, controlled agent, memory and guardrails
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-AGENT-LLM-001
+    path: tasks/items/TASK-AGENT-LLM-001.yaml
+    title: Define canonical LLM request response and stream types
+    status: accepted
+    dependencies:
+    - TASK-DOC-AI-001
+    - TASK-DATA-KERNEL-001
+    human_approval_required: false
+  - id: TASK-AGENT-LLM-002
+    path: tasks/items/TASK-AGENT-LLM-002.yaml
+    title: Implement deterministic fake LLM provider
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-001
+    human_approval_required: false
+  - id: TASK-AGENT-LLM-003
+    path: tasks/items/TASK-AGENT-LLM-003.yaml
+    title: Implement strict structured-output parser
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-001
+    - TASK-TEST-SCHEMA-001
+    human_approval_required: false
+  - id: TASK-AGENT-PROMPT-001
+    path: tasks/items/TASK-AGENT-PROMPT-001.yaml
+    title: Implement versioned prompt registry loader
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-003
+    human_approval_required: false
+  - id: TASK-AGENT-LLM-004
+    path: tasks/items/TASK-AGENT-LLM-004.yaml
+    title: Implement gateway budgets timeout and canonical errors
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-002
+    - TASK-AGENT-LLM-003
+    human_approval_required: false
+  - id: TASK-AGENT-LLM-005
+    path: tasks/items/TASK-AGENT-LLM-005.yaml
+    title: Implement DeepSeek adapter behind canonical gateway
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-004
+    - TASK-REPO-ENV-001
+    human_approval_required: true
+  - id: TASK-DATA-CORPUS-001
+    path: tasks/items/TASK-DATA-CORPUS-001.yaml
+    title: Generate deterministic synthetic knowledge documents
+    status: accepted
+    dependencies:
+    - TASK-DATA-SEED-001
+    human_approval_required: false
+  - id: TASK-WORKER-INGEST-001
+    path: tasks/items/TASK-WORKER-INGEST-001.yaml
+    title: Implement quarantined source acquisition record
+    status: accepted
+    dependencies:
+    - TASK-DB-KNOWLEDGE-001
+    - TASK-WORKER-EVENT-001
+    human_approval_required: false
+  - id: TASK-WORKER-INGEST-002
+    path: tasks/items/TASK-WORKER-INGEST-002.yaml
+    title: Implement normalized text parser with provenance
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INGEST-001
+    human_approval_required: false
+  - id: TASK-WORKER-INGEST-003
+    path: tasks/items/TASK-WORKER-INGEST-003.yaml
+    title: Implement deterministic semantic chunker
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INGEST-002
+    human_approval_required: false
+  - id: TASK-WORKER-EMBED-001
+    path: tasks/items/TASK-WORKER-EMBED-001.yaml
+    title: Implement deterministic fake embedding adapter
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INGEST-003
+    human_approval_required: false
+  - id: TASK-WORKER-INDEX-001
+    path: tasks/items/TASK-WORKER-INDEX-001.yaml
+    title: Persist version-bound lexical and vector index rows
+    status: accepted
+    dependencies:
+    - TASK-WORKER-EMBED-001
+    - TASK-DB-KNOWLEDGE-001
+    human_approval_required: false
+  - id: TASK-API-RAG-001
+    path: tasks/items/TASK-API-RAG-001.yaml
+    title: Implement metadata and effective-date retrieval filter
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INDEX-001
+    - TASK-API-POLICY-001
+    human_approval_required: false
+  - id: TASK-API-RAG-002
+    path: tasks/items/TASK-API-RAG-002.yaml
+    title: Implement bounded PostgreSQL lexical retrieval
+    status: accepted
+    dependencies:
+    - TASK-API-RAG-001
+    human_approval_required: false
+  - id: TASK-API-RAG-003
+    path: tasks/items/TASK-API-RAG-003.yaml
+    title: Implement bounded pgvector retrieval
+    status: accepted
+    dependencies:
+    - TASK-API-RAG-001
+    human_approval_required: false
+  - id: TASK-API-RAG-004
+    path: tasks/items/TASK-API-RAG-004.yaml
+    title: Implement deterministic reciprocal-rank fusion
+    status: accepted
+    dependencies:
+    - TASK-API-RAG-002
+    - TASK-API-RAG-003
+    human_approval_required: false
+  - id: TASK-AGENT-RERANK-001
+    path: tasks/items/TASK-AGENT-RERANK-001.yaml
+    title: Implement allowlisted reranker output validation
+    status: accepted
+    dependencies:
+    - TASK-API-RAG-004
+    - TASK-AGENT-LLM-004
+    human_approval_required: false
+  - id: TASK-API-CITATION-001
+    path: tasks/items/TASK-API-CITATION-001.yaml
+    title: Implement server-resolved citation bundle
+    status: accepted
+    dependencies:
+    - TASK-AGENT-RERANK-001
+    human_approval_required: false
+  - id: TASK-API-EVIDENCE-001
+    path: tasks/items/TASK-API-EVIDENCE-001.yaml
+    title: Implement material-claim evidence gate
+    status: accepted
+    dependencies:
+    - TASK-API-CITATION-001
+    human_approval_required: false
+  - id: TASK-AGENT-STATE-001
+    path: tasks/items/TASK-AGENT-STATE-001.yaml
+    title: Define versioned typed agent state
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-001
+    - TASK-API-EVIDENCE-001
+    human_approval_required: false
+  - id: TASK-AGENT-SAFETY-001
+    path: tasks/items/TASK-AGENT-SAFETY-001.yaml
+    title: Implement deterministic sensitive-case rules
+    status: accepted
+    dependencies:
+    - TASK-AGENT-STATE-001
+    human_approval_required: true
+  - id: TASK-AGENT-ROUTE-001
+    path: tasks/items/TASK-AGENT-ROUTE-001.yaml
+    title: Implement validated intent router node
+    status: accepted
+    dependencies:
+    - TASK-AGENT-STATE-001
+    - TASK-AGENT-LLM-004
+    human_approval_required: false
+  - id: TASK-AGENT-RAG-001
+    path: tasks/items/TASK-AGENT-RAG-001.yaml
+    title: Implement retrieval and abstention graph node
+    status: accepted
+    dependencies:
+    - TASK-AGENT-ROUTE-001
+    - TASK-API-EVIDENCE-001
+    human_approval_required: false
+  - id: TASK-AGENT-COMPOSE-001
+    path: tasks/items/TASK-AGENT-COMPOSE-001.yaml
+    title: Implement grounded answer composer and output guard
+    status: accepted
+    dependencies:
+    - TASK-AGENT-RAG-001
+    - TASK-AGENT-PROMPT-001
+    human_approval_required: false
+  - id: TASK-AGENT-TOOL-001
+    path: tasks/items/TASK-AGENT-TOOL-001.yaml
+    title: Implement typed tool registry and candidate validator
+    status: accepted
+    dependencies:
+    - TASK-AGENT-STATE-001
+    - TASK-API-POLICY-001
+    human_approval_required: true
+  - id: TASK-AGENT-TOOL-002
+    path: tasks/items/TASK-AGENT-TOOL-002.yaml
+    title: Implement write-tool preview and confirmation interrupt
+    status: accepted
+    dependencies:
+    - TASK-AGENT-TOOL-001
+    - TASK-API-ACTION-003
+    human_approval_required: true
+  - id: TASK-AGENT-GRAPH-001
+    path: tasks/items/TASK-AGENT-GRAPH-001.yaml
+    title: Assemble allowlisted LangGraph transitions
+    status: accepted
+    dependencies:
+    - TASK-AGENT-SAFETY-001
+    - TASK-AGENT-COMPOSE-001
+    - TASK-AGENT-TOOL-002
+    human_approval_required: true
+  - id: TASK-AGENT-CHECKPOINT-001
+    path: tasks/items/TASK-AGENT-CHECKPOINT-001.yaml
+    title: Persist versioned agent checkpoints
+    status: accepted
+    dependencies:
+    - TASK-AGENT-GRAPH-001
+    - TASK-DB-CONVERSATION-001
+    human_approval_required: false
+  - id: TASK-AGENT-MEMORY-001
+    path: tasks/items/TASK-AGENT-MEMORY-001.yaml
+    title: Build bounded conversation context manifest
+    status: accepted
+    dependencies:
+    - TASK-AGENT-CHECKPOINT-001
+    human_approval_required: true
+- id: P05
+  title: Backend vertical service slices
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-API-SCHEDULE-001
+    path: tasks/items/TASK-API-SCHEDULE-001.yaml
+    title: Define canonical schedule read port
+    status: accepted
+    dependencies:
+    - TASK-API-IDENTITY-003
+    - TASK-API-POLICY-002
+    human_approval_required: false
+  - id: TASK-API-SCHEDULE-002
+    path: tasks/items/TASK-API-SCHEDULE-002.yaml
+    title: Implement deterministic synthetic schedule adapter
+    status: accepted
+    dependencies:
+    - TASK-API-SCHEDULE-001
+    - TASK-DATA-SEED-002
+    human_approval_required: false
+  - id: TASK-API-SCHEDULE-003
+    path: tasks/items/TASK-API-SCHEDULE-003.yaml
+    title: Expose own-schedule query endpoint
+    status: accepted
+    dependencies:
+    - TASK-API-SCHEDULE-002
+    human_approval_required: true
+  - id: TASK-API-CHAT-001
+    path: tasks/items/TASK-API-CHAT-001.yaml
+    title: Create conversation and append user-message use case
+    status: accepted
+    dependencies:
+    - TASK-DB-CONVERSATION-001
+    - TASK-API-IDENTITY-003
+    human_approval_required: false
+  - id: TASK-API-CHAT-002
+    path: tasks/items/TASK-API-CHAT-002.yaml
+    title: Expose grounded chat SSE endpoint
+    status: accepted
+    dependencies:
+    - TASK-API-CHAT-001
+    - TASK-AGENT-CHECKPOINT-001
+    human_approval_required: false
+  - id: TASK-API-TICKET-001
+    path: tasks/items/TASK-API-TICKET-001.yaml
+    title: Implement ticket aggregate creation transition
+    status: accepted
+    dependencies:
+    - TASK-DB-TICKET-001
+    - TASK-API-ACTION-001
+    human_approval_required: false
+  - id: TASK-API-TICKET-002
+    path: tasks/items/TASK-API-TICKET-002.yaml
+    title: Create ticket action preview use case
+    status: accepted
+    dependencies:
+    - TASK-API-TICKET-001
+    - TASK-API-ACTION-002
+    human_approval_required: true
+  - id: TASK-API-TICKET-003
+    path: tasks/items/TASK-API-TICKET-003.yaml
+    title: Confirm ticket creation exactly once
+    status: accepted
+    dependencies:
+    - TASK-API-TICKET-002
+    - TASK-API-ACTION-003
+    - TASK-API-AUDIT-001
+    human_approval_required: true
+  - id: TASK-API-TICKET-004
+    path: tasks/items/TASK-API-TICKET-004.yaml
+    title: Expose ticket preview and confirm endpoints
+    status: accepted
+    dependencies:
+    - TASK-API-TICKET-003
+    human_approval_required: true
+  - id: TASK-API-TICKET-005
+    path: tasks/items/TASK-API-TICKET-005.yaml
+    title: Expose owner-scoped ticket read and list
+    status: accepted
+    dependencies:
+    - TASK-API-TICKET-001
+    - TASK-API-POLICY-002
+    human_approval_required: true
+  - id: TASK-API-TICKET-006
+    path: tasks/items/TASK-API-TICKET-006.yaml
+    title: Implement staff ticket transition command
+    status: accepted
+    dependencies:
+    - TASK-API-TICKET-001
+    - TASK-API-POLICY-003
+    - TASK-API-AUDIT-001
+    human_approval_required: true
+  - id: TASK-API-DOCREQ-001
+    path: tasks/items/TASK-API-DOCREQ-001.yaml
+    title: Implement document-request aggregate and validation
+    status: accepted
+    dependencies:
+    - TASK-DB-DOCREQ-001
+    - TASK-API-ACTION-001
+    human_approval_required: false
+  - id: TASK-API-DOCREQ-002
+    path: tasks/items/TASK-API-DOCREQ-002.yaml
+    title: Expose confirmed synthetic document-request flow
+    status: accepted
+    dependencies:
+    - TASK-API-DOCREQ-001
+    - TASK-API-ACTION-003
+    human_approval_required: true
+  - id: TASK-API-ROOM-001
+    path: tasks/items/TASK-API-ROOM-001.yaml
+    title: Implement room availability overlap query
+    status: accepted
+    dependencies:
+    - TASK-DB-BOOKING-001
+    human_approval_required: false
+  - id: TASK-API-ROOM-002
+    path: tasks/items/TASK-API-ROOM-002.yaml
+    title: Implement booking conflict-safe aggregate command
+    status: accepted
+    dependencies:
+    - TASK-API-ROOM-001
+    - TASK-API-ACTION-003
+    human_approval_required: true
+  - id: TASK-API-ROOM-003
+    path: tasks/items/TASK-API-ROOM-003.yaml
+    title: Expose room search preview and confirm APIs
+    status: accepted
+    dependencies:
+    - TASK-API-ROOM-002
+    human_approval_required: true
+  - id: TASK-API-HITL-001
+    path: tasks/items/TASK-API-HITL-001.yaml
+    title: Implement minimized handover aggregate
+    status: accepted
+    dependencies:
+    - TASK-DB-CONVERSATION-001
+    - TASK-API-AUDIT-001
+    human_approval_required: true
+  - id: TASK-API-HITL-002
+    path: tasks/items/TASK-API-HITL-002.yaml
+    title: Create routed handover and truthful receipt
+    status: accepted
+    dependencies:
+    - TASK-API-HITL-001
+    - TASK-API-POLICY-003
+    human_approval_required: true
+  - id: TASK-API-HITL-003
+    path: tasks/items/TASK-API-HITL-003.yaml
+    title: Expose staff handover queue query
+    status: accepted
+    dependencies:
+    - TASK-API-HITL-002
+    human_approval_required: true
+  - id: TASK-API-KNOW-001
+    path: tasks/items/TASK-API-KNOW-001.yaml
+    title: Implement knowledge version review and publish transition
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INDEX-001
+    - TASK-API-POLICY-003
+    human_approval_required: true
+  - id: TASK-API-KNOW-002
+    path: tasks/items/TASK-API-KNOW-002.yaml
+    title: Expose knowledge source lifecycle endpoints
+    status: accepted
+    dependencies:
+    - TASK-API-KNOW-001
+    human_approval_required: true
+  - id: TASK-API-OPS-001
+    path: tasks/items/TASK-API-OPS-001.yaml
+    title: Expose machine-readable capability state
+    status: accepted
+    dependencies:
+    - TASK-API-HEALTH-002
+    - TASK-AGENT-LLM-004
+    human_approval_required: false
+- id: P06
+  title: Responsive accessible web experiences
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-WEB-DESIGN-001
+    path: tasks/items/TASK-WEB-DESIGN-001.yaml
+    title: Create accessible design tokens and global styles
+    status: accepted
+    dependencies:
+    - TASK-WEB-BOOT-001
+    human_approval_required: false
+  - id: TASK-WEB-SHELL-001
+    path: tasks/items/TASK-WEB-SHELL-001.yaml
+    title: Render navigation shell and simulation disclosure
+    status: accepted
+    dependencies:
+    - TASK-WEB-DESIGN-001
+    human_approval_required: false
+  - id: TASK-WEB-STATE-001
+    path: tasks/items/TASK-WEB-STATE-001.yaml
+    title: Implement shared loading empty error and offline states
+    status: accepted
+    dependencies:
+    - TASK-WEB-DESIGN-001
+    human_approval_required: false
+  - id: TASK-WEB-API-001
+    path: tasks/items/TASK-WEB-API-001.yaml
+    title: Create typed API client and safe problem mapping
+    status: accepted
+    dependencies:
+    - TASK-TEST-OPENAPI-001
+    - TASK-REPO-WEB-001
+    human_approval_required: false
+  - id: TASK-WEB-CHAT-001
+    path: tasks/items/TASK-WEB-CHAT-001.yaml
+    title: Render chat composer and canonical stream states
+    status: accepted
+    dependencies:
+    - TASK-WEB-SHELL-001
+    - TASK-WEB-API-001
+    - TASK-API-CHAT-002
+    human_approval_required: false
+  - id: TASK-WEB-CITE-001
+    path: tasks/items/TASK-WEB-CITE-001.yaml
+    title: Render resolvable citations and evidence drawer
+    status: accepted
+    dependencies:
+    - TASK-WEB-CHAT-001
+    human_approval_required: false
+  - id: TASK-WEB-SCHEDULE-001
+    path: tasks/items/TASK-WEB-SCHEDULE-001.yaml
+    title: Render own-schedule view with freshness state
+    status: accepted
+    dependencies:
+    - TASK-WEB-API-001
+    - TASK-API-SCHEDULE-003
+    human_approval_required: false
+  - id: TASK-WEB-TICKET-001
+    path: tasks/items/TASK-WEB-TICKET-001.yaml
+    title: Render student ticket list and detail
+    status: accepted
+    dependencies:
+    - TASK-WEB-API-001
+    - TASK-API-TICKET-005
+    human_approval_required: false
+  - id: TASK-WEB-CONFIRM-001
+    path: tasks/items/TASK-WEB-CONFIRM-001.yaml
+    title: Render immutable action preview and explicit confirmation
+    status: accepted
+    dependencies:
+    - TASK-WEB-API-001
+    - TASK-API-TICKET-004
+    human_approval_required: true
+  - id: TASK-WEB-DOCREQ-001
+    path: tasks/items/TASK-WEB-DOCREQ-001.yaml
+    title: Render document-request form through confirmation
+    status: accepted
+    dependencies:
+    - TASK-WEB-CONFIRM-001
+    - TASK-API-DOCREQ-002
+    human_approval_required: false
+  - id: TASK-WEB-ROOM-001
+    path: tasks/items/TASK-WEB-ROOM-001.yaml
+    title: Render room search conflict and booking states
+    status: accepted
+    dependencies:
+    - TASK-WEB-CONFIRM-001
+    - TASK-API-ROOM-003
+    human_approval_required: false
+  - id: TASK-WEB-HITL-001
+    path: tasks/items/TASK-WEB-HITL-001.yaml
+    title: Render handover preview receipt and unavailable state
+    status: accepted
+    dependencies:
+    - TASK-WEB-API-001
+    - TASK-API-HITL-002
+    human_approval_required: true
+  - id: TASK-WEB-STAFF-001
+    path: tasks/items/TASK-WEB-STAFF-001.yaml
+    title: Render scoped staff ticket queue
+    status: accepted
+    dependencies:
+    - TASK-WEB-TICKET-001
+    - TASK-API-TICKET-006
+    human_approval_required: true
+  - id: TASK-WEB-KNOW-001
+    path: tasks/items/TASK-WEB-KNOW-001.yaml
+    title: Render knowledge review and publish controls
+    status: accepted
+    dependencies:
+    - TASK-WEB-API-001
+    - TASK-API-KNOW-002
+    human_approval_required: true
+  - id: TASK-WEB-OPS-001
+    path: tasks/items/TASK-WEB-OPS-001.yaml
+    title: Render operational capability and degradation banner
+    status: accepted
+    dependencies:
+    - TASK-WEB-SHELL-001
+    - TASK-API-OPS-001
+    human_approval_required: false
+  - id: TASK-WEB-A11Y-001
+    path: tasks/items/TASK-WEB-A11Y-001.yaml
+    title: Add keyboard and accessible-name regression tests
+    status: accepted
+    dependencies:
+    - TASK-WEB-CHAT-001
+    - TASK-WEB-SCHEDULE-001
+    - TASK-WEB-CONFIRM-001
+    human_approval_required: false
+  - id: TASK-WEB-RESPONSIVE-001
+    path: tasks/items/TASK-WEB-RESPONSIVE-001.yaml
+    title: Add small medium and desktop viewport snapshots
+    status: accepted
+    dependencies:
+    - TASK-WEB-HITL-001
+    - TASK-WEB-STAFF-001
+    - TASK-WEB-KNOW-001
+    human_approval_required: false
+- id: P07
+  title: Quality, evaluation and security hardening
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-EVAL-SCHEMA-001
+    path: tasks/items/TASK-EVAL-SCHEMA-001.yaml
+    title: Validate eval case run and result schemas
+    status: accepted
+    dependencies:
+    - TASK-TEST-SCHEMA-001
+    - TASK-DOC-AI-001
+    human_approval_required: false
+  - id: TASK-EVAL-RAG-001
+    path: tasks/items/TASK-EVAL-RAG-001.yaml
+    title: Create reviewed synthetic RAG development sample
+    status: accepted
+    dependencies:
+    - TASK-DATA-CORPUS-001
+    - TASK-EVAL-SCHEMA-001
+    human_approval_required: false
+  - id: TASK-EVAL-SAFE-001
+    path: tasks/items/TASK-EVAL-SAFE-001.yaml
+    title: Create safety and benign-control development sample
+    status: accepted
+    dependencies:
+    - TASK-EVAL-SCHEMA-001
+    - TASK-AGENT-SAFETY-001
+    human_approval_required: true
+  - id: TASK-EVAL-RED-001
+    path: tasks/items/TASK-EVAL-RED-001.yaml
+    title: Materialize deterministic prompt-injection red-team cases
+    status: accepted
+    dependencies:
+    - TASK-EVAL-SCHEMA-001
+    - TASK-AGENT-GRAPH-001
+    human_approval_required: false
+  - id: TASK-EVAL-RUNNER-001
+    path: tasks/items/TASK-EVAL-RUNNER-001.yaml
+    title: Implement offline fake-provider evaluation runner
+    status: accepted
+    dependencies:
+    - TASK-EVAL-RAG-001
+    - TASK-EVAL-SAFE-001
+    - TASK-EVAL-RED-001
+    - TASK-AGENT-LLM-002
+    human_approval_required: false
+  - id: TASK-EVAL-GATE-001
+    path: tasks/items/TASK-EVAL-GATE-001.yaml
+    title: Implement hard-zero and threshold regression gate
+    status: accepted
+    dependencies:
+    - TASK-EVAL-RUNNER-001
+    human_approval_required: true
+  - id: TASK-TEST-CONTRACT-001
+    path: tasks/items/TASK-TEST-CONTRACT-001.yaml
+    title: Run API provider and event contract suite
+    status: accepted
+    dependencies:
+    - TASK-API-CHAT-002
+    - TASK-API-ROOM-003
+    - TASK-API-KNOW-002
+    - TASK-WORKER-EVENT-001
+    human_approval_required: false
+  - id: TASK-TEST-E2E-001
+    path: tasks/items/TASK-TEST-E2E-001.yaml
+    title: Add grounded FAQ browser journey
+    status: accepted
+    dependencies:
+    - TASK-WEB-CITE-001
+    - TASK-EVAL-RAG-001
+    human_approval_required: false
+  - id: TASK-TEST-E2E-002
+    path: tasks/items/TASK-TEST-E2E-002.yaml
+    title: Add confirmed ticket browser journey
+    status: accepted
+    dependencies:
+    - TASK-WEB-CONFIRM-001
+    - TASK-WEB-TICKET-001
+    human_approval_required: false
+  - id: TASK-TEST-E2E-003
+    path: tasks/items/TASK-TEST-E2E-003.yaml
+    title: Add sensitive handover browser journey
+    status: accepted
+    dependencies:
+    - TASK-WEB-HITL-001
+    - TASK-EVAL-SAFE-001
+    human_approval_required: true
+  - id: TASK-TEST-SEC-001
+    path: tasks/items/TASK-TEST-SEC-001.yaml
+    title: Add secret PII and forbidden-log canary scan
+    status: accepted
+    dependencies:
+    - TASK-API-AUDIT-001
+    - TASK-AGENT-LLM-005
+    human_approval_required: false
+  - id: TASK-TEST-SEC-002
+    path: tasks/items/TASK-TEST-SEC-002.yaml
+    title: Add SSRF and unsafe-link negative suite
+    status: accepted
+    dependencies:
+    - TASK-WEB-CITE-001
+    - TASK-AGENT-TOOL-001
+    human_approval_required: false
+  - id: TASK-TEST-SEC-003
+    path: tasks/items/TASK-TEST-SEC-003.yaml
+    title: Add knowledge poisoning and quarantine suite
+    status: accepted
+    dependencies:
+    - TASK-WORKER-INGEST-003
+    - TASK-API-KNOW-001
+    human_approval_required: false
+  - id: TASK-TEST-SEC-004
+    path: tasks/items/TASK-TEST-SEC-004.yaml
+    title: Add security headers cookie CSRF and CORS suite
+    status: accepted
+    dependencies:
+    - TASK-API-IDENTITY-003
+    - TASK-WEB-SHELL-001
+    human_approval_required: false
+  - id: TASK-TEST-SUPPLY-001
+    path: tasks/items/TASK-TEST-SUPPLY-001.yaml
+    title: Add lockfile secret SBOM and dependency scan job
+    status: accepted
+    dependencies:
+    - TASK-TEST-CI-001
+    - TASK-REPO-PYTHON-001
+    - TASK-REPO-WEB-001
+    human_approval_required: true
+  - id: TASK-TEST-LOAD-001
+    path: tasks/items/TASK-TEST-LOAD-001.yaml
+    title: Create reproducible local load-test harness
+    status: accepted
+    dependencies:
+    - TASK-API-CHAT-002
+    - TASK-API-TICKET-004
+    - TASK-API-SCHEDULE-003
+    human_approval_required: false
+- id: P08
+  title: AWS platform, observability, performance and recovery
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-INFRA-CDK-001
+    path: tasks/items/TASK-INFRA-CDK-001.yaml
+    title: Create pinned AWS CDK TypeScript application
+    status: accepted
+    dependencies:
+    - TASK-DOC-STACK-001
+    - TASK-REPO-WEB-001
+    human_approval_required: true
+  - id: TASK-INFRA-NET-001
+    path: tasks/items/TASK-INFRA-NET-001.yaml
+    title: Define two-AZ VPC and private subnet topology
+    status: accepted
+    dependencies:
+    - TASK-INFRA-CDK-001
+    human_approval_required: true
+  - id: TASK-INFRA-DATA-001
+    path: tasks/items/TASK-INFRA-DATA-001.yaml
+    title: Define encrypted RDS PostgreSQL and backup policy
+    status: accepted
+    dependencies:
+    - TASK-INFRA-NET-001
+    human_approval_required: true
+  - id: TASK-INFRA-CACHE-001
+    path: tasks/items/TASK-INFRA-CACHE-001.yaml
+    title: Define encrypted Multi-AZ Redis replication group
+    status: accepted
+    dependencies:
+    - TASK-INFRA-NET-001
+    human_approval_required: true
+  - id: TASK-INFRA-ASYNC-001
+    path: tasks/items/TASK-INFRA-ASYNC-001.yaml
+    title: Define private S3 knowledge buckets and SQS DLQs
+    status: accepted
+    dependencies:
+    - TASK-INFRA-NET-001
+    human_approval_required: true
+  - id: TASK-INFRA-COMPUTE-001
+    path: tasks/items/TASK-INFRA-COMPUTE-001.yaml
+    title: Define private ECS Fargate web API and worker services
+    status: accepted
+    dependencies:
+    - TASK-INFRA-NET-001
+    - TASK-INFRA-DATA-001
+    - TASK-INFRA-ASYNC-001
+    human_approval_required: true
+  - id: TASK-INFRA-EDGE-001
+    path: tasks/items/TASK-INFRA-EDGE-001.yaml
+    title: Define CloudFront WAF ALB and no-cache routes
+    status: accepted
+    dependencies:
+    - TASK-INFRA-COMPUTE-001
+    human_approval_required: true
+  - id: TASK-INFRA-IAM-001
+    path: tasks/items/TASK-INFRA-IAM-001.yaml
+    title: Define per-service least-privilege roles and secret references
+    status: accepted
+    dependencies:
+    - TASK-INFRA-COMPUTE-001
+    - TASK-INFRA-ASYNC-001
+    human_approval_required: true
+  - id: TASK-OPS-OTEL-001
+    path: tasks/items/TASK-OPS-OTEL-001.yaml
+    title: Instrument API request and dependency telemetry
+    status: accepted
+    dependencies:
+    - TASK-API-BOOT-001
+    - TASK-API-AUDIT-001
+    human_approval_required: true
+  - id: TASK-OPS-METRIC-001
+    path: tasks/items/TASK-OPS-METRIC-001.yaml
+    title: Emit AI retrieval and tool quality metrics
+    status: accepted
+    dependencies:
+    - TASK-OPS-OTEL-001
+    - TASK-AGENT-GRAPH-001
+    human_approval_required: true
+  - id: TASK-INFRA-MON-001
+    path: tasks/items/TASK-INFRA-MON-001.yaml
+    title: Define redacted dashboards and actionable alarms
+    status: accepted
+    dependencies:
+    - TASK-INFRA-COMPUTE-001
+    - TASK-OPS-METRIC-001
+    human_approval_required: true
+  - id: TASK-OPS-COST-001
+    path: tasks/items/TASK-OPS-COST-001.yaml
+    title: Implement provider budget reservation and hard stop
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-004
+    - TASK-OPS-METRIC-001
+    human_approval_required: true
+  - id: TASK-TEST-PERF-001
+    path: tasks/items/TASK-TEST-PERF-001.yaml
+    title: Benchmark hybrid retrieval recall and latency
+    status: accepted
+    dependencies:
+    - TASK-TEST-LOAD-001
+    - TASK-EVAL-RAG-001
+    - TASK-API-RAG-004
+    human_approval_required: false
+  - id: TASK-TEST-PERF-002
+    path: tasks/items/TASK-TEST-PERF-002.yaml
+    title: Run chat ticket and schedule peak-load profile
+    status: accepted
+    dependencies:
+    - TASK-TEST-LOAD-001
+    - TASK-OPS-OTEL-001
+    human_approval_required: false
+  - id: TASK-TEST-CHAOS-001
+    path: tasks/items/TASK-TEST-CHAOS-001.yaml
+    title: Verify Redis loss degrades without corrupting truth
+    status: accepted
+    dependencies:
+    - TASK-INFRA-LOCAL-002
+    - TASK-API-TICKET-003
+    human_approval_required: false
+  - id: TASK-TEST-CHAOS-002
+    path: tasks/items/TASK-TEST-CHAOS-002.yaml
+    title: Verify LLM outage enters approved degraded mode
+    status: accepted
+    dependencies:
+    - TASK-AGENT-LLM-004
+    - TASK-API-OPS-001
+    human_approval_required: false
+  - id: TASK-OPS-RESTORE-001
+    path: tasks/items/TASK-OPS-RESTORE-001.yaml
+    title: Script isolated PostgreSQL restore verification
+    status: accepted
+    dependencies:
+    - TASK-INFRA-DATA-001
+    - TASK-DATA-SEED-002
+    human_approval_required: true
+  - id: TASK-OPS-DELETION-001
+    path: tasks/items/TASK-OPS-DELETION-001.yaml
+    title: Implement simulation retention tombstone worker
+    status: accepted
+    dependencies:
+    - TASK-DB-CONVERSATION-001
+    - TASK-WORKER-BOOT-001
+    human_approval_required: true
+- id: P09
+  title: Pilot, release and launch
+  entry_gate: All external dependencies are accepted; required source approvals and human approvals are attached.
+  exit_gate: Every P0 task in the phase is accepted and phase evidence has no unresolved critical finding.
+  tasks:
+  - id: TASK-OPS-FLAG-001
+    path: tasks/items/TASK-OPS-FLAG-001.yaml
+    title: Implement capability kill-switch configuration
+    status: accepted
+    dependencies:
+    - TASK-API-OPS-001
+    - TASK-REPO-ENV-001
+    human_approval_required: true
+  - id: TASK-OPS-DEMO-001
+    path: tasks/items/TASK-OPS-DEMO-001.yaml
+    title: Package reproducible synthetic demo seed
+    status: accepted
+    dependencies:
+    - TASK-DATA-SEED-002
+    - TASK-DATA-CORPUS-001
+    - TASK-EVAL-GATE-001
+    human_approval_required: false
+  - id: TASK-DOC-RUNBOOK-001
+    path: tasks/items/TASK-DOC-RUNBOOK-001.yaml
+    title: Write degraded-mode operations runbook
+    status: accepted
+    dependencies:
+    - TASK-OPS-FLAG-001
+    - TASK-TEST-CHAOS-002
+    human_approval_required: false
+  - id: TASK-DOC-RUNBOOK-002
+    path: tasks/items/TASK-DOC-RUNBOOK-002.yaml
+    title: Write backup restore and regional recovery runbook
+    status: accepted
+    dependencies:
+    - TASK-OPS-RESTORE-001
+    human_approval_required: false
+  - id: TASK-TEST-PILOT-001
+    path: tasks/items/TASK-TEST-PILOT-001.yaml
+    title: Run synthetic pilot acceptance journey pack
+    status: accepted
+    dependencies:
+    - TASK-TEST-E2E-001
+    - TASK-TEST-E2E-002
+    - TASK-TEST-E2E-003
+    - TASK-OPS-DEMO-001
+    human_approval_required: false
+  - id: TASK-TEST-A11Y-001
+    path: tasks/items/TASK-TEST-A11Y-001.yaml
+    title: Run full WCAG 2.2 AA evidence pass
+    status: accepted
+    dependencies:
+    - TASK-WEB-A11Y-001
+    - TASK-WEB-RESPONSIVE-001
+    - TASK-TEST-PILOT-001
+    human_approval_required: false
+  - id: TASK-TEST-RELEASE-001
+    path: tasks/items/TASK-TEST-RELEASE-001.yaml
+    title: Assemble immutable release evidence manifest
+    status: accepted
+    dependencies:
+    - TASK-TEST-PILOT-001
+    - TASK-TEST-A11Y-001
+    - TASK-TEST-SUPPLY-001
+    - TASK-TEST-PERF-002
+    - TASK-OPS-RESTORE-001
+    human_approval_required: true
+  - id: TASK-OPS-STAGING-001
+    path: tasks/items/TASK-OPS-STAGING-001.yaml
+    title: Deploy release candidate to isolated synthetic staging
+    status: accepted
+    dependencies:
+    - TASK-INFRA-IAM-001
+    - TASK-INFRA-EDGE-001
+    - TASK-INFRA-MON-001
+    - TASK-TEST-RELEASE-001
+    human_approval_required: true
+  - id: TASK-TEST-SOAK-001
+    path: tasks/items/TASK-TEST-SOAK-001.yaml
+    title: Run staging soak failover and alert drill
+    status: accepted
+    dependencies:
+    - TASK-OPS-STAGING-001
+    human_approval_required: true
+  - id: TASK-DOC-LAUNCH-001
+    path: tasks/items/TASK-DOC-LAUNCH-001.yaml
+    title: Close or explicitly block every real-launch prerequisite
+    status: accepted
+    dependencies:
+    - TASK-TEST-SOAK-001
+    - TASK-TEST-RELEASE-001
+    human_approval_required: true
+  - id: TASK-OPS-PROD-001
+    path: tasks/items/TASK-OPS-PROD-001.yaml
+    title: Execute approved production deployment and smoke checks
+    status: accepted
+    dependencies:
+    - TASK-DOC-LAUNCH-001
+    human_approval_required: true
+  - id: TASK-OPS-POSTREL-001
+    path: tasks/items/TASK-OPS-POSTREL-001.yaml
+    title: Verify post-release controls and rollback readiness
+    status: accepted
+    dependencies:
+    - TASK-OPS-PROD-001
+    human_approval_required: true
+supplemental_tasks:
+- id: TASK-API-IDENTITY-004
+  phase: P03
+  path: tasks/items/TASK-API-IDENTITY-004.yaml
+  title: Revoke the current server-side session on logout
+  status: draft
+  dependencies:
+  - TASK-API-IDENTITY-002
+  human_approval_required: true
+- id: TASK-API-IDENTITY-005
+  phase: P03
+  path: tasks/items/TASK-API-IDENTITY-005.yaml
+  title: Fail closed for demo identity shortcuts in production
+  status: draft
+  dependencies:
+  - TASK-API-IDENTITY-002
+  human_approval_required: true
+- id: TASK-API-CHAT-003
+  phase: P05
+  path: tasks/items/TASK-API-CHAT-003.yaml
+  title: Persist structured actor-owned answer feedback
+  status: draft
+  dependencies:
+  - TASK-API-CHAT-001
+  human_approval_required: false
+- id: TASK-API-STAFF-001
+  phase: P05
+  path: tasks/items/TASK-API-STAFF-001.yaml
+  title: Atomically claim an authorized staff case
+  status: draft
+  dependencies:
+  - TASK-API-HITL-003
+  human_approval_required: true
+- id: TASK-API-STAFF-002
+  phase: P05
+  path: tasks/items/TASK-API-STAFF-002.yaml
+  title: Append an immutable staff response and audit decision
+  status: draft
+  dependencies:
+  - TASK-API-STAFF-001
+  - TASK-API-AUDIT-001
+  human_approval_required: true
+- id: TASK-API-STAFF-003
+  phase: P05
+  path: tasks/items/TASK-API-STAFF-003.yaml
+  title: Transfer a staff case through the approved state machine
+  status: draft
+  dependencies:
+  - TASK-API-STAFF-001
+  - TASK-API-TICKET-006
+  human_approval_required: true
+- id: TASK-API-PRIV-001
+  phase: P05
+  path: tasks/items/TASK-API-PRIV-001.yaml
+  title: Serve versioned privacy notice and consent decisions
+  status: draft
+  dependencies:
+  - TASK-API-IDENTITY-003
+  human_approval_required: true
+- id: TASK-API-PRIV-002
+  phase: P05
+  path: tasks/items/TASK-API-PRIV-002.yaml
+  title: Create and owner-scope privacy request receipts
+  status: draft
+  dependencies:
+  - TASK-API-PRIV-001
+  human_approval_required: true
+- id: TASK-WEB-CHAT-002
+  phase: P06
+  path: tasks/items/TASK-WEB-CHAT-002.yaml
+  title: Render accessible structured answer feedback controls
+  status: draft
+  dependencies:
+  - TASK-WEB-CHAT-001
+  - TASK-API-CHAT-003
+  human_approval_required: false
+- id: TASK-WEB-PRIV-001
+  phase: P06
+  path: tasks/items/TASK-WEB-PRIV-001.yaml
+  title: Render accessible privacy notice consent and request status
+  status: draft
+  dependencies:
+  - TASK-API-PRIV-001
+  - TASK-API-PRIV-002
+  - TASK-WEB-SHELL-001
+  human_approval_required: true
+- id: TASK-DOC-UX-001
+  phase: P00
+  path: tasks/items/TASK-DOC-UX-001.yaml
+  title: "Prepare the redesigned information architecture for approval"
+  status: draft
+  dependencies: [TASK-DOC-GOV-001]
+  human_approval_required: true
+- id: TASK-DOC-UX-002
+  phase: P00
+  path: tasks/items/TASK-DOC-UX-002.yaml
+  title: "Prepare interaction and recovery states for approval"
+  status: draft
+  dependencies: [TASK-DOC-GOV-001]
+  human_approval_required: true
+- id: TASK-DOC-UX-003
+  phase: P00
+  path: tasks/items/TASK-DOC-UX-003.yaml
+  title: "Prepare trust action and Vietnamese content UX for approval"
+  status: draft
+  dependencies: [TASK-DOC-GOV-001]
+  human_approval_required: true
+- id: TASK-DOC-UX-004
+  phase: P00
+  path: tasks/items/TASK-DOC-UX-004.yaml
+  title: "Prepare the accessibility baseline for approval"
+  status: draft
+  dependencies: [TASK-DOC-GOV-001]
+  human_approval_required: true
+- id: TASK-WEB-DESIGN-002
+  phase: P06
+  path: tasks/items/TASK-WEB-DESIGN-002.yaml
+  title: "Rebuild the academic visual foundation and design tokens"
+  status: draft
+  dependencies: [TASK-WEB-DESIGN-001, TASK-DOC-UX-004]
+  human_approval_required: false
+- id: TASK-WEB-A11Y-002
+  phase: P06
+  path: tasks/items/TASK-WEB-A11Y-002.yaml
+  title: "Harden shared icons and interaction semantics"
+  status: draft
+  dependencies: [TASK-WEB-DESIGN-002]
+  human_approval_required: false
+- id: TASK-WEB-SHELL-002
+  phase: P06
+  path: tasks/items/TASK-WEB-SHELL-002.yaml
+  title: "Rebuild the responsive role-aware application shell"
+  status: draft
+  dependencies: [TASK-WEB-SHELL-001, TASK-WEB-A11Y-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-STATE-002
+  phase: P06
+  path: tasks/items/TASK-WEB-STATE-002.yaml
+  title: "Rebuild shared loading empty error and recovery states"
+  status: draft
+  dependencies: [TASK-WEB-STATE-001, TASK-WEB-DESIGN-002, TASK-DOC-UX-002]
+  human_approval_required: false
+- id: TASK-WEB-HOME-002
+  phase: P06
+  path: tasks/items/TASK-WEB-HOME-002.yaml
+  title: "Rebuild the student dashboard around current priorities"
+  status: draft
+  dependencies: [TASK-WEB-SHELL-002, TASK-WEB-STATE-002]
+  human_approval_required: false
+- id: TASK-WEB-AUTH-002
+  phase: P06
+  path: tasks/items/TASK-WEB-AUTH-002.yaml
+  title: "Remove the client-side embedded demo credential"
+  status: draft
+  dependencies: [TASK-WEB-API-001, TASK-API-IDENTITY-002]
+  human_approval_required: true
+- id: TASK-WEB-CHAT-003
+  phase: P06
+  path: tasks/items/TASK-WEB-CHAT-003.yaml
+  title: "Rebuild the assistant conversation workspace"
+  status: draft
+  dependencies: [TASK-WEB-CHAT-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-WEB-AUTH-002, TASK-DOC-UX-003]
+  human_approval_required: false
+- id: TASK-WEB-CITE-002
+  phase: P06
+  path: tasks/items/TASK-WEB-CITE-002.yaml
+  title: "Rebuild citation details around verifiable evidence"
+  status: draft
+  dependencies: [TASK-WEB-CITE-001, TASK-WEB-CHAT-003, TASK-DOC-UX-003]
+  human_approval_required: false
+- id: TASK-WEB-SCHED-002
+  phase: P06
+  path: tasks/items/TASK-WEB-SCHED-002.yaml
+  title: "Rebuild the schedule as a responsive agenda"
+  status: draft
+  dependencies: [TASK-WEB-SCHEDULE-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-SCHED-003
+  phase: P06
+  path: tasks/items/TASK-WEB-SCHED-003.yaml
+  title: "Make the schedule page fail honestly"
+  status: draft
+  dependencies: [TASK-WEB-SCHED-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  human_approval_required: false
+- id: TASK-WEB-TICK-002
+  phase: P06
+  path: tasks/items/TASK-WEB-TICK-002.yaml
+  title: "Rebuild the student ticket list and status history"
+  status: draft
+  dependencies: [TASK-WEB-TICKET-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-TICK-003
+  phase: P06
+  path: tasks/items/TASK-WEB-TICK-003.yaml
+  title: "Make the ticket page fail honestly"
+  status: draft
+  dependencies: [TASK-WEB-TICK-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  human_approval_required: false
+- id: TASK-WEB-DOCREQ-002
+  phase: P06
+  path: tasks/items/TASK-WEB-DOCREQ-002.yaml
+  title: "Rebuild the document request flow"
+  status: draft
+  dependencies: [TASK-WEB-DOCREQ-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  human_approval_required: false
+- id: TASK-WEB-ROOM-002
+  phase: P06
+  path: tasks/items/TASK-WEB-ROOM-002.yaml
+  title: "Rebuild room discovery and booking preview"
+  status: draft
+  dependencies: [TASK-WEB-ROOM-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  human_approval_required: false
+- id: TASK-WEB-ROOM-003
+  phase: P06
+  path: tasks/items/TASK-WEB-ROOM-003.yaml
+  title: "Make the room request page fail honestly"
+  status: draft
+  dependencies: [TASK-WEB-ROOM-002, TASK-WEB-AUTH-002, TASK-DOC-UX-002]
+  human_approval_required: false
+- id: TASK-WEB-SAFE-001
+  phase: P06
+  path: tasks/items/TASK-WEB-SAFE-001.yaml
+  title: "Replace fabricated emergency contacts with approved fallback UX"
+  status: draft
+  dependencies: [TASK-WEB-HITL-001, TASK-DOC-UX-003, TASK-DOC-UX-004]
+  human_approval_required: true
+- id: TASK-WEB-STAFF-002
+  phase: P06
+  path: tasks/items/TASK-WEB-STAFF-002.yaml
+  title: "Rebuild the staff queue workspace"
+  status: draft
+  dependencies: [TASK-WEB-STAFF-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-KNOW-002
+  phase: P06
+  path: tasks/items/TASK-WEB-KNOW-002.yaml
+  title: "Rebuild the knowledge review workspace"
+  status: draft
+  dependencies: [TASK-WEB-KNOW-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-OPS-002
+  phase: P06
+  path: tasks/items/TASK-WEB-OPS-002.yaml
+  title: "Rebuild operational capability and KPI presentation"
+  status: draft
+  dependencies: [TASK-WEB-OPS-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-001]
+  human_approval_required: false
+- id: TASK-WEB-PRIV-002
+  phase: P06
+  path: tasks/items/TASK-WEB-PRIV-002.yaml
+  title: "Rebuild the privacy center and consent presentation"
+  status: draft
+  dependencies: [TASK-WEB-PRIV-001, TASK-WEB-SHELL-002, TASK-WEB-STATE-002, TASK-DOC-UX-003]
+  human_approval_required: true
+- id: TASK-TEST-WEB-002
+  phase: P09
+  path: tasks/items/TASK-TEST-WEB-002.yaml
+  title: "Verify the redesigned journeys in real browser evidence"
+  status: draft
+  dependencies: [TASK-WEB-HOME-002, TASK-WEB-CITE-002, TASK-WEB-SCHED-003, TASK-WEB-TICK-003, TASK-WEB-DOCREQ-002, TASK-WEB-ROOM-003, TASK-WEB-SAFE-001, TASK-WEB-STAFF-002, TASK-WEB-KNOW-002, TASK-WEB-OPS-002, TASK-WEB-PRIV-002]
+  human_approval_required: false

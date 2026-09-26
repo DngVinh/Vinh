@@ -1,0 +1,244 @@
+schema_version: "1.0.0"
+document:
+  id: "OPS-RUNBOOK-SPEC-001"
+  status: "draft"
+  owner: "Operations Lead"
+  last_updated: "2026-09-22"
+
+policy:
+  source_document: "docs/07-platform/RUNBOOKS.md"
+  command_output_may_contain_secrets: false
+  raw_personal_payload_in_evidence_allowed: false
+  destructive_action_allowed: false
+  broad_cleanup_allowed: false
+  automatic_dlq_redrive_allowed: false
+  automatic_provider_switch_allowed: false
+  production_console_change_allowed: "break_glass_only_with_audit_and_followup_iac_reconciliation"
+  universal_first_actions:
+    - "acknowledge and open incident with UTC timestamps"
+    - "verify environment, release and config identity"
+    - "freeze concurrent changes in affected area"
+    - "preserve logs, audit and diff evidence"
+    - "assess security, privacy and synthetic data status"
+    - "select documented degraded state"
+
+runbooks:
+  - id: "RB-API-001"
+    title: "Web/API unavailable or high error rate"
+    owner: "SRE Lead"
+    backup_owner: "Platform Lead"
+    initial_severity: "SEV-2_or_SEV-1_if_broad"
+    triggers: ["ALM-EDGE-001", "ALM-EDGE-002", "ALM-WEB-001", "ALM-API-001", "ALM-API-002", "ALM-API-003", "ALM-ECS-001", "ALM-ECS-002"]
+    declared_states: ["READ_ONLY", "MAINTENANCE"]
+    safe_diagnostics:
+      - "compare external probe, CloudFront, WAF, ALB and ECS target health"
+      - "inspect task stop reason, CPU, memory, dependency latency and DB pool"
+      - "correlate release and configuration annotation"
+    containment:
+      - "stop active rollout"
+      - "roll back stateless image/config only when schema compatible"
+      - "scale only within approved DB, provider and budget maximum"
+    recovery_validation:
+      - "health and synthetic smoke"
+      - "authorization negative smoke"
+      - "SSE terminal event"
+      - "audit delivery"
+      - "error budget burn recovery"
+    forbidden_actions:
+      - "force old application onto incompatible schema"
+      - "disable WAF, authorization or audit to restore availability"
+    evidence: ["incident_timeline", "release_and_config", "metrics_before_after", "smoke_results"]
+
+  - id: "RB-DATA-001"
+    title: "RDS outage, failover or pool saturation"
+    owner: "Data Platform Owner"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-1_if_authoritative_operations_unavailable"
+    triggers: ["ALM-DB-001", "ALM-DB-002", "ALM-DB-003", "ALM-DB-004"]
+    declared_states: ["READ_ONLY", "MAINTENANCE"]
+    safe_diagnostics:
+      - "inspect RDS events, connections, storage, CPU, IO and app pool wait"
+      - "verify migration and release correlation"
+      - "inspect redacted query operation class, never raw values"
+    containment:
+      - "stop retry storm and noncritical workers"
+      - "allow bounded reconnect during managed failover"
+      - "cap concurrency rather than raising limits without review"
+    recovery_validation:
+      - "transaction and idempotency integrity"
+      - "outbox age and relay recovery"
+      - "synthetic read, write and duplicate tests"
+    escalation: ["Data Owner", "Application Lead", "Incident Commander"]
+    forbidden_actions: ["use Redis as source of truth", "restore over source production", "run destructive SQL"]
+    evidence: ["rds_events", "connection_metrics", "integrity_report", "smoke_results"]
+
+  - id: "RB-CACHE-001"
+    title: "Redis unavailable or failover"
+    owner: "Data Platform Owner"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-2"
+    triggers: ["ALM-CACHE-001"]
+    declared_states: ["NORMAL", "READ_ONLY"]
+    safe_diagnostics: ["inspect replication event, TLS/auth/network error and DB load"]
+    containment:
+      - "use approved safe cache bypass"
+      - "fail security-sensitive controls closed where required"
+      - "reduce nonessential expensive reads if DB load rises"
+    recovery_validation: ["cross-user cache isolation", "rate limit behavior", "no stale policy", "business truth intact in PostgreSQL"]
+    forbidden_actions: ["restore Redis as authoritative business truth", "allow on ambiguous authorization cache"]
+    evidence: ["cache_events", "dependency_metrics", "isolation_tests"]
+
+  - id: "RB-ASYNC-001"
+    title: "Outbox, queue backlog or dead-letter message"
+    owner: "Backend Lead"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-2_or_SEV-1_for_critical_event_delay"
+    triggers: ["ALM-ASYNC-001", "ALM-ASYNC-002", "ALM-ASYNC-003"]
+    declared_states: ["DEGRADED_ASYNC_BACKLOG"]
+    safe_diagnostics:
+      - "identify exact queue, job schema and release"
+      - "compare outbox publish and consume rates"
+      - "inspect bounded redacted error sample"
+    containment:
+      - "stop noncritical ingestion when critical class is starved"
+      - "fix consumer/dependency or scale within approved limits"
+      - "quarantine poison messages in DLQ"
+    redrive_prerequisites:
+      - "incident contained"
+      - "schema compatibility verified"
+      - "consumer idempotency verified"
+      - "destination verified"
+      - "bounded batch and rate approved"
+    recovery_validation: ["canary redrive", "inbox receipt", "no duplicate effect", "oldest age recovery"]
+    forbidden_actions: ["purge queue or DLQ", "automatic bulk redrive", "manually mark outbox published"]
+    evidence: ["queue_metrics", "event_ids_redacted", "idempotency_results", "redrive_batches"]
+
+  - id: "RB-LLM-001"
+    title: "DeepSeek or LLM gateway degradation"
+    owner: "AI Platform Lead"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-2_or_SEV-1_for_privacy_anomaly"
+    triggers: ["ALM-LLM-001", "ALM-LLM-002"]
+    declared_states: ["DEGRADED_NO_LLM", "SEARCH_ONLY"]
+    safe_diagnostics:
+      - "inspect gateway outcome class, latency, rate limit, circuit and approved egress"
+      - "compare provider alias, model alias, prompt version and release"
+    containment:
+      - "open circuit and enable approved deterministic capabilities"
+      - "roll back only to accepted prompt/model/adapter version when change-caused"
+      - "block provider egress on privacy or destination anomaly"
+    recovery_validation: ["bounded provider probe", "redaction snapshot", "affected AI eval", "evidence gate", "cost telemetry"]
+    escalation: ["AI Quality Lead", "Security Lead", "Privacy Owner"]
+    forbidden_actions: ["silent provider switch", "personal API key", "unbounded retry or token increase", "log provider payload"]
+    evidence: ["gateway_metrics", "circuit_timeline", "eval_run", "configuration_versions"]
+
+  - id: "RB-REL-001"
+    title: "Bad application, configuration or infrastructure release"
+    owner: "Release Manager"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-2_or_higher_by_impact"
+    triggers: ["deployment_alarm", "post_deploy_smoke_failure", "digest_or_config_drift"]
+    declared_states: ["READ_ONLY", "MAINTENANCE"]
+    safe_diagnostics: ["capture release, image digests, config, templates and migration IDs", "classify app, config, schema, IAM/network or data issue"]
+    containment: ["stop rollout", "restore previous accepted stateless digest/config when compatible", "hold traffic and forward-fix incompatible schema"]
+    recovery_validation: ["OpenAPI smoke", "authorization denial", "synthetic guard", "audit", "queue", "AI safety sample", "runtime identity match"]
+    forbidden_actions: ["reverse destructive migration", "overwrite failed release evidence", "unreviewed console patch"]
+    evidence: ["release_manifest", "deployment_events", "diff", "rollback_or_forward_fix_results"]
+
+  - id: "RB-AUDIT-001"
+    title: "Security audit delivery unavailable"
+    owner: "Security Operations Owner"
+    backup_owner: "SRE Lead"
+    initial_severity: "SEV-1"
+    triggers: ["ALM-AUDIT-001"]
+    declared_states: ["READ_ONLY"]
+    safe_diagnostics: ["verify exporter, permission, destination health, clock and gap sequence"]
+    containment: ["fail personal, write, admin and C2/C3 paths closed", "allow only bounded public FAQ when policy permits"]
+    recovery_validation: ["append-only write succeeds", "application delete/update denied", "gap and duplicate reconciliation", "Security Operations acceptance"]
+    forbidden_actions: ["route audit into ordinary logs", "grant application audit delete rights", "reopen high-risk path before integrity acceptance"]
+    evidence: ["audit_delivery_metrics", "iam_negative_test", "gap_report", "approval"]
+
+  - id: "RB-SEC-001"
+    title: "Secret, personal data or synthetic-only guard incident"
+    owner: "Security Operations Owner"
+    backup_owner: "Privacy Owner"
+    initial_severity: "SEV-1_minimum_for_real_pii_secret_or_cross_user_exposure"
+    triggers: ["ALM-SEC-001", "ALM-SEC-002", "security_detection"]
+    declared_states: ["READ_ONLY", "SEARCH_ONLY", "MAINTENANCE"]
+    safe_diagnostics: ["bound exact flow, environment, data class, recipients and release", "preserve minimal C3 evidence"]
+    containment: ["stop affected egress, tool, index or log flow", "revoke or rotate exact exposed credential", "quarantine dataset, source or release"]
+    recovery_validation: ["DLP scan", "authorization and canary tests", "downstream deletion or reconciliation", "Privacy and Security approval"]
+    escalation: ["Incident Commander", "Security Lead", "Privacy/Legal Lead", "Product/University Owner"]
+    forbidden_actions: ["print secret", "notify external party without legal authority", "destructive evidence cleanup", "rotate unrelated secrets blindly"]
+    evidence: ["incident_case", "restricted_evidence_refs", "rotation_or_revocation_receipt", "validation_results"]
+
+  - id: "RB-DR-001"
+    title: "Isolated restore and regional disaster recovery"
+    owner: "Data Resilience Owner"
+    backup_owner: "Incident Commander"
+    initial_severity: "SEV-1_or_SEV-0_by_scope"
+    triggers: ["regional_outage", "logical_corruption", "security_clean_room_rebuild"]
+    declared_states: ["MAINTENANCE"]
+    prerequisites: ["approved recovery target", "selected recovery point", "legal approval for destination when cross-region", "compatible release artifacts"]
+    containment: ["stop writes and preserve source", "restore only to isolated new resources"]
+    recovery_steps:
+      - "reconstruct network and security from accepted CDK"
+      - "restore RDS, S3, config and secrets through approved mechanisms"
+      - "rebuild Redis empty and queues with reconciliation"
+      - "replay deletion tombstones and legal holds"
+    recovery_validation: ["checksums and invariants", "schema compatibility", "authz and audit", "synthetic end-to-end smoke", "RPO and RTO measurement"]
+    forbidden_actions: ["overwrite source production", "open traffic before Data Security Product acceptance", "claim regional RTO before drill"]
+    evidence: ["restore_drill_schema", "timestamps", "recovery_point", "checksums", "approvals"]
+
+  - id: "RB-COST-001"
+    title: "Cost anomaly or budget forecast breach"
+    owner: "Finance Owner"
+    backup_owner: "Platform Lead"
+    initial_severity: "SEV-3_or_security_severity_if_abuse"
+    triggers: ["ALM-COST-001", "ALM-COST-002", "ALM-COST-003", "cost_anomaly_detection"]
+    declared_states: ["NORMAL", "DEGRADED_NO_LLM", "DEGRADED_ASYNC_BACKLOG"]
+    safe_diagnostics: ["identify account, environment, tags, service and unit driver", "inspect traffic, logs, NAT, tasks, storage and LLM units"]
+    containment: ["apply approved quota, throttle or noncritical degradation", "invoke security incident when abuse suspected"]
+    recovery_validation: ["forecast stabilizes", "service minimum and security controls intact", "Finance owner accepts revised forecast"]
+    forbidden_actions: ["disable encryption, audit, backup or authentication", "delete resource without exact destructive authorization", "hide unallocated cost"]
+    evidence: ["cost_report", "pricing_as_of", "unit_driver", "actions_and_approval"]
+
+  - id: "RB-BACKUP-001"
+    title: "Backup, recovery point or retention job failure"
+    owner: "Data Resilience Owner"
+    backup_owner: "Data Platform Owner"
+    initial_severity: "SEV-2_or_SEV-1_if_rpo_at_risk"
+    triggers: ["ALM-BACKUP-001", "ALM-BACKUP-002", "ALM-RETENTION-001"]
+    declared_states: ["NORMAL", "READ_ONLY"]
+    safe_diagnostics: ["identify exact resource, vault, job, error and last recovery point", "inspect role, KMS and vault policy without broadening"]
+    containment: ["freeze stateful infrastructure changes", "retry only safe backup job", "run isolated restore validation when RPO gap is possible"]
+    recovery_validation: ["new recovery point", "isolated restore", "KMS access and checksum", "retention mapping"]
+    forbidden_actions: ["delete failed job or recovery point", "disable vault controls", "mark RPO verified without restore"]
+    evidence: ["backup_job", "recovery_point_age", "restore_result", "control_diff"]
+
+validation:
+  unique_runbook_ids: true
+  every_alarm_runbook_id_must_exist: true
+  required_fields:
+    - "id"
+    - "title"
+    - "owner"
+    - "backup_owner"
+    - "initial_severity"
+    - "triggers"
+    - "safe_diagnostics"
+    - "containment"
+    - "recovery_validation"
+    - "forbidden_actions"
+    - "evidence"
+  production_requires_tested_runbooks:
+    - "RB-API-001"
+    - "RB-DATA-001"
+    - "RB-ASYNC-001"
+    - "RB-LLM-001"
+    - "RB-REL-001"
+    - "RB-AUDIT-001"
+    - "RB-SEC-001"
+    - "RB-DR-001"
+    - "RB-BACKUP-001"
+

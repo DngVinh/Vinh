@@ -1,0 +1,542 @@
+asyncapi: "3.0.0"
+id: "urn:campus247:asyncapi:events:v1"
+info:
+  title: "Campus 24/7 internal event contract"
+  version: "1.0.0"
+  description: >-
+    Contract for transactional-outbox messages dispatched to consumer-owned AWS
+    SQS queues. Delivery is at-least-once. Consumers deduplicate by the tuple
+    (consumer_name, event_id), preserve the original event_id during replay, and
+    never treat an event as authorization evidence.
+  contact:
+    name: "Campus 24/7 Architecture"
+  license:
+    name: "Proprietary - synthetic fixtures only"
+defaultContentType: "application/json"
+servers:
+  local:
+    host: "localhost"
+    protocol: "sqs"
+    description: "Deterministic local SQS-compatible emulator; synthetic data only."
+    x-environment: "local"
+  awsStaging:
+    host: "sqs.ap-southeast-1.amazonaws.com"
+    protocol: "sqs"
+    description: "Reference staging transport; account and queue URLs are deployment configuration."
+    x-environment: "staging"
+    x-aws-region: "ap-southeast-1"
+    x-security-controls:
+      transport: "TLS"
+      at_rest: "AWS managed encryption or approved customer-managed key"
+      authentication: "workload identity with least-privilege queue policy"
+channels:
+  ticketEvents:
+    address: "campus247-v1-ticket-events"
+    description: "Ticket facts dispatched after the ticket transaction commits."
+    x-aws-sqs:
+      queueType: "standard"
+      deadLetterQueueRequired: true
+      contentBasedDeduplication: false
+    messages:
+      ticketCreatedV1:
+        $ref: "#/components/messages/ticketCreatedV1"
+      ticketStatusChangedV1:
+        $ref: "#/components/messages/ticketStatusChangedV1"
+  handoverEvents:
+    address: "campus247-v1-handover-events"
+    description: "Privacy-minimized handover facts for restricted consumers."
+    x-aws-sqs:
+      queueType: "standard"
+      deadLetterQueueRequired: true
+      restrictedAccess: true
+    messages:
+      handoverQueuedV1:
+        $ref: "#/components/messages/handoverQueuedV1"
+      handoverStatusChangedV1:
+        $ref: "#/components/messages/handoverStatusChangedV1"
+  actionEvents:
+    address: "campus247-v1-action-events"
+    description: "Completed write-action facts; normalized action payload is never included."
+    x-aws-sqs:
+      queueType: "standard"
+      deadLetterQueueRequired: true
+    messages:
+      actionExecutionCompletedV1:
+        $ref: "#/components/messages/actionExecutionCompletedV1"
+  knowledgeEvents:
+    address: "campus247-v1-knowledge-events"
+    description: "Knowledge publication facts and controlled indexing requests."
+    x-aws-sqs:
+      queueType: "standard"
+      deadLetterQueueRequired: true
+    messages:
+      knowledgeVersionPublishedV1:
+        $ref: "#/components/messages/knowledgeVersionPublishedV1"
+      knowledgeIndexRequestedV1:
+        $ref: "#/components/messages/knowledgeIndexRequestedV1"
+  notificationRequests:
+    address: "campus247-v1-notification-requests"
+    description: "Template-based notification requests; arbitrary message bodies are forbidden."
+    x-aws-sqs:
+      queueType: "standard"
+      deadLetterQueueRequired: true
+    messages:
+      notificationRequestedV1:
+        $ref: "#/components/messages/notificationRequestedV1"
+operations:
+  sendTicketEvents:
+    action: "send"
+    summary: "The outbox dispatcher sends committed ticket events."
+    channel:
+      $ref: "#/channels/ticketEvents"
+    messages:
+      - $ref: "#/channels/ticketEvents/messages/ticketCreatedV1"
+      - $ref: "#/channels/ticketEvents/messages/ticketStatusChangedV1"
+    x-producer: "ticket-domain"
+  receiveTicketEvents:
+    action: "receive"
+    summary: "Notification, operations metrics and staff projection consumers receive ticket events."
+    channel:
+      $ref: "#/channels/ticketEvents"
+    messages:
+      - $ref: "#/channels/ticketEvents/messages/ticketCreatedV1"
+      - $ref: "#/channels/ticketEvents/messages/ticketStatusChangedV1"
+    x-consumers: ["notification", "operations-metrics", "staff-queue-projection"]
+  sendHandoverEvents:
+    action: "send"
+    channel:
+      $ref: "#/channels/handoverEvents"
+    messages:
+      - $ref: "#/channels/handoverEvents/messages/handoverQueuedV1"
+      - $ref: "#/channels/handoverEvents/messages/handoverStatusChangedV1"
+    x-producer: "handover-domain"
+  receiveHandoverEvents:
+    action: "receive"
+    channel:
+      $ref: "#/channels/handoverEvents"
+    messages:
+      - $ref: "#/channels/handoverEvents/messages/handoverQueuedV1"
+      - $ref: "#/channels/handoverEvents/messages/handoverStatusChangedV1"
+    x-consumers: ["staff-queue-projection", "notification", "urgent-operations-monitor"]
+  sendActionEvents:
+    action: "send"
+    channel:
+      $ref: "#/channels/actionEvents"
+    messages:
+      - $ref: "#/channels/actionEvents/messages/actionExecutionCompletedV1"
+    x-producer: "action-execution-domain"
+  receiveActionEvents:
+    action: "receive"
+    channel:
+      $ref: "#/channels/actionEvents"
+    messages:
+      - $ref: "#/channels/actionEvents/messages/actionExecutionCompletedV1"
+    x-consumers: ["notification", "operations-metrics", "reconciliation"]
+  sendKnowledgeEvents:
+    action: "send"
+    channel:
+      $ref: "#/channels/knowledgeEvents"
+    messages:
+      - $ref: "#/channels/knowledgeEvents/messages/knowledgeVersionPublishedV1"
+      - $ref: "#/channels/knowledgeEvents/messages/knowledgeIndexRequestedV1"
+    x-producer: "knowledge-domain"
+  receiveKnowledgeEvents:
+    action: "receive"
+    channel:
+      $ref: "#/channels/knowledgeEvents"
+    messages:
+      - $ref: "#/channels/knowledgeEvents/messages/knowledgeVersionPublishedV1"
+      - $ref: "#/channels/knowledgeEvents/messages/knowledgeIndexRequestedV1"
+    x-consumers: ["retrieval-indexer", "cache-invalidator", "audit-projection"]
+  sendNotificationRequests:
+    action: "send"
+    channel:
+      $ref: "#/channels/notificationRequests"
+    messages:
+      - $ref: "#/channels/notificationRequests/messages/notificationRequestedV1"
+    x-producer: "notification-request-domain"
+  receiveNotificationRequests:
+    action: "receive"
+    channel:
+      $ref: "#/channels/notificationRequests"
+    messages:
+      - $ref: "#/channels/notificationRequests/messages/notificationRequestedV1"
+    x-consumers: ["notification-worker"]
+components:
+  messages:
+    ticketCreatedV1:
+      name: "ticket.created.v1"
+      title: "Ticket created"
+      summary: "A ticket became OPEN after a successful committed create action."
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/TicketCreatedV1"
+      x-event-type: "ticket.created"
+      x-event-version: 1
+      x-data-classification: "PERSONAL"
+      x-pii-fields: ["payload.requester_user_id"]
+      x-idempotency: "Consumers deduplicate by (consumer_name, event_id)."
+      x-replay: "Replay preserves event_id and occurred_at."
+    ticketStatusChangedV1:
+      name: "ticket.status_changed.v1"
+      title: "Ticket status changed"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/TicketStatusChangedV1"
+      x-event-type: "ticket.status_changed"
+      x-event-version: 1
+      x-data-classification: "INTERNAL"
+      x-pii-fields: []
+      x-idempotency: "Consumers deduplicate by (consumer_name, event_id) and reject stale aggregate_version."
+      x-replay: "Replay preserves event_id; stale projections record telemetry and do not overwrite newer state."
+    handoverQueuedV1:
+      name: "handover.queued.v1"
+      title: "Handover queued"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/HandoverQueuedV1"
+      x-event-type: "handover.queued"
+      x-event-version: 1
+      x-data-classification: "SENSITIVE"
+      x-pii-fields: []
+      x-idempotency: "Consumers deduplicate by (consumer_name, event_id)."
+      x-replay: "Replay is restricted and audited; original event_id is preserved."
+    handoverStatusChangedV1:
+      name: "handover.status_changed.v1"
+      title: "Handover status changed"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/HandoverStatusChangedV1"
+      x-event-type: "handover.status_changed"
+      x-event-version: 1
+      x-data-classification: "SENSITIVE"
+      x-pii-fields: ["payload.assignee_user_id"]
+      x-idempotency: "Consumers deduplicate by (consumer_name, event_id) and compare aggregate_version."
+      x-replay: "Replay preserves event_id and is limited to authorized restricted consumers."
+    actionExecutionCompletedV1:
+      name: "action.execution_completed.v1"
+      title: "Action execution completed"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/ActionExecutionCompletedV1"
+      x-event-type: "action.execution_completed"
+      x-event-version: 1
+      x-data-classification: "INTERNAL"
+      x-pii-fields: []
+      x-idempotency: "Consumers deduplicate by (consumer_name, event_id); target action is already committed."
+      x-replay: "Replay preserves event_id and cannot re-execute the business action."
+    knowledgeVersionPublishedV1:
+      name: "knowledge.version_published.v1"
+      title: "Knowledge version published"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/KnowledgeVersionPublishedV1"
+      x-event-type: "knowledge.version_published"
+      x-event-version: 1
+      x-data-classification: "INTERNAL"
+      x-pii-fields: []
+      x-idempotency: "Index/cache consumers deduplicate by event_id and content_checksum."
+      x-replay: "Replay preserves event_id; activation remains conditional on the current approved version."
+    knowledgeIndexRequestedV1:
+      name: "knowledge.index_requested.v1"
+      title: "Knowledge indexing requested"
+      summary: "Command-like integration message; consumer rechecks APPROVED eligibility."
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/KnowledgeIndexRequestedV1"
+      x-event-type: "knowledge.index_requested"
+      x-event-version: 1
+      x-data-classification: "INTERNAL"
+      x-pii-fields: []
+      x-idempotency: "Indexer deduplicates by (document_version_id, content_checksum, index_profile_version)."
+      x-replay: "Original event_id is preserved; eligibility is revalidated before indexing."
+    notificationRequestedV1:
+      name: "notification.requested.v1"
+      title: "Notification requested"
+      contentType: "application/json"
+      correlationId:
+        location: "$message.payload#/correlation_id"
+      payload:
+        $ref: "#/components/schemas/NotificationRequestedV1"
+      x-event-type: "notification.requested"
+      x-event-version: 1
+      x-data-classification: "PERSONAL"
+      x-pii-fields: ["payload.recipient_user_id"]
+      x-idempotency: "Provider and worker deduplicate with payload.dedupe_key."
+      x-replay: "Replay preserves event_id and dedupe_key; no arbitrary body is accepted."
+  schemas:
+    UuidV7:
+      type: "string"
+      format: "uuid"
+      pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    EventEnvelope:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "event_id"
+        - "event_type"
+        - "event_version"
+        - "occurred_at"
+        - "producer"
+        - "aggregate_type"
+        - "aggregate_id"
+        - "aggregate_version"
+        - "partition_key"
+        - "correlation_id"
+        - "causation_id"
+        - "data_classification"
+        - "payload"
+      properties:
+        event_id:
+          $ref: "#/components/schemas/UuidV7"
+        event_type:
+          type: "string"
+          pattern: "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        event_version:
+          type: "integer"
+          minimum: 1
+        occurred_at:
+          type: "string"
+          format: "date-time"
+        producer:
+          type: "string"
+          pattern: "^[a-z][a-z0-9-]{1,63}$"
+        aggregate_type:
+          type: "string"
+          pattern: "^[a-z][a-z0-9_]{1,63}$"
+        aggregate_id:
+          $ref: "#/components/schemas/UuidV7"
+        aggregate_version:
+          type: "integer"
+          minimum: 1
+        partition_key:
+          $ref: "#/components/schemas/UuidV7"
+        correlation_id:
+          $ref: "#/components/schemas/UuidV7"
+        causation_id:
+          oneOf:
+            - $ref: "#/components/schemas/UuidV7"
+            - type: "null"
+        data_classification:
+          type: "string"
+          enum: ["PUBLIC", "INTERNAL", "PERSONAL", "SENSITIVE"]
+        payload:
+          type: "object"
+    TicketCreatedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["ticket_id", "requester_user_id", "category", "priority", "queue_key", "status", "created_at"]
+      properties:
+        ticket_id: {$ref: "#/components/schemas/UuidV7"}
+        requester_user_id: {$ref: "#/components/schemas/UuidV7"}
+        category: {type: "string", enum: ["GENERAL_SUPPORT", "ACADEMIC_POLICY", "DOCUMENT_REQUEST_SUPPORT", "FACILITY", "COMPLAINT", "OTHER"]}
+        priority: {type: "string", enum: ["LOW", "NORMAL", "HIGH", "CRITICAL"]}
+        queue_key: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+        status: {type: "string", const: "OPEN"}
+        created_at: {type: "string", format: "date-time"}
+    TicketCreatedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "ticket.created"}
+            event_version: {const: 1}
+            producer: {const: "ticket-domain"}
+            aggregate_type: {const: "ticket"}
+            data_classification: {const: "PERSONAL"}
+            payload: {$ref: "#/components/schemas/TicketCreatedPayload"}
+    TicketStatusChangedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["ticket_id", "from_status", "to_status", "actor_type", "reason_code", "changed_at"]
+      properties:
+        ticket_id: {$ref: "#/components/schemas/UuidV7"}
+        from_status: {$ref: "../../json-schema/tickets/ticket-state.schema.json"}
+        to_status: {$ref: "../../json-schema/tickets/ticket-state.schema.json"}
+        actor_type: {type: "string", enum: ["STUDENT", "SUPPORT_OFFICER", "SYSTEM"]}
+        reason_code: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,79}$"}
+        changed_at: {type: "string", format: "date-time"}
+    TicketStatusChangedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "ticket.status_changed"}
+            event_version: {const: 1}
+            producer: {const: "ticket-domain"}
+            aggregate_type: {const: "ticket"}
+            data_classification: {const: "INTERNAL"}
+            payload: {$ref: "#/components/schemas/TicketStatusChangedPayload"}
+    HandoverQueuedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["handover_id", "conversation_id", "queue_key", "reason_code", "risk_level", "status", "created_at"]
+      properties:
+        handover_id: {$ref: "#/components/schemas/UuidV7"}
+        conversation_id: {$ref: "#/components/schemas/UuidV7"}
+        queue_key: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+        reason_code:
+          type: "string"
+          enum: ["USER_REQUESTED_HUMAN", "INSUFFICIENT_EVIDENCE", "POLICY_EXCEPTION", "ACADEMIC_RIGHTS_IMPACT", "COMPLAINT_OR_DISCIPLINE", "SENSITIVE_WELLBEING", "POTENTIAL_SELF_HARM", "POTENTIAL_VIOLENCE", "HARASSMENT_OR_ABUSE", "DATA_PRIVACY_INCIDENT", "TOOL_OR_INTEGRATION_FAILURE", "OTHER_REVIEW_REQUIRED"]
+        risk_level: {type: "string", enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]}
+        status: {type: "string", const: "QUEUED"}
+        created_at: {type: "string", format: "date-time"}
+    HandoverQueuedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "handover.queued"}
+            event_version: {const: 1}
+            producer: {const: "handover-domain"}
+            aggregate_type: {const: "handover"}
+            data_classification: {const: "SENSITIVE"}
+            payload: {$ref: "#/components/schemas/HandoverQueuedPayload"}
+    HandoverStatusChangedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["handover_id", "from_status", "to_status", "queue_key", "assignee_user_id", "changed_at", "reason_code"]
+      properties:
+        handover_id: {$ref: "#/components/schemas/UuidV7"}
+        from_status: {type: "string", enum: ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "RESOLVED", "RETURNED", "CANCELLED"]}
+        to_status: {type: "string", enum: ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "RESOLVED", "RETURNED", "CANCELLED"]}
+        queue_key: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+        assignee_user_id:
+          oneOf:
+            - $ref: "#/components/schemas/UuidV7"
+            - type: "null"
+        changed_at: {type: "string", format: "date-time"}
+        reason_code: {type: ["string", "null"], pattern: "^[A-Z][A-Z0-9_]{1,79}$"}
+    HandoverStatusChangedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "handover.status_changed"}
+            event_version: {const: 1}
+            producer: {const: "handover-domain"}
+            aggregate_type: {const: "handover"}
+            data_classification: {const: "SENSITIVE"}
+            payload: {$ref: "#/components/schemas/HandoverStatusChangedPayload"}
+    ActionExecutionCompletedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["execution_id", "preview_id", "action_type", "status", "target_type", "target_id", "completed_at", "failure_code"]
+      properties:
+        execution_id: {$ref: "#/components/schemas/UuidV7"}
+        preview_id: {$ref: "#/components/schemas/UuidV7"}
+        action_type: {type: "string", pattern: "^[A-Z][A-Z0-9_]{1,63}$"}
+        status: {type: "string", enum: ["SUCCEEDED", "FAILED", "COMPENSATION_REQUIRED"]}
+        target_type: {type: ["string", "null"], pattern: "^[a-z][a-z0-9_]{1,63}$"}
+        target_id:
+          oneOf:
+            - $ref: "#/components/schemas/UuidV7"
+            - type: "null"
+        completed_at: {type: "string", format: "date-time"}
+        failure_code: {type: ["string", "null"], pattern: "^[A-Z][A-Z0-9_]{1,99}$"}
+    ActionExecutionCompletedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "action.execution_completed"}
+            event_version: {const: 1}
+            producer: {const: "action-execution-domain"}
+            aggregate_type: {const: "action_execution"}
+            data_classification: {const: "INTERNAL"}
+            payload: {$ref: "#/components/schemas/ActionExecutionCompletedPayload"}
+    KnowledgeVersionPublishedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["source_id", "document_version_id", "version_label", "content_checksum", "effective_from", "effective_until", "published_at"]
+      properties:
+        source_id: {$ref: "#/components/schemas/UuidV7"}
+        document_version_id: {$ref: "#/components/schemas/UuidV7"}
+        version_label: {type: "string", minLength: 1, maxLength: 64}
+        content_checksum: {type: "string", pattern: "^sha256:[0-9a-f]{64}$"}
+        effective_from: {type: ["string", "null"], format: "date-time"}
+        effective_until: {type: ["string", "null"], format: "date-time"}
+        published_at: {type: "string", format: "date-time"}
+    KnowledgeVersionPublishedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "knowledge.version_published"}
+            event_version: {const: 1}
+            producer: {const: "knowledge-domain"}
+            aggregate_type: {const: "document_version"}
+            data_classification: {const: "INTERNAL"}
+            payload: {$ref: "#/components/schemas/KnowledgeVersionPublishedPayload"}
+    KnowledgeIndexRequestedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["document_version_id", "content_checksum", "requested_at", "index_profile_version"]
+      properties:
+        document_version_id: {$ref: "#/components/schemas/UuidV7"}
+        content_checksum: {type: "string", pattern: "^sha256:[0-9a-f]{64}$"}
+        requested_at: {type: "string", format: "date-time"}
+        index_profile_version: {type: "string", pattern: "^[A-Za-z0-9._-]{1,64}$"}
+    KnowledgeIndexRequestedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "knowledge.index_requested"}
+            event_version: {const: 1}
+            producer: {const: "knowledge-domain"}
+            aggregate_type: {const: "document_version"}
+            data_classification: {const: "INTERNAL"}
+            payload: {$ref: "#/components/schemas/KnowledgeIndexRequestedPayload"}
+    NotificationRequestedPayload:
+      type: "object"
+      additionalProperties: false
+      required: ["notification_id", "recipient_user_id", "template_id", "template_variables", "channel", "priority", "dedupe_key"]
+      properties:
+        notification_id: {$ref: "#/components/schemas/UuidV7"}
+        recipient_user_id: {$ref: "#/components/schemas/UuidV7"}
+        template_id: {type: "string", pattern: "^[a-z][a-z0-9_.-]{1,99}$"}
+        template_variables:
+          type: "object"
+          maxProperties: 20
+          propertyNames: {pattern: "^[a-z][a-z0-9_]{0,63}$"}
+          additionalProperties:
+            type: ["string", "number", "integer", "boolean", "null"]
+        channel: {type: "string", enum: ["IN_APP", "EMAIL_FAKE"]}
+        priority: {type: "string", enum: ["LOW", "NORMAL", "HIGH", "CRITICAL"]}
+        dedupe_key: {type: "string", pattern: "^[A-Za-z0-9._:-]{1,128}$"}
+    NotificationRequestedV1:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: "object"
+          properties:
+            event_type: {const: "notification.requested"}
+            event_version: {const: 1}
+            producer: {const: "notification-request-domain"}
+            aggregate_type: {const: "notification"}
+            data_classification: {const: "PERSONAL"}
+            payload: {$ref: "#/components/schemas/NotificationRequestedPayload"}
+x-contract-control:
+  document_id: "EVT-ASYNCAPI-V1"
+  status: "reviewed"
+  owner: "Event Architecture"
+  source: "docs/04-architecture/contracts/EVENT_CONTRACTS.md"
+  schema_dialect: "https://json-schema.org/draft/2020-12/schema"
+  delivery_semantics: "at-least-once"
+  outbox_required: true
+  global_ordering: false
+  pii_prohibitions: ["raw_chat", "email", "student_code", "token", "secret", "chain_of_thought"]

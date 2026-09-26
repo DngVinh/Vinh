@@ -1,0 +1,64 @@
+fixtures:
+  faq:
+    status: completed
+    output_text: "Học phí học kỳ 1 năm học 2026-2027 là 12.000.000 VNĐ."
+    finish_reason: stop
+    usage:
+      input_tokens: 45
+      cached_input_tokens: 0
+      output_tokens: 28
+      reasoning_tokens: 0
+    latency_ms: 50
+
+  invalid_json:
+    status: completed
+    output_text: "{malformed_json: true,"
+    finish_reason: stop
+    usage:
+      input_tokens: 20
+      cached_input_tokens: 0
+      output_tokens: 10
+      reasoning_tokens: 0
+    latency_ms: 30
+
+  tool_call:
+    status: completed
+    output_text: null
+    finish_reason: tool_call
+    tool_candidates:
+      - call_id: call_faq_01
+        name: search_knowledge
+        arguments:
+          query: hoc phi
+          top_k: 3
+    usage:
+      input_tokens: 50
+      cached_input_tokens: 0
+      output_tokens: 25
+      reasoning_tokens: 0
+    latency_ms: 60
+
+  rate_limit_error:
+    status: failed
+    finish_reason: error
+    error_message: "Rate limit exceeded (HTTP 429)"
+    usage:
+      input_tokens: 0
+      cached_input_tokens: 0
+      output_tokens: 0
+      reasoning_tokens: 0
+    latency_ms: 10
+
+  stream_test:
+    status: completed
+    chunks:
+      - "Chào bạn! "
+      - "Học phí kỳ này "
+      - "là 12 triệu VNĐ."
+    finish_reason: stop
+    usage:
+      input_tokens: 35
+      cached_input_tokens: 0
+      output_tokens: 20
+      reasoning_tokens: 0
+    latency_ms: 40

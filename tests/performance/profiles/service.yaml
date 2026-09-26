@@ -1,0 +1,6 @@
+profile_name: "telemetry_overhead_load"
+version: "1.0.0"
+target_rps: 200
+benchmark_iterations: 500
+max_overhead_ms_per_op: 2.0
+allowed_overhead_percentage: 15.0

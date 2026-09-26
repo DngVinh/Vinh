@@ -1,0 +1,16 @@
+schema_version: "1.0"
+fixture_id: "CAMPUS247-CANARY-SUITE-V1"
+canary_tokens:
+  - id: "CANARY-SECRET-01"
+    token: "C247_CANARY_PROV_SEC_9921"
+    category: "provider_key"
+  - id: "CANARY-PII-01"
+    token: "001202009999"
+    category: "national_id"
+  - id: "CANARY-PASS-01"
+    token: "SuperSecretPassword123!"
+    category: "user_credential"
+sanitization_masks:
+  provider_key: "[REDACTED_SECRET]"
+  national_id: "[REDACTED_PII]"
+  user_credential: "[REDACTED_CREDENTIAL]"

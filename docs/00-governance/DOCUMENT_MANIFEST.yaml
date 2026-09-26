@@ -1,0 +1,131 @@
+document_id: "DOC-GOV-MANIFEST-001"
+version: "2.1.0"
+status: "reviewed"
+owner: "Documentation Chief Editor"
+approvers: []
+last_updated: "2026-09-22"
+schema_version: "2.0"
+project: "campus247"
+inventory_basis: "filesystem inventory observed 2026-09-22"
+canonical_meaning: "true identifies the current source of record for the stated topic; it is not an approval, implementation, or release flag."
+status_values: [unversioned, draft, reviewed, approved, superseded, inconsistent]
+
+domains:
+  - id: repository
+    owner: "Documentation Chief Editor"
+    artifacts:
+      - {path: "README.md", document_id: null, status: unversioned, canonical: true, owner: "Documentation Chief Editor", purpose: "Repository entry point and safe local-validation instructions."}
+
+  - id: governance
+    owner: "Documentation Chief Editor"
+    artifacts:
+      - {path: "docs/README.md", document_id: "DOC-INDEX-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Documentation map and normative entry order."}
+      - {path: "docs/00-governance/ASSUMPTIONS_AND_OPEN_QUESTIONS.md", document_id: "DOC-GOV-ASSUMPTIONS-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Planning assumptions and launch-blocking open questions."}
+      - {path: "docs/00-governance/CROSS_REVIEW_CHECKLIST.md", document_id: "DOC-GOV-REVIEW-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Cross-domain review checklist."}
+      - {path: "docs/00-governance/DECISION_REGISTER.md", document_id: "DOC-GOV-DECISIONS-001", status: approved, canonical: true, owner: "Product and Architecture Governance", purpose: "Accepted decision record register."}
+      - {path: "docs/00-governance/DOCUMENT_CONTROL.md", document_id: "DOC-GOV-CONTROL-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Document lifecycle, precedence, and change control."}
+      - {path: "docs/00-governance/DOCUMENT_MANIFEST.yaml", document_id: "DOC-GOV-MANIFEST-001", status: reviewed, canonical: true, owner: "Documentation Chief Editor", purpose: "Filesystem-backed documentation inventory."}
+      - {path: "docs/00-governance/GLOSSARY.md", document_id: "DOC-GOV-GLOSSARY-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Shared terminology."}
+      - {path: "docs/00-governance/ID_CONVENTIONS.md", document_id: "DOC-GOV-IDS-001", status: approved, canonical: true, owner: "Documentation Chief Editor", purpose: "Stable identifier conventions."}
+      - {path: "docs/00-governance/MASTER_TRACEABILITY_MATRIX.md", document_id: "DOC-GOV-MATRIX-001", status: reviewed, canonical: true, owner: "Architecture and Quality Governance", purpose: "Cross-domain coverage baseline and gaps."}
+      - {path: "docs/00-governance/CONSISTENCY_REPORT.md", document_id: "DOC-GOV-CONSISTENCY-001", status: reviewed, canonical: true, owner: "Documentation Chief Editor", purpose: "Current structural validation and blocker report."}
+      - {path: "docs/00-governance/RESEARCH_AND_DATASET_POLICY.md", document_id: "DOC-GOV-DATASET-001", status: approved, canonical: true, owner: "Knowledge Governance", purpose: "Research and synthetic-dataset policy."}
+      - {path: "docs/00-governance/SOURCE_REGISTER.md", document_id: "DOC-GOV-SOURCES-001", status: approved, canonical: true, owner: "Research and Knowledge Governance", purpose: "Source provenance register."}
+      - {path: "docs/00-governance/TRACEABILITY_POLICY.md", document_id: "DOC-GOV-TRACE-001", status: approved, canonical: true, owner: "Architecture and Quality Governance", purpose: "Required traceability chain and orphan rules."}
+
+  - id: product
+    owner: "Product Management"
+    artifacts:
+      - {path: "docs/01-product/README.md", document_id: "DOC-PROD-000", status: reviewed, canonical: false, owner: "Product Lead", purpose: "Product-package index."}
+      - {path: "docs/01-product/PRODUCT_VISION.md", document_id: "DOC-PROD-VISION-001", status: approved, canonical: true, owner: "Product Management", purpose: "Product vision."}
+      - {path: "docs/01-product/BUSINESS_CASE.md", document_id: "DOC-PROD-BUSINESS-001", status: approved, canonical: true, owner: "Product Management", purpose: "Business case."}
+      - {path: "docs/01-product/PRD.md", document_id: "DOC-PROD-PRD-001", status: approved, canonical: true, owner: "Product Management", purpose: "Product requirements document."}
+      - {path: "docs/01-product/PERSONAS_AND_ROLES.md", document_id: "DOC-PROD-PERSONA-001", status: approved, canonical: true, owner: "Product Management", purpose: "Personas and roles."}
+      - {path: "docs/01-product/USE_CASE_CATALOG.md", document_id: "DOC-PROD-UC-001", status: approved, canonical: true, owner: "Product Management", purpose: "Use-case catalog."}
+      - {path: "docs/01-product/KPI_CATALOG.md", document_id: "DOC-PROD-KPI-001", status: approved, canonical: true, owner: "Product Analytics", purpose: "KPI catalog."}
+      - {path: "docs/01-product/SCOPE_AND_ROADMAP.md", document_id: "DOC-PROD-SCOPE-001", status: approved, canonical: true, owner: "Product Management", purpose: "Scope and roadmap."}
+      - {path: "docs/01-product/COMMERCIAL_BUSINESS_CASE.md", document_id: "DOC-PROD-002", status: reviewed, canonical: false, owner: "Product Lead", purpose: "Commercial business-case view."}
+      - {path: "docs/01-product/SCOPE_AND_NON_GOALS.md", document_id: "DOC-PROD-003", status: reviewed, canonical: true, owner: "Product Manager", purpose: "Scope boundaries and non-goals."}
+      - {path: "docs/01-product/FUNCTIONAL_REQUIREMENTS.md", document_id: "DOC-PROD-008", status: reviewed, canonical: false, owner: "Product Manager", purpose: "Human-readable functional-requirement view."}
+      - {path: "docs/01-product/NON_FUNCTIONAL_REQUIREMENTS.md", document_id: "DOC-PROD-009", status: reviewed, canonical: false, owner: "Product Manager", purpose: "Human-readable non-functional-requirement view."}
+      - {path: "docs/01-product/CAPABILITY_ROADMAP.md", document_id: "DOC-PROD-010", status: reviewed, canonical: true, owner: "Product Lead", purpose: "Capability sequencing."}
+      - {path: "docs/01-product/requirements.yaml", document_id: "DOC-PROD-012", status: reviewed, canonical: true, owner: "Product Manager", purpose: "Canonical catalog of 125 requirements and acceptance criteria."}
+      - {path: "docs/01-product/REQUIREMENT_DEPENDENCY_MAP.md", document_id: "DOC-PROD-013", status: reviewed, canonical: true, owner: "Product Requirements Recovery Lead", purpose: "Requirement dependency map."}
+
+  - id: service_design
+    owner: "Service Design Lead"
+    artifacts:
+      - {path: "docs/02-service-design", document_id: null, status: draft, canonical: true, owner: "Service Design Lead", purpose: "Aggregate of DOC-SVC-001 through DOC-SVC-008 service-design documents."}
+  - id: ux
+    owner: "Product Design Lead"
+    artifacts:
+      - {path: "docs/03-ux", document_id: null, status: draft, canonical: true, owner: "Product Design Lead", purpose: "Aggregate of DOC-UX-001 through DOC-UX-009 plus UI_STATE_MATRIX.yaml."}
+  - id: architecture
+    owner: "Solution Architecture"
+    artifacts:
+      - {path: "docs/04-architecture/core", document_id: null, status: draft, canonical: true, owner: "Solution Architecture", purpose: "Aggregate of DOC-ARCH-000 through DOC-ARCH-009 architecture views."}
+      - {path: "docs/04-architecture/adr", document_id: null, status: draft, canonical: true, owner: "Architecture Lead", purpose: "Aggregate of DOC-ADR-000 through DOC-ADR-016 decision records."}
+      - {path: "docs/04-architecture/contracts", document_id: null, status: reviewed, canonical: true, owner: "Solution Architect", purpose: "Aggregate of DOC-API-001..004, DOC-DATA-001..003, DOC-EVT-001 and DOC-INT-001."}
+  - id: ai
+    owner: "AI Architecture Lead"
+    artifacts:
+      - {path: "docs/05-ai", document_id: null, status: reviewed, canonical: true, owner: "AI Architecture Lead", purpose: "Aggregate of DOC-AI-000..008, DOC-RAG-001..002, DOC-TOOL-001 and DOC-EVAL-001..002."}
+  - id: security_privacy
+    owner: "Security Architect"
+    artifacts:
+      - {path: "docs/06-security", document_id: null, status: draft, canonical: true, owner: "Security Architect", purpose: "Aggregate of DOC-SEC-000..010, DOC-PRIV-001..005 and DOC-THR-001..002."}
+  - id: platform_operations
+    owner: "Platform and SRE Lead"
+    artifacts:
+      - {path: "docs/07-platform", document_id: null, status: draft, canonical: true, owner: "Platform and SRE Lead", purpose: "Aggregate of DOC-OPS-000..011 platform and operations specifications."}
+  - id: quality
+    owner: "Quality Engineering Lead"
+    artifacts:
+      - {path: "docs/08-quality", document_id: null, status: reviewed, canonical: true, owner: "Quality Engineering Lead", purpose: "Aggregate of DOC-QUAL-000..010 test, gate and evidence specifications."}
+  - id: agent_execution
+    owner: "Agentic Delivery Architecture"
+    artifacts:
+      - {path: "docs/09-agent-execution", document_id: null, status: reviewed, canonical: true, owner: "Agentic Delivery Architecture", purpose: "Aggregate of DOC-AGENT-000..008 executor and orchestration specifications."}
+      - {path: "tasks/README.md", document_id: null, status: unversioned, canonical: false, owner: "AI Delivery Orchestration", purpose: "Task-catalog workflow and lifecycle guidance."}
+      - {path: "tasks/task.schema.json", document_id: null, status: draft, canonical: true, owner: "AI Delivery Orchestration", purpose: "Atomic task schema."}
+      - {path: "tasks/task-output.schema.json", document_id: null, status: draft, canonical: true, owner: "AI Delivery Orchestration", purpose: "Task-result schema."}
+      - {path: "tasks/task-index.yaml", document_id: null, status: draft, canonical: true, owner: "AI Delivery Orchestration", purpose: "Canonical 176-task phase catalog."}
+      - {path: "tasks/dag.yaml", document_id: null, status: draft, canonical: true, owner: "AI Delivery Orchestration", purpose: "176-node task dependency graph."}
+      - path: "tasks/items"
+        document_id: null
+        status: draft
+        canonical: true
+        owner: "AI Delivery Orchestration"
+        purpose: "Directory aggregate of draft atomic task files; do not enumerate one manifest line per task."
+        filesystem_item_count: 176
+        task_index_declared_count: 176
+        task_index_entry_count: 176
+        dag_node_count: 176
+        unindexed_task_ids: []
+      - {path: "tasks/templates", document_id: null, status: draft, canonical: false, owner: "AI Delivery Orchestration", purpose: "Task authoring template directory."}
+      - {path: "tasks/examples", document_id: null, status: draft, canonical: false, owner: "AI Delivery Orchestration", purpose: "Task example directory."}
+      - {path: "tasks/tools", document_id: null, status: draft, canonical: false, owner: "AI Delivery Orchestration", purpose: "Catalog generation and validation tooling."}
+  - id: delivery
+    owner: "Delivery and Release Engineering Lead"
+    artifacts:
+      - {path: "docs/10-delivery", document_id: null, status: reviewed, canonical: true, owner: "Delivery and Release Engineering Lead", purpose: "Aggregate of DOC-DEL-000..009 delivery, release and operating-plan specifications."}
+  - id: machine_artifacts
+    owner: "Architecture and Quality Governance"
+    artifacts:
+      - {path: "contracts/openapi/v1", document_id: null, status: reviewed, canonical: true, owner: "API Architect", purpose: "OpenAPI V1 contract directory."}
+      - {path: "contracts/asyncapi/v1", document_id: null, status: reviewed, canonical: true, owner: "Event Architect", purpose: "AsyncAPI V1 contract directory."}
+      - {path: "contracts/json-schema", document_id: null, status: reviewed, canonical: true, owner: "API and Data Architecture", purpose: "JSON Schema contract directory."}
+      - {path: "contracts/tools", document_id: "DOC-TOOL-002", status: reviewed, canonical: true, owner: "Backend Architecture Lead", purpose: "Tool-contract README, registry, schemas and offline validator."}
+      - {path: "evals/README.md", document_id: null, status: unversioned, canonical: false, owner: "AI Quality Lead", purpose: "Synthetic evaluation-fixture guidance."}
+      - {path: "evals/schemas", document_id: null, status: reviewed, canonical: true, owner: "AI Quality Lead", purpose: "Evaluation case and result schemas."}
+      - {path: "evals/rubrics", document_id: null, status: reviewed, canonical: true, owner: "AI Quality Lead", purpose: "Evaluation rubric directory."}
+      - {path: "evals/gates", document_id: null, status: reviewed, canonical: true, owner: "AI Quality Lead", purpose: "Regression-gate directory."}
+      - {path: "evals/datasets", document_id: null, status: reviewed, canonical: false, owner: "AI Quality Lead", purpose: "Small synthetic evaluation fixtures; not a release dataset."}
+      - {path: "evals/red-team", document_id: null, status: reviewed, canonical: true, owner: "AI Security Testing Lead", purpose: "Red-team scenario catalog."}
+      - {path: "evals/validate_contracts.py", document_id: null, status: reviewed, canonical: false, owner: "AI Quality Lead", purpose: "Offline evaluation-contract validator."}
+      - {path: "infra/specs", document_id: null, status: draft, canonical: true, owner: "Platform and SRE Lead", purpose: "Infrastructure, environment, alarm, dashboard and runbook specifications."}
+
+inventory_limits:
+  - "Manifest records existing repository paths only; directory aggregates represent current children without claiming every child has a document header."
+  - "All 176 tasks are draft. The task index, DAG and task directory are synchronized; draft status still prevents autonomous execution."
+  - "Reviewed or approved documentation does not authorize implementation, real data, live institutional integrations, paid providers, pilot, or production."

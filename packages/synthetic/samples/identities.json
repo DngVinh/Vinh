@@ -1,0 +1,492 @@
+{
+  "manifest": {
+    "dataset_id": "DATASET-SYNTH-IDENTITIES-SEED2472026",
+    "version": "1.0.0",
+    "generator_version": "1.0.0",
+    "seed": 2472026,
+    "locale": "vi-VN",
+    "simulation_label": true,
+    "record_counts": {
+      "user_identity": 15,
+      "identity_link": 15,
+      "role_binding": 15,
+      "student_profile": 10
+    },
+    "records_checksum": "sha256:b28ac0e60d0a2321d88f02628a1e51839016ce0e64bce929d8be204367356033"
+  },
+  "records": {
+    "user_identity": [
+      {
+        "id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "display_name": "Trần Hoàng Giang",
+        "primary_email": "sv240000@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "display_name": "Võ Minh Giang",
+        "primary_email": "sv240001@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "display_name": "Vũ Thị An",
+        "primary_email": "sv240002@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "display_name": "Đặng Hải Khánh",
+        "primary_email": "sv240003@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "display_name": "Hoàng Hải Linh",
+        "primary_email": "sv240004@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "9cb5b70c-fbf4-7466-8ef2-a84d58dfff18",
+        "display_name": "Đặng Quang Khánh",
+        "primary_email": "sv240005@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "0188be22-3479-725e-b3cc-3e6fcbb11796",
+        "display_name": "Trần Hải Em",
+        "primary_email": "sv240006@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "2e1233ff-7952-7bd1-8f5b-8359d7a8baaa",
+        "display_name": "Trần Đức Khánh",
+        "primary_email": "sv240007@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "816779e1-37ab-7878-9104-8de0b5da7ced",
+        "display_name": "Vũ Thị Linh",
+        "primary_email": "sv240008@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "f5499c21-1fb8-73b2-8143-7374df09f59c",
+        "display_name": "Nguyễn Văn Linh",
+        "primary_email": "sv240009@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "fb6d87e0-d5c2-74bd-96cf-7f4075406d73",
+        "display_name": "Cán bộ SUPPORT_OFFICER 1",
+        "primary_email": "staff_1@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "555bd299-2f2d-7471-bf9d-c1b9fa9582a3",
+        "display_name": "Cán bộ SUPPORT_OFFICER 2",
+        "primary_email": "staff_2@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "61a945d3-8c1d-7d63-b2fa-4274128d269a",
+        "display_name": "Cán bộ KNOWLEDGE_ADMIN 3",
+        "primary_email": "staff_3@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "29bd0539-5a74-7638-b04b-713ce38305ab",
+        "display_name": "Cán bộ KNOWLEDGE_ADMIN 4",
+        "primary_email": "staff_4@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      },
+      {
+        "id": "62d4e5fa-d616-7819-8579-82592a2b2882",
+        "display_name": "Cán bộ SYSTEM_ADMIN 5",
+        "primary_email": "staff_5@demo.huce.example",
+        "status": "ACTIVE",
+        "is_synthetic": true,
+        "version": 1
+      }
+    ],
+    "identity_link": [
+      {
+        "id": "50306b75-bba9-7b82-b228-7a8736a03f84",
+        "user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240000",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "2adabb94-b30f-7559-b201-8cbd46f4f01c",
+        "user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240001",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "4dcc80d2-8259-7508-befd-90622b6c14a4",
+        "user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240002",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "7a256331-0c9f-7714-8c05-6d1536b0ff7a",
+        "user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240003",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "23659b03-7b01-73e5-8b56-c537af9515a8",
+        "user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240004",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "f4b14aa1-2dc6-7c60-b0e0-e15ede413b26",
+        "user_id": "9cb5b70c-fbf4-7466-8ef2-a84d58dfff18",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240005",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "168ae100-0772-71c0-96c4-660204636570",
+        "user_id": "0188be22-3479-725e-b3cc-3e6fcbb11796",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240006",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "b5a3ff43-0e4a-7777-9788-3105b30078d1",
+        "user_id": "2e1233ff-7952-7bd1-8f5b-8359d7a8baaa",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240007",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "e9c1bb41-6b26-70a4-9790-8e184c58b9bf",
+        "user_id": "816779e1-37ab-7878-9104-8de0b5da7ced",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240008",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "020c4787-8103-72ed-a914-0cdc0794120b",
+        "user_id": "f5499c21-1fb8-73b2-8143-7374df09f59c",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "sub-SV240009",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "88dac97f-baa7-7a52-9ba2-fdbf2c3def74",
+        "user_id": "fb6d87e0-d5c2-74bd-96cf-7f4075406d73",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "staff-sub-1",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "423e187f-2e78-7d1f-89ba-6c56c3f79618",
+        "user_id": "555bd299-2f2d-7471-bf9d-c1b9fa9582a3",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "staff-sub-2",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "7f17b23c-6c2e-74e2-a426-ca30b7ff7121",
+        "user_id": "61a945d3-8c1d-7d63-b2fa-4274128d269a",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "staff-sub-3",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "8a4e6aa2-d2e2-7007-a32a-2d78952746e4",
+        "user_id": "29bd0539-5a74-7638-b04b-713ce38305ab",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "staff-sub-4",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      },
+      {
+        "id": "235f260b-a44a-7950-877f-b7b1d85b98b7",
+        "user_id": "62d4e5fa-d616-7819-8579-82592a2b2882",
+        "issuer": "urn:campus247:issuer:synthetic",
+        "subject": "staff-sub-5",
+        "provider_type": "SYNTHETIC",
+        "claims_version": "v1"
+      }
+    ],
+    "role_binding": [
+      {
+        "id": "eab5f838-99e0-730e-a745-b6f4693389cb",
+        "user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "e0b942a8-35cc-73a8-ac82-f56f8191b647",
+        "user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "9105a8f6-d9b0-7708-b79c-1e4bad24b0eb",
+        "user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "73b2c1e9-e358-7d23-8aeb-7e54465fab21",
+        "user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "52d8a87d-34f4-7e81-9575-ada3d92b6f8e",
+        "user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "6057abf3-6c18-7f54-9efb-b8ba7beff2b4",
+        "user_id": "9cb5b70c-fbf4-7466-8ef2-a84d58dfff18",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "7974bc7a-04e4-7782-a694-3bac3fc9ef54",
+        "user_id": "0188be22-3479-725e-b3cc-3e6fcbb11796",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "9b86dca0-7ad8-784e-bae4-9a2f826f60d9",
+        "user_id": "2e1233ff-7952-7bd1-8f5b-8359d7a8baaa",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "8ad0daf3-3215-70b5-ba63-90660e53a416",
+        "user_id": "816779e1-37ab-7878-9104-8de0b5da7ced",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "258b691c-f9ed-7b14-97b1-6974e3a61f32",
+        "user_id": "f5499c21-1fb8-73b2-8143-7374df09f59c",
+        "role": "STUDENT",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "e3e02041-bec8-7511-a3f8-e2747c9238e9",
+        "user_id": "fb6d87e0-d5c2-74bd-96cf-7f4075406d73",
+        "role": "SUPPORT_OFFICER",
+        "scope_type": "QUEUE",
+        "scope_key": "HUCE_GENERAL",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "196e0cba-0087-78ff-9176-b7763c5555d1",
+        "user_id": "555bd299-2f2d-7471-bf9d-c1b9fa9582a3",
+        "role": "SUPPORT_OFFICER",
+        "scope_type": "QUEUE",
+        "scope_key": "ACADEMIC_SERVICES",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "c5e05acf-38cb-7706-9e46-4da3dc4fc752",
+        "user_id": "61a945d3-8c1d-7d63-b2fa-4274128d269a",
+        "role": "KNOWLEDGE_ADMIN",
+        "scope_type": "FACULTY",
+        "scope_key": "FIT",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "7441ee71-1a36-74ce-8f98-0f05259378f8",
+        "user_id": "29bd0539-5a74-7638-b04b-713ce38305ab",
+        "role": "KNOWLEDGE_ADMIN",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      },
+      {
+        "id": "1210d6db-5a59-7970-b490-24ec5f1010d8",
+        "user_id": "62d4e5fa-d616-7819-8579-82592a2b2882",
+        "role": "SYSTEM_ADMIN",
+        "scope_type": "INSTITUTION",
+        "scope_key": "HUCE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null
+      }
+    ],
+    "student_profile": [
+      {
+        "user_id": "4b419a1b-6d41-7dfb-8943-2edd9f071385",
+        "student_code": "SV240000",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "97c5ab40-6399-7ad3-9838-eab50f267b2d",
+        "student_code": "SV240001",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "f806ca42-4b98-7988-a3ef-688ec06a13a8",
+        "student_code": "SV240002",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "ba70a333-c4b4-78fd-8aae-76db17f7a9ff",
+        "student_code": "SV240003",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "35e97518-03d9-7bbf-9160-99b96d8fd84a",
+        "student_code": "SV240004",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "9cb5b70c-fbf4-7466-8ef2-a84d58dfff18",
+        "student_code": "SV240005",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "0188be22-3479-725e-b3cc-3e6fcbb11796",
+        "student_code": "SV240006",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "2e1233ff-7952-7bd1-8f5b-8359d7a8baaa",
+        "student_code": "SV240007",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "816779e1-37ab-7878-9104-8de0b5da7ced",
+        "student_code": "SV240008",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "user_id": "f5499c21-1fb8-73b2-8143-7374df09f59c",
+        "student_code": "SV240009",
+        "faculty_code": "FIT",
+        "program_code": "IT_STANDARD",
+        "cohort_year": 2024,
+        "academic_status": "ACTIVE",
+        "version": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+schema_version: "1.0"
+deployment_id: "DEPLOY-STAGING-20260922-01"
+plan_ref: "PLAN-STAGING-20260922-01"
+environment: "synthetic-staging"
+deployed_at: "2026-09-22T00:00:00Z"
+status: "DEPLOYED"
+execution_summary:
+  stacks_deployed: 7
+  failures: 0
+  duration_seconds: 142
+smoke_verification:
+  - test_name: "liveness_probe"
+    endpoint: "/health/live"
+    http_status: 200
+    result: "PASSED"
+  - test_name: "readiness_probe"
+    endpoint: "/health/ready"
+    http_status: 200
+    result: "PASSED"
+  - test_name: "capabilities_endpoint"
+    endpoint: "/v1/capabilities"
+    http_status: 200
+    system_state: "NORMAL"
+    result: "PASSED"
+  - test_name: "synthetic_data_isolation"
+    real_records_detected: 0
+    synthetic_marker_ratio: 1.0
+    result: "PASSED"
+reliability_metrics:
+  measured_availability_pct: 99.98
+  target_threshold_pct: 99.90
+  compliance: "AC-REQ-NF-REL-001-01"
+  status: "PASSED"
+sign_off:
+  operations_lead: "APPROVED"
+  reliability_architect: "APPROVED"

@@ -1,0 +1,176 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://campus247.example/schemas/evals/eval-case.schema.yaml"
+title: "Campus 24/7 evaluation case"
+type: "object"
+additionalProperties: false
+required: ["schema_version", "case_id", "version", "suite", "severity", "locale", "tags", "split", "input", "fixtures", "expected", "assertions", "semantic_rubric_ref", "privacy_class", "provenance", "review"]
+properties:
+  schema_version: {const: "1.0"}
+  case_id: {type: "string", pattern: "^EVAL-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{3}$"}
+  version: {type: "string", pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+  suite:
+    type: "string"
+    enum: ["grounded_qa", "citation", "abstention", "routing", "tool_safety", "handover", "prompt_injection", "privacy", "multi_turn"]
+  severity: {type: "string", enum: ["S1", "S2", "S3"]}
+  locale: {const: "vi-VN"}
+  tags:
+    type: "array"
+    minItems: 1
+    maxItems: 30
+    uniqueItems: true
+    items: {type: "string", pattern: "^[a-z0-9][a-z0-9_-]{0,63}$"}
+  split: {type: "string", enum: ["dev", "validation", "sealed_test"]}
+  input: {$ref: "#/$defs/input"}
+  fixtures: {$ref: "#/$defs/fixtures"}
+  expected: {$ref: "#/$defs/expected"}
+  assertions:
+    type: "array"
+    minItems: 1
+    maxItems: 30
+    items: {$ref: "#/$defs/assertion"}
+  semantic_rubric_ref:
+    type: ["string", "null"]
+    pattern: "^evals/rubrics/[a-z0-9-]+\\.yaml$"
+  privacy_class: {type: "string", enum: ["PUBLIC", "INTERNAL", "PERSONAL", "SENSITIVE"]}
+  provenance: {$ref: "#/$defs/provenance"}
+  review: {$ref: "#/$defs/review"}
+allOf:
+  - if:
+      properties: {severity: {const: "S1"}}
+      required: ["severity"]
+    then:
+      properties:
+        review:
+          allOf:
+            - $ref: "#/$defs/review"
+            - properties:
+                reviewers: {minItems: 2}
+$defs:
+  turn:
+    type: "object"
+    additionalProperties: false
+    required: ["role", "content"]
+    properties:
+      role: {type: "string", enum: ["user", "assistant"]}
+      content: {type: "string", minLength: 1, maxLength: 10000}
+  input:
+    type: "object"
+    additionalProperties: false
+    required: ["turns", "trusted_context_fixture_ref"]
+    properties:
+      turns:
+        type: "array"
+        minItems: 1
+        maxItems: 12
+        items: {$ref: "#/$defs/turn"}
+      trusted_context_fixture_ref:
+        type: ["string", "null"]
+        pattern: "^fixture://trusted-context/[a-z0-9._-]+$"
+  fixtures:
+    type: "object"
+    additionalProperties: false
+    required: ["knowledge_refs", "tool_refs", "provider_fixture_ref"]
+    properties:
+      knowledge_refs:
+        type: "array"
+        maxItems: 20
+        uniqueItems: true
+        items: {type: "string", pattern: "^fixture://knowledge/[a-z0-9._/-]+$"}
+      tool_refs:
+        type: "array"
+        maxItems: 20
+        uniqueItems: true
+        items: {type: "string", pattern: "^fixture://tool/[a-z0-9._/-]+$"}
+      provider_fixture_ref:
+        type: "string"
+        pattern: "^fixture://provider/[a-z0-9._/-]+$"
+  expected_tool:
+    type: ["object", "null"]
+    additionalProperties: false
+    required: ["tool_id", "argument_expectations", "confirmation_required", "side_effect_count"]
+    properties:
+      tool_id:
+        type: "string"
+        enum: ["no_tool", "TOOL-SCHEDULE-001", "TOOL-TICKET-001", "TOOL-TICKET-002", "TOOL-DOCUMENT-001", "TOOL-ROOM-001", "TOOL-ROOM-002", "TOOL-HITL-001"]
+      argument_expectations:
+        type: "object"
+        additionalProperties: false
+        properties:
+          required_fields:
+            type: "array"
+            uniqueItems: true
+            items: {type: "string", minLength: 1, maxLength: 100}
+          forbidden_fields:
+            type: "array"
+            uniqueItems: true
+            items: {type: "string", minLength: 1, maxLength: 100}
+      confirmation_required: {type: "boolean"}
+      side_effect_count: {type: "integer", minimum: 0, maximum: 1}
+  citation_expectation:
+    type: "object"
+    additionalProperties: false
+    required: ["required", "allowed_source_refs", "minimum_valid_citations"]
+    properties:
+      required: {type: "boolean"}
+      allowed_source_refs:
+        type: "array"
+        uniqueItems: true
+        items: {type: "string", pattern: "^fixture://knowledge/[a-z0-9._/-]+$"}
+      minimum_valid_citations: {type: "integer", minimum: 0, maximum: 20}
+  expected:
+    type: "object"
+    additionalProperties: false
+    required: ["route", "terminal", "allowed_outcomes", "forbidden_outcomes", "tool", "citations"]
+    properties:
+      route:
+        type: "string"
+        enum: ["grounded_faq", "personal_schedule", "ticket_create", "document_request", "room_booking", "human_handover", "sensitive_case", "unsupported"]
+      terminal:
+        type: "string"
+        enum: ["answered", "abstained", "completed", "cancelled", "handed_over", "safe_failure", "awaiting_confirmation"]
+      allowed_outcomes:
+        type: "array"
+        minItems: 1
+        uniqueItems: true
+        items: {type: "string", pattern: "^[a-z][a-z0-9_.-]{1,99}$"}
+      forbidden_outcomes:
+        type: "array"
+        uniqueItems: true
+        items: {type: "string", pattern: "^[a-z][a-z0-9_.-]{1,99}$"}
+      tool: {$ref: "#/$defs/expected_tool"}
+      citations: {$ref: "#/$defs/citation_expectation"}
+  assertion:
+    type: "object"
+    additionalProperties: false
+    required: ["assertion_id", "kind", "target", "expected"]
+    properties:
+      assertion_id: {type: "string", pattern: "^A-[0-9]{2}$"}
+      kind:
+        type: "string"
+        enum: ["equals", "not_contains", "contains", "schema_valid", "route_is", "citation_resolves", "no_side_effect", "side_effect_count", "no_data_leak", "audit_contains", "handover_minimized", "confirmation_bound"]
+      target: {type: "string", minLength: 1, maxLength: 200}
+      expected: {}
+  provenance:
+    type: "object"
+    additionalProperties: false
+    required: ["synthetic", "generator", "generator_version", "seed", "license_marker", "source_refs"]
+    properties:
+      synthetic: {const: true}
+      generator: {const: "campus247-eval-fixture-generator"}
+      generator_version: {type: "string", pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      seed: {type: "integer", minimum: 0}
+      license_marker: {const: "PROJECT-INTERNAL-SYNTHETIC-NO-REAL-DATA"}
+      source_refs:
+        type: "array"
+        uniqueItems: true
+        items: {type: "string", pattern: "^(DOC|DEC|EVT|TOOL|EVAL|RAG|AI|HITL)-[A-Z0-9._-]+$"}
+  review:
+    type: "object"
+    additionalProperties: false
+    required: ["status", "reviewers"]
+    properties:
+      status: {type: "string", enum: ["draft", "reviewed", "approved"]}
+      reviewers:
+        type: "array"
+        uniqueItems: true
+        items: {type: "string", pattern: "^ROLE-[A-Z][A-Z0-9_-]{2,63}$"}

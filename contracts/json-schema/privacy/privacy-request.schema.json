@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://campus247.example/schemas/privacy/privacy-request.schema.json",
+  "title": "Campus 24/7 privacy request contracts",
+  "description": "Typed request, receipt and owner-visible status for the synthetic V1 privacy workflow. Creating a request is not data export, correction, deletion or legal completion.",
+  "$defs": {
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "requestType": {
+      "type": "string",
+      "enum": ["EXPORT", "CORRECTION", "DELETION"]
+    },
+    "requestStatus": {
+      "type": "string",
+      "enum": [
+        "RECEIVED",
+        "PENDING_IDENTITY_VERIFICATION",
+        "UNDER_REVIEW",
+        "PENDING_PROCESSOR",
+        "HELD",
+        "PARTIALLY_FULFILLED",
+        "COMPLETED",
+        "REJECTED",
+        "CANCELLED"
+      ]
+    },
+    "createRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_type"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "request_type": {
+                "const": "CORRECTION"
+              }
+            }
+          },
+          "then": {
+            "required": ["correction_summary"]
+          }
+        }
+      ],
+      "properties": {
+        "request_type": {
+          "$ref": "#/$defs/requestType"
+        },
+        "correction_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Required by application policy for CORRECTION; exact field handling is a separately authorized fulfilment workflow."
+        },
+        "requester_note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "request_type", "status", "received_at", "tracking_reference"],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/uuidV7"
+        },
+        "request_type": {
+          "$ref": "#/$defs/requestType"
+        },
+        "status": {
+          "const": "RECEIVED"
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tracking_reference": {
+          "type": "string",
+          "pattern": "^PRIV-[A-Z0-9]{8,32}$"
+        }
+      }
+    },
+    "statusView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "request_type", "status", "received_at", "updated_at"],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/uuidV7"
+        },
+        "request_type": {
+          "$ref": "#/$defs/requestType"
+        },
+        "status": {
+          "$ref": "#/$defs/requestStatus"
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_action": {
+          "type": ["string", "null"],
+          "maxLength": 280,
+          "description": "Safe requester-facing guidance only; never internal notes, reviewer identity or other users' data."
+        }
+      }
+    }
+  }
+}

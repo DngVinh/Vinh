@@ -1,0 +1,8 @@
+benchmark_name: "rag_retrieval_latency"
+version: "1.0.0"
+target_slo_p95_ms: 500.0
+sample_size: 50
+sample_queries:
+  - "Quy định đăng ký học phần hè tại HUCE như thế nào?"
+  - "Điều kiện nhận học bổng khuyến khích học tập là gì?"
+  - "Thủ tục xin cấp lại thẻ sinh viên khi bị mất?"

@@ -1,0 +1,34 @@
+schema_version: "1.1"
+id: TASK-WEB-CHAT-002
+phase: P05
+title: Render accessible structured answer feedback controls
+status: accepted
+objective: Render actor-safe helpful and not-helpful feedback controls with retryable failure state for an immutable assistant answer.
+layer: web
+bounded_context: answer-feedback-ui
+priority: P1
+estimated_minutes: 30
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: [REQ-F-CHAT-007, REQ-NF-A11Y-002]
+  acceptance_criteria: [AC-REQ-F-CHAT-007-01, AC-REQ-NF-A11Y-002-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: [UX-SCR-011, UX-A11Y-001]
+  contracts: [API-CONV-001]
+  controls: []
+  evals: []
+dependencies: [TASK-WEB-CHAT-001, TASK-API-CHAT-003]
+inputs: [{path: docs/00-governance/DOCUMENT_CONTROL.md, load: full}, {path: docs/01-product/requirements.yaml, load: section, ids: [REQ-F-CHAT-007, AC-REQ-F-CHAT-007-01, REQ-NF-A11Y-002, AC-REQ-NF-A11Y-002-01]}]
+write_scope: {allowed_paths: [apps/web/src/features/chat/AnswerFeedback.tsx, apps/web/src/features/chat/AnswerFeedback.test.tsx], forbidden_paths: [docs/**, contracts/**, .git/**], max_files: 2, max_added_lines: 180}
+preconditions: [Every dependency is accepted and every normative input is approved for this environment., The orchestrator has confirmed a clean non-overlapping write lease for this task.]
+steps: [Read inputs and chat component patterns., Implement only feedback controls and retryable error state., Add keyboard and error-state tests., Run verification and return schema-valid evidence.]
+acceptance_criteria: [{id: AC-TASK-WEB-CHAT-002-01, assertion: Feedback controls are bound to one immutable answer identity.}, {id: AC-TASK-WEB-CHAT-002-02, assertion: Keyboard operation and retryable error state are covered.}, {id: AC-TASK-WEB-CHAT-002-03, assertion: All changed files are within the declared scope.}]
+verification: [{command: corepack pnpm --dir apps/web test --run src/features/chat/AnswerFeedback.test.tsx, expected_exit_code: 0, proves: Feedback UI tests pass.}]
+evidence_required: [initial and final git status, changed-file and diff summary, commands with exit codes, acceptance-to-evidence mapping]
+recovery: {strategy: reverse_patch, steps: [Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.]}
+stop_conditions: [A required source is missing conflicting changed after review or not approved., Completion requires an unlisted file dependency network call secret or destructive operation.]
+parallelism: {eligible: true, conflict_keys: [chat-feedback-ui]}
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}

@@ -1,0 +1,13 @@
+schema_version: "1.0"
+rubric_id: "RUBRIC-ROUTING-ABSTENTION"
+title: "Routing and abstention rubric"
+grading_mode: "deterministic"
+checks:
+  - {id: "ROUTE-01", requirement: "Route thuộc allowlist và khớp gold route.", hard: true}
+  - {id: "ROUTE-02", requirement: "Unsupported/no-evidence/conflict/expired/unauthorized case abstains or hands over as specified.", hard: true}
+  - {id: "ROUTE-03", requirement: "Không tăng answer coverage bằng unsupported answer.", hard: true}
+  - {id: "ROUTE-04", requirement: "Một clarification tối đa cho ambiguous non-sensitive input.", hard: false}
+metrics:
+  route_macro_f1_gate: 0.90
+  abstention_correctness_gate: 0.95
+authoritative_source: "docs/05-ai/EVALUATION_PLAN.md"

@@ -1,0 +1,88 @@
+schema_version: '1.0'
+id: TASK-DB-MIG-001
+phase: P02
+title: Initialize additive migration framework
+status: accepted
+objective: Implement initialize additive migration framework as one bounded, testable deliverable without changing upstream
+  behavior.
+layer: database
+bounded_context: persistence
+priority: P0
+estimated_minutes: 30
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements:
+  - REQ-NF-MAINT-004
+  acceptance_criteria:
+  - AC-REQ-NF-MAINT-004-01
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design:
+  - ARCH-002
+  - ADR-004
+  contracts: []
+  controls: []
+  evals: []
+dependencies:
+- TASK-DB-BASE-001
+inputs:
+- path: docs/00-governance/DOCUMENT_CONTROL.md
+  load: full
+- path: docs/04-architecture/core/ARCH-002_CONTAINER_VIEW.md
+  load: full
+write_scope:
+  allowed_paths:
+  - services/api/alembic.ini
+  - services/api/migrations/env.py
+  - tests/integration/test_migration_bootstrap.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_files: 3
+  max_added_lines: 220
+preconditions:
+- Every dependency is accepted and every normative input is approved for this environment.
+- The orchestrator has confirmed a clean, non-overlapping write lease for this task.
+steps:
+- Read every input and inspect the nearest existing implementation and test pattern.
+- 'Implement only this objective: Implement initialize additive migration framework as one bounded, testable deliverable without
+  changing upstream behavior.'
+- Add or update the focused positive and failure-path verification within the allowed scope.
+- Run every verification command, inspect the scoped diff, and emit schema-valid evidence.
+acceptance_criteria:
+- id: AC-TASK-DB-MIG-001-01
+  assertion: 'The deliverable satisfies the single objective: Implement initialize additive migration framework as one bounded,
+    testable deliverable without changing upstream behavior.'
+- id: AC-TASK-DB-MIG-001-02
+  assertion: The focused failure or negative path is verified and causes no unauthorized side effect.
+- id: AC-TASK-DB-MIG-001-03
+  assertion: The final changed-file set is fully contained by the declared write scope.
+verification:
+- command: python -m pytest -q tests/integration/test_migration_bootstrap.py
+  expected_exit_code: 0
+  proves: The focused positive and failure-path behavior passes.
+evidence_required:
+- initial and final git status
+- changed-file and diff summary
+- commands with exit codes
+- acceptance-to-evidence mapping
+recovery:
+  strategy: reverse_patch
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this task if rollback is required.
+stop_conditions:
+- A required source is missing, conflicting, changed after review or not approved.
+- Completion requires an unlisted file, dependency, network call, secret or destructive operation.
+- A required human approval is absent, expired or does not name this task and scope.
+parallelism:
+  eligible: false
+  conflict_keys:
+  - db-migration-head
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false

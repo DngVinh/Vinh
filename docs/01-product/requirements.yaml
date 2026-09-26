@@ -1,0 +1,1634 @@
+document_id: "DOC-PROD-012"
+version: "1.3.0"
+status: "approved"
+owner: "Product Manager"
+approvers: ["Product Owner", "Architecture Lead", "Security/Privacy Lead", "AI Quality Lead"]
+last_updated: "2026-09-22"
+schema_version: "1.0"
+product: "Campus 24/7 — HUCE Demo"
+catalog_integrity:
+  expected_total: 125
+  expected_functional: 77
+  expected_non_functional: 48
+  recovery_note: >-
+    The source Markdown contains 48 non-functional requirement rows, not 44.
+    Exact source parity therefore requires 125 total IDs; no source requirement
+    is omitted merely to satisfy the stale 121-count assertion.
+  source_of_truth: "docs/01-product/requirements.yaml"
+  derived_views:
+    functional: "docs/01-product/FUNCTIONAL_REQUIREMENTS.md"
+    non_functional: "docs/01-product/NON_FUNCTIONAL_REQUIREMENTS.md"
+authority:
+  normative_order_ref: "docs/README.md#normative-order"
+  governance_refs:
+    - "docs/00-governance/DECISION_REGISTER.md"
+    - "docs/00-governance/ASSUMPTIONS_AND_OPEN_QUESTIONS.md"
+    - "docs/00-governance/ID_CONVENTIONS.md"
+    - "docs/00-governance/DOCUMENT_CONTROL.md"
+  human_readable_refs:
+    functional: "docs/01-product/FUNCTIONAL_REQUIREMENTS.md"
+    non_functional: "docs/01-product/NON_FUNCTIONAL_REQUIREMENTS.md"
+  execution_rule: >-
+    This baseline requirement catalog is approved for synthetic implementation
+    under TASK-DOC-GOV-001 by Product Owner authorization. Requirements semantics
+    remain immutable. Real-data pilot and production remain blocked by OQ-001..OQ-008.
+
+enums:
+  requirement_status: [draft, reviewed, approved, superseded]
+  priority: [P0, P1, P2]
+  release: [V1, FUTURE]
+  data_classification: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED]
+  security_impact: [LOW, MEDIUM, HIGH, CRITICAL]
+
+trace_profiles:
+  TP-GOV: {design: "docs/03-ux/CONTENT_STYLE_VI.md", contract: "contracts/json-schema/config/disclaimer.schema.json", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-AUTH: {design: "docs/06-security/06_AUTHENTICATION_AND_ENTRA_MIGRATION.md", contract: "contracts/json-schema/identity/synthetic-identity-claims.schema.json", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-CHAT: {design: "docs/05-ai/AI_SYSTEM_SPEC.md", contract: "contracts/openapi/v1/openapi.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-RAG: {design: "docs/05-ai/RAG_PIPELINE.md", contract: "contracts/json-schema/citations/citation.schema.json", tests: "docs/08-quality/AI_EVALUATION_GATES.md"}
+  TP-SCHEDULE: {design: "docs/04-architecture/contracts/INTEGRATION_CATALOG.md", contract: "contracts/tools/student-schedule-get.schema.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-TICKET: {design: "docs/04-architecture/contracts/ENTITY_LIFECYCLES.md", contract: "contracts/openapi/v1/openapi.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-DOC: {design: "docs/04-architecture/contracts/ENTITY_LIFECYCLES.md", contract: "contracts/tools/document-request-create.schema.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-ROOM: {design: "docs/04-architecture/contracts/INTEGRATION_CATALOG.md", contract: "contracts/openapi/v1/openapi.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-HITL: {design: "docs/02-service-design/HANDOVER_AND_EMERGENCY_PLAYBOOK.md", contract: "contracts/json-schema/handover/handover.schema.json", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-STAFF: {design: "docs/02-service-design/QUEUES_AND_ROUTING.md", contract: "contracts/openapi/v1/openapi.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-KNOW: {design: "docs/05-ai/RAG_PIPELINE.md", contract: "contracts/openapi/v1/openapi.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-OPS: {design: "docs/07-platform/OBSERVABILITY.md", contract: "infra/specs/dashboards.yaml", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+  TP-PRIV: {design: "docs/06-security/03_DATA_FLOW_AND_PRIVACY.md", contract: "contracts/json-schema/privacy/privacy-request.schema.json", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+
+requirements:
+  - id: "REQ-F-GOV-001"
+    title: "Display unofficial simulation disclaimer"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An entry or authenticated application surface is rendered."]
+    statement: "The system MUST display Campus 24/7 — HUCE Demo and an unambiguous unofficial-simulation disclaimer."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-GOV-001-01", given: "Any desktop or mobile entry/authenticated surface", when: "The surface renders", then: "The product name and disclaimer are visible without user interaction."}
+    failure_behavior: "Missing or empty disclaimer configuration MUST block the login/chat surface."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {objectives: [OBJ-007], use_cases: [UC-GOV-001], kpis: [KPI-021], profile: TP-GOV}
+    depends_on: []
+
+  - id: "REQ-F-GOV-002"
+    title: "Mark synthetic records and exports"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A synthetic record is displayed or exported."]
+    statement: "The system MUST mark the environment and data as synthetic and MUST NOT represent an action as accepted by HUCE."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-GOV-002-01", given: "A record, detail page, receipt, or export", when: "It is produced", then: "It contains a machine-readable synthetic marker and a human-readable label."}
+    failure_behavior: "Unknown provenance MUST prevent export or action completion."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-007], use_cases: [UC-GOV-001], kpis: [KPI-021], profile: TP-GOV}
+    depends_on: [REQ-F-GOV-001]
+
+  - id: "REQ-F-AUTH-001"
+    title: "Authenticate through internal identity adapter"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "demo_user"
+    preconditions: ["The synthetic identity is active."]
+    statement: "The system MUST authenticate through an internal identity adapter and create a server-side actor context."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-AUTH-001-01", given: "An active synthetic account", when: "Valid demo authentication completes", then: "A session bound to the synthetic actor ID is created."}
+    failure_behavior: "Invalid or disabled accounts MUST receive a generic denial."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-003, OBJ-007], use_cases: [UC-AUTH-001], kpis: [KPI-006], profile: TP-AUTH}
+    depends_on: [REQ-F-GOV-001]
+
+  - id: "REQ-F-AUTH-002"
+    title: "Derive identity from server session"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A protected request is received."]
+    statement: "The system MUST derive actor ID, roles, and scopes from the server-side session and MUST NOT trust equivalent client fields."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-AUTH-002-01", given: "A valid session and forged client identity fields", when: "A protected request is authorized", then: "The forged fields do not change the actor or authorization result."}
+    failure_behavior: "Missing or invalid claims MUST deny the request."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003, OBJ-007], use_cases: [UC-AUTH-001], kpis: [KPI-006], profile: TP-AUTH}
+    depends_on: [REQ-F-AUTH-001]
+
+  - id: "REQ-F-AUTH-003"
+    title: "Invalidate session on logout"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["A valid session exists."]
+    statement: "The system MUST support explicit logout that invalidates the current session."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-AUTH-003-01", given: "A valid session", when: "The user logs out and the session is replayed", then: "The replay is denied."}
+    failure_behavior: "A revocation failure MUST return an error and MUST NOT claim logout succeeded."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-007], use_cases: [UC-AUTH-001], kpis: [KPI-006], profile: TP-AUTH}
+    depends_on: [REQ-F-AUTH-001]
+
+  - id: "REQ-F-AUTH-004"
+    title: "Disable demo role switching in production"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["The runtime profile is production."]
+    statement: "The system MUST disable demo role switching and demo credential shortcuts in production."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-AUTH-004-01", given: "Production configuration", when: "The application starts", then: "No switch-user endpoint, control, or shortcut is active."}
+    failure_behavior: "Unsafe production configuration MUST fail startup or readiness."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-007], use_cases: [UC-AUTH-001], kpis: [KPI-006, KPI-021], profile: TP-AUTH}
+    depends_on: [REQ-F-AUTH-001]
+
+  - id: "REQ-F-CHAT-001"
+    title: "Persist actor-owned ordered conversation turns"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The input is valid and non-empty."]
+    statement: "The system MUST create or continue an actor-owned conversation and persist ordered user and assistant turns."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-001-01", given: "New and continuing valid messages", when: "Turns are committed", then: "Order and ownership are retained."}
+    failure_behavior: "Persistence failure MUST return system_error and MUST NOT invent missing history."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-001], use_cases: [UC-CHAT-001], kpis: [KPI-016], profile: TP-CHAT}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-CHAT-002"
+    title: "Classify each terminal assistant turn"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An assistant turn reaches a terminal state."]
+    statement: "The system MUST classify the turn with exactly one response class defined in PRD section 6.1."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-002-01", given: "A terminal assistant turn", when: "It is serialized", then: "Exactly one valid response class is present."}
+    failure_behavior: "Invalid output MUST become system_error."
+    classification: {data: INTERNAL, security_impact: MEDIUM}
+    trace: {objectives: [OBJ-001], use_cases: [UC-CHAT-001, UC-CHAT-002, UC-CHAT-003], kpis: [KPI-001, KPI-016], profile: TP-CHAT}
+    depends_on: [REQ-F-CHAT-001]
+
+  - id: "REQ-F-CHAT-003"
+    title: "Display operable citations with grounded answers"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["A grounded answer is returned."]
+    statement: "The system MUST display citations adjacent to the answer and allow opening citation details."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-003-01", given: "A grounded answer", when: "It renders", then: "At least one supporting citation is visible and operable."}
+    failure_behavior: "A broken or missing citation MUST prevent grounded_answer status."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-001], kpis: [KPI-003], profile: TP-CHAT, profiles: [TP-CHAT, TP-RAG]}
+    depends_on: [REQ-F-RAG-003, REQ-F-RAG-004]
+
+  - id: "REQ-F-CHAT-004"
+    title: "Retrieve only actor-owned conversations"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The actor has conversation history."]
+    statement: "The system MUST allow an actor to retrieve only their conversation list and transcripts."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-004-01", given: "Own and foreign conversation identifiers", when: "The actor retrieves history", then: "Only owned conversations are returned and foreign access discloses no metadata."}
+    failure_behavior: "Cross-user access MUST return a non-disclosing denial."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003, OBJ-007], use_cases: [UC-CHAT-001], kpis: [KPI-006], profile: TP-CHAT}
+    depends_on: [REQ-F-AUTH-002, REQ-F-CHAT-001]
+
+  - id: "REQ-F-CHAT-005"
+    title: "Abstain from unsupported policy claims"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["Evidence is insufficient, expired, or unresolved-conflicting."]
+    statement: "The system MUST abstain from material policy or procedure claims and offer bounded next steps."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-005-01", given: "Insufficient evidence", when: "A response is produced", then: "No unsupported conclusion appears and the response is safe_refusal or clarification_request."}
+    failure_behavior: "The system MUST NOT fabricate a citation."
+    classification: {data: PUBLIC, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-002], kpis: [KPI-002, KPI-003], profile: TP-CHAT, profiles: [TP-CHAT, TP-RAG]}
+    depends_on: [REQ-F-RAG-001, REQ-F-RAG-005]
+
+  - id: "REQ-F-CHAT-006"
+    title: "Ask bounded clarification"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A required attribute is ambiguous."]
+    statement: "The system MUST ask one focused clarification per turn and MUST NOT request unnecessary sensitive fields."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-006-01", given: "An ambiguous supported intent", when: "Clarification is needed", then: "One bounded, purpose-relevant question is asked."}
+    failure_behavior: "After the configured limit, unresolved ambiguity MUST transition to abstention or handover."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-001, OBJ-003], use_cases: [UC-CHAT-003], kpis: [KPI-016], profile: TP-CHAT}
+    depends_on: [REQ-F-CHAT-002]
+
+  - id: "REQ-F-CHAT-007"
+    title: "Capture answer feedback"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["An assistant answer exists and is owned by the actor."]
+    statement: "The system MUST accept a structured helpful or not-helpful rating and optional text tied to immutable answer metadata."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-CHAT-007-01", given: "An owned answer", when: "Feedback is submitted", then: "The feedback records answer, source, model, and prompt version references."}
+    failure_behavior: "Storage failure MUST report a retryable error without losing the conversation."
+    classification: {data: CONFIDENTIAL, security_impact: MEDIUM}
+    trace: {objectives: [OBJ-001, OBJ-006], use_cases: [UC-CHAT-004], kpis: [KPI-013], profile: TP-CHAT}
+    depends_on: [REQ-F-CHAT-001]
+
+  - id: "REQ-F-RAG-001"
+    title: "Retrieve only current approved knowledge"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A policy or procedure retrieval is requested."]
+    statement: "The system MUST retrieve only published, applicable, and currently effective source versions."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-RAG-001-01", given: "Draft, future, current, expired, and retired versions", when: "Current retrieval runs", then: "Only applicable current published versions are candidates."}
+    failure_behavior: "Metadata uncertainty MUST exclude the source."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-001], kpis: [KPI-004, KPI-012], profile: TP-RAG}
+    depends_on: [REQ-F-KNOW-007, REQ-F-KNOW-009]
+
+  - id: "REQ-F-RAG-002"
+    title: "Use hybrid candidate retrieval before reranking"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A retrieval request is authorized."]
+    statement: "The system MUST combine lexical and semantic candidate retrieval before reranking."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-RAG-002-01", given: "A retrieval request", when: "The request completes", then: "The trace records lexical candidates, semantic candidates, and final ranks."}
+    failure_behavior: "A channel outage MUST be explicit and the approved quality policy MUST choose degraded mode or abstention."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-001], kpis: [KPI-004], profile: TP-RAG}
+    depends_on: [REQ-F-RAG-001]
+
+  - id: "REQ-F-RAG-003"
+    title: "Map material claims to evidence"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An answer contains a material policy or procedure claim."]
+    statement: "The system MUST link every material claim to a supporting source version, locator, and canonical provenance."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-RAG-003-01", given: "A candidate grounded answer", when: "Citation validation runs", then: "Every material claim maps to retrievable supporting evidence."}
+    failure_behavior: "Unsupported claims MUST be removed or the answer MUST abstain."
+    classification: {data: PUBLIC, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-001], kpis: [KPI-002, KPI-003], profile: TP-RAG}
+    depends_on: [REQ-F-RAG-001, REQ-F-RAG-002]
+
+  - id: "REQ-F-RAG-004"
+    title: "Expose verifiable citation metadata"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["A citation is selected."]
+    statement: "The system MUST expose title, issuer, version, effective dates, locator, and provenance marker for the citation."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-RAG-004-01", given: "A valid citation", when: "Citation detail opens", then: "All mandatory provenance fields and available locators are displayed."}
+    failure_behavior: "Missing mandatory provenance MUST invalidate the citation."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-001], kpis: [KPI-003], profile: TP-RAG}
+    depends_on: [REQ-F-RAG-003]
+
+  - id: "REQ-F-RAG-005"
+    title: "Resolve source conflict only by approved precedence"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["Authoritative sources conflict."]
+    statement: "The system MUST apply an approved precedence rule or abstain and MUST NOT let the LLM choose silently."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-RAG-005-01", given: "A conflict without a decisive approved precedence", when: "Answering is attempted", then: "A reason-coded abstention is returned."}
+    failure_behavior: "No approved precedence MUST fail closed."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-001, OBJ-005], use_cases: [UC-CHAT-002], kpis: [KPI-002, KPI-012], profile: TP-RAG}
+    depends_on: [REQ-F-RAG-001]
+
+  - id: "REQ-F-SCHEDULE-001"
+    title: "Return only actor-owned schedule entries"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The actor is authenticated and the requested date range is valid."]
+    statement: "The system MUST return only schedule entries owned by the current actor within the requested range."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-SCHEDULE-001-01", given: "Own and foreign synthetic schedules", when: "A schedule query is made with forged identifiers", then: "Only current-actor entries are returned."}
+    failure_behavior: "Authorization uncertainty MUST deny access."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-SCHEDULE-001], kpis: [KPI-006], profile: TP-SCHEDULE}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-SCHEDULE-002"
+    title: "Display schedule context and freshness"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["A schedule result is available."]
+    statement: "The system MUST display timezone, requested range, source freshness timestamp, and synthetic marker."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-SCHEDULE-002-01", given: "A schedule result", when: "It is rendered", then: "All four context fields are visible or machine-readable as specified."}
+    failure_behavior: "Missing timezone or freshness MUST mark the result unavailable rather than current."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-SCHEDULE-001], kpis: [KPI-016], profile: TP-SCHEDULE}
+    depends_on: [REQ-F-SCHEDULE-001, REQ-F-GOV-002]
+
+  - id: "REQ-F-SCHEDULE-003"
+    title: "Distinguish empty schedule from failure"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The schedule source responds successfully with no entries."]
+    statement: "The system MUST show a distinct empty state and MUST NOT infer missing classes."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-SCHEDULE-003-01", given: "A successful zero-entry response", when: "It renders", then: "An empty state distinct from dependency error is shown."}
+    failure_behavior: "LLM-generated schedule entries MUST be rejected."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-SCHEDULE-001], kpis: [KPI-002], profile: TP-SCHEDULE}
+    depends_on: [REQ-F-SCHEDULE-001]
+
+  - id: "REQ-F-SCHEDULE-004"
+    title: "Report schedule dependency failure honestly"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The schedule adapter times out or fails."]
+    statement: "The system MUST show an unavailable state with retry guidance and a correlation ID."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-SCHEDULE-004-01", given: "An adapter timeout", when: "The request terminates", then: "No current-data claim is shown and retry guidance plus correlation ID are present."}
+    failure_behavior: "The system MUST NOT fall back to another actor or an out-of-policy stale cache."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003, OBJ-007], use_cases: [UC-SCHEDULE-001], kpis: [KPI-017, KPI-018], profile: TP-SCHEDULE}
+    depends_on: [REQ-F-SCHEDULE-001]
+
+  - id: "REQ-F-TICKET-001"
+    title: "Collect only schema-defined ticket fields"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The ticket type is enabled."]
+    statement: "The system MUST collect only schema-defined required and optional fields for the selected ticket type."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-001-01", given: "Missing required and unknown fields", when: "The draft is validated", then: "Missing required fields block preview and unknown fields are rejected."}
+    failure_behavior: "Free-form tool arguments MUST NOT reach the ticket adapter."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-001], kpis: [KPI-006], profile: TP-TICKET}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-TICKET-002"
+    title: "Authorize ticket type and destination before preview"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A ticket draft is structurally valid."]
+    statement: "The system MUST authorize the ticket type and destination for the current actor before producing a preview."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-002-01", given: "An ineligible actor or destination", when: "Preview is requested", then: "The request is denied and no preview token is issued."}
+    failure_behavior: "Policy evaluation failure MUST fail closed."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-001], kpis: [KPI-006], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-001]
+
+  - id: "REQ-F-TICKET-003"
+    title: "Present a ticket action preview"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["A ticket draft is valid and authorized."]
+    statement: "The system MUST present normalized payload, destination, SLA label, expiry, and cancel/confirm controls before execution."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-003-01", given: "An authorized ticket draft", when: "Preview is generated", then: "Displayed normalized fields exactly match the payload hash bound to the preview token."}
+    failure_behavior: "Any missing mandatory preview field MUST block confirmation."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-001], kpis: [KPI-007], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-002]
+
+  - id: "REQ-F-TICKET-004"
+    title: "Require explicit ticket confirmation"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["A live ticket preview exists."]
+    statement: "The system MUST require an explicit confirmation event distinct from chat text before ticket creation."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-004-01", given: "A live preview and confirmation-like free text", when: "Execution is evaluated", then: "Only the valid confirmation control and bound token can authorize execution."}
+    failure_behavior: "Expired or mismatched confirmation MUST create no side effect."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-001], kpis: [KPI-007], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-003]
+
+  - id: "REQ-F-TICKET-005"
+    title: "Create one ticket and return a receipt"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A valid ticket confirmation exists."]
+    statement: "The system MUST create exactly one ticket and return an immutable receipt containing ticket ID and timestamp."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-005-01", given: "A valid confirmation", when: "The adapter confirms creation", then: "One ticket and one receipt are produced."}
+    failure_behavior: "An uncertain outcome MUST enter reconciliation and MUST NOT be blindly retried."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-001], kpis: [KPI-008, KPI-016], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-004, REQ-F-TICKET-008]
+
+  - id: "REQ-F-TICKET-006"
+    title: "List only actor-owned tickets"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The actor is authenticated."]
+    statement: "The system MUST list only actor-owned tickets with type, status, and last-update timestamp."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-006-01", given: "Tickets owned by multiple actors", when: "A student lists tickets", then: "Only tickets owned by the current actor are returned."}
+    failure_behavior: "Client filters MUST NOT broaden authorization."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-002], kpis: [KPI-006], profile: TP-TICKET}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-TICKET-007"
+    title: "Show an ordered public ticket timeline"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The actor owns the ticket."]
+    statement: "The system MUST display a chronological public timeline and the next required actor action."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-007-01", given: "Public and internal events", when: "The student opens the ticket", then: "Public events are deterministically ordered and internal-only notes are absent."}
+    failure_behavior: "Malformed events MUST be quarantined and MUST NOT leak."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-002], kpis: [KPI-016], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-006]
+
+  - id: "REQ-F-TICKET-008"
+    title: "Make ticket creation idempotent"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["The same logical confirmation is repeated or concurrent."]
+    statement: "The system MUST return the original outcome and MUST NOT create a duplicate ticket."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-TICKET-008-01", given: "Concurrent and replayed calls for one confirmation", when: "Execution completes", then: "Exactly one business ticket exists and all valid retries resolve to its receipt."}
+    failure_behavior: "A changed payload MUST be rejected and MUST require a new preview."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-TICKET-003], kpis: [KPI-008], profile: TP-TICKET}
+    depends_on: [REQ-F-TICKET-003]
+
+  - id: "REQ-F-DOC-001"
+    title: "List enabled document request types"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["The versioned document catalog is available."]
+    statement: "The system MUST show only enabled document types and their required fields from versioned configuration."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-DOC-001-01", given: "Enabled and disabled document types", when: "The catalog is requested", then: "Only enabled types are selectable and the configuration version is recorded."}
+    failure_behavior: "An unavailable catalog MUST block request submission."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-DOC-001], kpis: [KPI-016], profile: TP-DOC}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-DOC-002"
+    title: "Show cited document-request conditions"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["A document type is selected."]
+    statement: "The system MUST present applicable conditions with current citations before data collection completes."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-DOC-002-01", given: "A configured document type", when: "Conditions are presented", then: "Each material condition has a valid current citation."}
+    failure_behavior: "Missing evidence MUST result in abstention or handover, not an eligibility claim."
+    classification: {data: PUBLIC, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-001, OBJ-003], use_cases: [UC-DOC-001], kpis: [KPI-002, KPI-003], profile: TP-DOC, profiles: [TP-DOC, TP-RAG]}
+    depends_on: [REQ-F-DOC-001, REQ-F-RAG-003]
+
+  - id: "REQ-F-DOC-003"
+    title: "Submit document request through confirmed ticket flow"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "student"
+    preconditions: ["A document request draft is valid."]
+    statement: "The system MUST submit the request through the ticket preview and confirmation workflow as subtype document_request."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-DOC-003-01", given: "A valid typed document request", when: "The user previews and confirms", then: "Exactly one document_request ticket with typed payload is created."}
+    failure_behavior: "The system MUST NOT bypass REQ-F-TICKET-002 through REQ-F-TICKET-005."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-DOC-001], kpis: [KPI-007, KPI-008], profile: TP-DOC, profiles: [TP-DOC, TP-TICKET]}
+    depends_on: [REQ-F-DOC-001, REQ-F-TICKET-002, REQ-F-TICKET-003, REQ-F-TICKET-004, REQ-F-TICKET-005]
+
+  - id: "REQ-F-DOC-004"
+    title: "Distinguish request receipt from document issuance"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A document request has been accepted."]
+    statement: "The system MUST describe the result as a request receipt and MUST NOT claim document issuance or signature."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-DOC-004-01", given: "An accepted document request", when: "The receipt is shown", then: "The copy explicitly distinguishes submitted request from issued document."}
+    failure_behavior: "Prohibited issuance or signature wording MUST fail content validation."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-DOC-001], kpis: [KPI-021], profile: TP-DOC}
+    depends_on: [REQ-F-DOC-003]
+
+  - id: "REQ-F-ROOM-001"
+    title: "Search adapter-backed room availability"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "student"
+    preconditions: ["Search filters are valid and the room adapter is available."]
+    statement: "The system MUST return only adapter-provided rooms and slots matching normalized date, time, capacity, and enabled constraints."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-001-01", given: "A normalized room search", when: "Results are returned", then: "Every result satisfies all filters and originates from the adapter."}
+    failure_behavior: "Dependency failure MUST return unavailable and MUST NOT generate alternatives."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-001], kpis: [KPI-018], profile: TP-ROOM}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-ROOM-002"
+    title: "Authorize room booking eligibility"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system"
+    preconditions: ["A student selects a room and slot."]
+    statement: "The system MUST evaluate actor eligibility and booking policy before creating a preview."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-002-01", given: "An ineligible actor", when: "A booking preview is requested", then: "A reason-coded denial is returned and no preview token is issued."}
+    failure_behavior: "Policy evaluation failure MUST fail closed."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-001], kpis: [KPI-006], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-001]
+
+  - id: "REQ-F-ROOM-003"
+    title: "Recheck room availability before preview"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system"
+    preconditions: ["The actor is eligible and a slot was selected."]
+    statement: "The system MUST recheck authoritative room availability immediately before creating a preview."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-003-01", given: "A stale search result whose slot is no longer available", when: "Preview is requested", then: "No valid preview is produced."}
+    failure_behavior: "A conflict MUST return adapter-provided alternatives only when available."
+    classification: {data: CONFIDENTIAL, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-001], kpis: [KPI-008], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-002]
+
+  - id: "REQ-F-ROOM-004"
+    title: "Present room booking preview"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "student"
+    preconditions: ["The actor is eligible and the slot is currently available."]
+    statement: "The system MUST show a preview with room, interval, purpose, requester, rules, expiry, and confirm and cancel controls."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-004-01", given: "A valid room draft", when: "Preview is generated", then: "Displayed normalized fields exactly match the payload hash bound to the token."}
+    failure_behavior: "Any payload mismatch MUST invalidate the preview token."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-001], kpis: [KPI-007], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-003]
+
+  - id: "REQ-F-ROOM-005"
+    title: "Create one confirmed room booking"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system"
+    preconditions: ["A valid room confirmation exists."]
+    statement: "The system MUST create at most one booking and return a booking receipt and status."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-005-01", given: "Concurrent and replayed valid confirmations", when: "Execution completes", then: "Exactly one booking exists and valid retries resolve to its receipt."}
+    failure_behavior: "An uncertain adapter outcome MUST enter reconciliation."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-001], kpis: [KPI-008, KPI-016], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-004]
+
+  - id: "REQ-F-ROOM-006"
+    title: "Reject conflicting room booking without side effect"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system"
+    preconditions: ["The selected slot becomes unavailable before commit."]
+    statement: "The system MUST reject the booking without a side effect and return a conflict reason."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-006-01", given: "Two concurrent requests for one slot", when: "One request wins", then: "The losing request receives conflict and no booking ID."}
+    failure_behavior: "The losing request MUST NOT claim reservation."
+    classification: {data: CONFIDENTIAL, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-002], kpis: [KPI-008], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-005]
+
+  - id: "REQ-F-ROOM-007"
+    title: "Require preview and confirmation for cancellation"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "student"
+    preconditions: ["The actor owns a cancellable booking."]
+    statement: "The system MUST create a cancellation preview and require explicit confirmation before cancellation."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-007-01", given: "An owned cancellable booking", when: "Cancel is selected and then confirmed", then: "Selection creates preview only and valid confirmation changes state once."}
+    failure_behavior: "An expired token MUST leave the booking unchanged."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-002], kpis: [KPI-007, KPI-008], profile: TP-ROOM}
+    depends_on: [REQ-F-ROOM-005]
+
+  - id: "REQ-F-ROOM-008"
+    title: "Deny unauthorized room cancellation"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "student"
+    preconditions: ["The booking is foreign or not cancellable."]
+    statement: "The system MUST deny cancellation without revealing protected booking data."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-ROOM-008-01", given: "A foreign booking ID or closed cancellation window", when: "Cancellation is attempted", then: "A non-disclosing policy result is returned and no write occurs."}
+    failure_behavior: "The room adapter MUST receive no cancellation call."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-003], use_cases: [UC-ROOM-002], kpis: [KPI-006], profile: TP-ROOM}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-HITL-001"
+    title: "Honor a direct request for a human"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The user requests a human agent."]
+    statement: "The system MUST stop persuading the user to continue with AI and MUST begin the handover flow."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-001-01", given: "A direct human-agent request", when: "The request is processed", then: "The next assistant turn enters the handover flow."}
+    failure_behavior: "Inability to route MUST be disclosed."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-002, OBJ-004], use_cases: [UC-HITL-001], kpis: [KPI-011], profile: TP-HITL}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-HITL-002"
+    title: "Preview handover destination and context"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A handover draft exists."]
+    statement: "The system MUST show destination, reason category, and exact context fields proposed for transfer."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-002-01", given: "A handover draft containing allowlisted and non-allowlisted context", when: "Preview is produced", then: "Only allowlisted fields are displayed for transfer."}
+    failure_behavior: "Unknown destination or context classification MUST block handover creation."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-002, OBJ-004], use_cases: [UC-HITL-001], kpis: [KPI-006], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-001]
+
+  - id: "REQ-F-HITL-003"
+    title: "Confirm optional context transfer"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The handover requires transfer of transcript or context."]
+    statement: "The system MUST obtain explicit confirmation for the displayed transfer scope unless an approved emergency policy lawfully overrides it."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-003-01", given: "An optional handover with transcript context", when: "The user does not confirm", then: "No transcript is transferred."}
+    failure_behavior: "Cancellation MUST return to a safe state without transfer."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004, OBJ-007], use_cases: [UC-HITL-001], kpis: [KPI-020], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-002]
+
+  - id: "REQ-F-HITL-004"
+    title: "Return truthful handover receipt"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A handover is accepted by the queue."]
+    statement: "The system MUST return a receipt with queue, status, timestamp, and truthful expectation based on configured hours."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-004-01", given: "An accepted handover", when: "The receipt renders", then: "It states configured availability and never promises an unconfigured response time."}
+    failure_behavior: "Queue rejection MUST return an unavailable state."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {objectives: [OBJ-002, OBJ-004], use_cases: [UC-HITL-001], kpis: [KPI-010, KPI-011], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-003]
+
+  - id: "REQ-F-HITL-005"
+    title: "Evaluate deterministic safety rules first"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A user message is received."]
+    statement: "The system MUST evaluate approved deterministic sensitive and emergency rules before normal action routing."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-005-01", given: "Mandatory critical test patterns", when: "Messages are routed", then: "Every pattern enters the safety path before normal actions."}
+    failure_behavior: "Rule-engine unavailability MUST disable normal high-impact actions and alert operations."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004], use_cases: [UC-HITL-002], kpis: [KPI-005, KPI-021], profile: TP-HITL}
+    depends_on: []
+
+  - id: "REQ-F-HITL-006"
+    title: "Stop normal workflow for classified sensitive cases"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["The classifier marks a message sensitive or emergency."]
+    statement: "The system MUST stop the normal workflow and apply an approved safety response and handover policy."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-006-01", given: "A mandatory critical case", when: "Classification completes", then: "No ticket or booking action continues and the safety path runs."}
+    failure_behavior: "Critical-threshold uncertainty MUST follow the safer approved route."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004], use_cases: [UC-HITL-002], kpis: [KPI-005], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-005]
+
+  - id: "REQ-F-HITL-007"
+    title: "Prohibit unsafe safety-response claims"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A safety response is generated or selected."]
+    statement: "The system MUST NOT diagnose, promise intervention, claim external contact, or invent contact details."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-007-01", given: "The prohibited-claim safety suite", when: "Responses are produced", then: "Zero prohibited claims are emitted."}
+    failure_behavior: "Invalid generated text MUST be replaced by an approved fallback template."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004], use_cases: [UC-HITL-002], kpis: [KPI-005, KPI-021], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-006]
+
+  - id: "REQ-F-HITL-008"
+    title: "Display only approved effective emergency contacts"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An approved contact exists for the applicable context."]
+    statement: "The system MUST display only versioned, approved, and currently effective contact data."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-008-01", given: "Current, expired, and unapproved contact records", when: "A safety response is rendered", then: "Only the applicable current approved contact is shown."}
+    failure_behavior: "Expired or unapproved contacts MUST be suppressed."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004], use_cases: [UC-HITL-002], kpis: [KPI-021], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-007]
+
+  - id: "REQ-F-HITL-009"
+    title: "Fail safely when contact or queue is unavailable"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A required handover queue or contact is absent or invalid."]
+    statement: "The system MUST disclose live connection unavailability, use an approved generic fallback, and emit an operational alert."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-HITL-009-01", given: "Missing queue and contact configuration", when: "A safety handover is attempted", then: "No contact is fabricated and an operational alert is emitted."}
+    failure_behavior: "The system MUST NOT web-search at runtime for a replacement contact."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {objectives: [OBJ-004, OBJ-007], use_cases: [UC-HITL-003], kpis: [KPI-021], profile: TP-HITL}
+    depends_on: [REQ-F-HITL-007]
+
+  - id: "REQ-F-STAFF-001"
+    title: "Restrict staff case lists to authorized queues"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The officer has an authenticated scoped session."]
+    statement: "The system MUST list only cases in queues authorized for the officer."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-001-01", given: "Cases inside and outside the officer's authorized queues", when: "The officer lists or directly accesses cases", then: "Out-of-scope records are denied without metadata disclosure."}
+    failure_behavior: "A missing scope MUST yield an empty or denied result and MUST NOT grant global access."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-006], profile: TP-STAFF}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-STAFF-002"
+    title: "Claim cases atomically"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The case is authorized and unclaimed."]
+    statement: "The system MUST atomically claim or assign a case according to queue policy."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-002-01", given: "Concurrent claims for one authorized unclaimed case", when: "The claims execute", then: "Exactly one officer becomes assignee."}
+    failure_behavior: "A losing claimant MUST receive a conflict containing the current owner allowed by policy."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-010], profile: TP-STAFF}
+    depends_on: [REQ-F-STAFF-001, REQ-F-STAFF-006]
+
+  - id: "REQ-F-STAFF-003"
+    title: "Show only permitted case context"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The case is assigned to the officer or otherwise permitted."]
+    statement: "The system MUST show only the minimum permitted context, source citations, and handover reason."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-003-01", given: "A case with allowlisted and hidden context fields", when: "An authorized officer opens it", then: "Only allowlisted context is returned and hidden fields are absent from the payload."}
+    failure_behavior: "Context-policy failure MUST deny case details."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-006, KPI-020], profile: TP-STAFF}
+    depends_on: [REQ-F-STAFF-001]
+
+  - id: "REQ-F-STAFF-004"
+    title: "Record immutable staff responses"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The officer is permitted to respond to the case."]
+    statement: "The system MUST record a staff response as an immutable timeline event with actor and time."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-004-01", given: "A permitted staff response", when: "It is recorded", then: "It appears exactly once in the public or internal view according to its classification."}
+    failure_behavior: "An uncertain write MUST NOT duplicate the response on retry."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-008, KPI-010], profile: TP-STAFF}
+    depends_on: [REQ-F-STAFF-003, REQ-F-STAFF-006]
+
+  - id: "REQ-F-STAFF-005"
+    title: "Enforce case state machines server-side"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The officer requests a permitted ticket or handover transition."]
+    statement: "The system MUST enforce the approved ticket and handover state machine server-side."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-005-01", given: "Allowed, skipped, and invalid transitions", when: "The officer submits a transition", then: "Allowed transitions succeed and skipped or invalid transitions are rejected."}
+    failure_behavior: "A client-provided status MUST NOT override the server state."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-010], profile: TP-STAFF}
+    depends_on: [REQ-F-STAFF-001, REQ-F-STAFF-006]
+
+  - id: "REQ-F-STAFF-006"
+    title: "Audit every staff mutation decision"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A staff mutation is accepted or rejected."]
+    statement: "The system MUST append an audit event with actor, action, object, decision, reason, and correlation ID."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-006-01", given: "Accepted and rejected staff mutations", when: "The decision completes", then: "Each mutation has a matching immutable audit event."}
+    failure_behavior: "Mandatory audit unavailability MUST fail closed for a high-impact mutation."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-STAFF-001], kpis: [KPI-006, KPI-021], profile: TP-STAFF}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-STAFF-007"
+    title: "Transfer cases without losing history"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "support_officer"
+    preconditions: ["The destination queue is valid and authorized."]
+    statement: "The system MUST transfer a case with a reason while preserving history, SLA timestamps, and previous ownership."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-STAFF-007-01", given: "A valid destination and transfer reason", when: "The transfer commits", then: "The current queue changes and the immutable ownership and SLA history remain intact."}
+    failure_behavior: "An invalid destination MUST create no partial transfer."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {use_cases: [UC-STAFF-002], kpis: [KPI-009, KPI-010], profile: TP-STAFF}
+    depends_on: [REQ-F-STAFF-001, REQ-F-STAFF-005, REQ-F-STAFF-006]
+
+  - id: "REQ-F-KNOW-001"
+    title: "Accept only allowlisted knowledge sources"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["The administrator is authorized to submit a source."]
+    statement: "The system MUST accept only allowlisted file or source types and MUST record provenance."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-001-01", given: "Allowlisted, blocked, and unknown-provenance inputs", when: "A source is submitted", then: "Blocked types and unknown provenance cannot enter processing."}
+    failure_behavior: "A rejected upload MUST be quarantined with a reason."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-AUTH-002]
+
+  - id: "REQ-F-KNOW-002"
+    title: "Scan sources before parsing"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A submitted source passed initial type and provenance checks."]
+    statement: "The system MUST scan and validate source content before parsing or indexing."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-002-01", given: "A source that fails content scanning", when: "The ingest workflow runs", then: "The source never reaches the parser or index."}
+    failure_behavior: "Scanner unavailability MUST leave the source quarantined."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-021], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-001]
+
+  - id: "REQ-F-KNOW-003"
+    title: "Require complete source metadata"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["A source has been parsed into a draft."]
+    statement: "The system MUST require owner, issuer, title, version, audience, effective dates, canonical provenance, checksum, and approval status."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-003-01", given: "A parsed source draft", when: "Review or publication is requested", then: "Missing mandatory metadata blocks the request."}
+    failure_behavior: "An invalid date or version state MUST be rejected."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-002]
+
+  - id: "REQ-F-KNOW-004"
+    title: "Preview parsed chunks and warnings"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["Parsing has completed."]
+    statement: "The system MUST provide a parse and chunk preview with quality warnings before review submission."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-004-01", given: "A completed parse", when: "The administrator reviews the source", then: "Text, locators, chunks, and quality warnings are inspectable."}
+    failure_behavior: "An empty or low-quality parse MUST block publication unless an approved exception exists."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-004], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-002]
+
+  - id: "REQ-F-KNOW-005"
+    title: "Submit an immutable draft for review"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["The knowledge draft is valid."]
+    statement: "The system MUST submit the exact immutable draft version for review."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-005-01", given: "A submitted draft", when: "Its content changes after submission", then: "A new draft and review are required."}
+    failure_behavior: "A hash mismatch MUST invalidate approval."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-003, REQ-F-KNOW-004]
+
+  - id: "REQ-F-KNOW-006"
+    title: "Separate source approval from editing"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authorized_approver"
+    preconditions: ["An immutable source version has completed review."]
+    statement: "The system MUST require approval separate from draft editing before publication."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-006-01", given: "An editor-only identity under separation policy", when: "It attempts self-publication", then: "Publication is denied."}
+    failure_behavior: "A version without approval MUST NOT become visible in the current index."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-005]
+
+  - id: "REQ-F-KNOW-007"
+    title: "Publish one immutable effective source version"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A source version is approved and effective."]
+    statement: "The system MUST publish an immutable version and make only that version eligible for current retrieval."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-007-01", given: "An approved effective source version", when: "Publication completes", then: "Its hash remains fixed and appears in the index trace."}
+    failure_behavior: "Index failure MUST mark publication incomplete and the source unavailable."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-001], kpis: [KPI-004, KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-006]
+
+  - id: "REQ-F-KNOW-008"
+    title: "Link replacement versions explicitly"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["A replacement source version is prepared."]
+    statement: "The system MUST link a replacement to the prior version with an explicit supersedes relation."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-008-01", given: "A replacement version", when: "Its version graph is validated", then: "It has an explicit predecessor and the graph is acyclic."}
+    failure_behavior: "An invalid version graph MUST block publication."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {use_cases: [UC-KNOW-002], kpis: [KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-007]
+
+  - id: "REQ-F-KNOW-009"
+    title: "Exclude superseded versions from current retrieval"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A superseding source version becomes current."]
+    statement: "The system MUST remove the superseded version from current retrieval while retaining audit and history."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-009-01", given: "A current superseding version and its predecessor", when: "Current and historical retrieval run", then: "Current retrieval returns the new version and historical lookup resolves the old version."}
+    failure_behavior: "Dual-current ambiguity MUST cause abstention and an operational alert."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-002], kpis: [KPI-002, KPI-012], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-008]
+
+  - id: "REQ-F-KNOW-010"
+    title: "Retire source versions without deleting history"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_admin"
+    preconditions: ["A retire request includes a reason."]
+    statement: "The system MUST retire a source version without deleting immutable history."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-KNOW-010-01", given: "A valid retire request", when: "Retirement completes", then: "The version is excluded from the current index and its reason is retained."}
+    failure_behavior: "A deletion endpoint or deletion action for immutable source history MUST NOT be available."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-KNOW-002], kpis: [KPI-012, KPI-021], profile: TP-KNOW}
+    depends_on: [REQ-F-KNOW-007]
+
+  - id: "REQ-F-OPS-001"
+    title: "Report complete KPI context"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system_admin"
+    preconditions: ["The administrator is authorized to view operations metrics."]
+    statement: "The dashboard MUST report each KPI value, target, status, window, sample size, environment, and freshness."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-OPS-001-01", given: "An operations KPI card", when: "It renders", then: "All required KPI context fields are present."}
+    failure_behavior: "Missing data MUST display unavailable and MUST NOT display zero or pass."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {use_cases: [UC-OPS-001], kpis: [KPI-001, KPI-002, KPI-003, KPI-004, KPI-005, KPI-006, KPI-007, KPI-008, KPI-009, KPI-010, KPI-011, KPI-012, KPI-013, KPI-014, KPI-015, KPI-016, KPI-017, KPI-018, KPI-019, KPI-020, KPI-021], profile: TP-OPS}
+    depends_on: [REQ-F-AUTH-002, REQ-NF-OBS-003]
+
+  - id: "REQ-F-OPS-002"
+    title: "Separate metrics by environment"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system_admin"
+    preconditions: ["Metrics are available."]
+    statement: "The dashboard MUST separate simulated or staging data from production or pilot data."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-OPS-002-01", given: "Metrics from multiple environments", when: "The dashboard aggregates or compares them", then: "Cross-environment aggregation is impossible by default and any comparison is clearly labeled."}
+    failure_behavior: "Metrics with an unknown environment MUST be excluded."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {use_cases: [UC-OPS-001], kpis: [KPI-015, KPI-016], profile: TP-OPS}
+    depends_on: [REQ-F-OPS-001]
+
+  - id: "REQ-F-OPS-003"
+    title: "Show qualified model cost data"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system_admin"
+    preconditions: ["Cost data is available."]
+    statement: "The dashboard MUST show provider, model, usage unit, effective price date, and estimated or actual marker."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-OPS-003-01", given: "A cost metric", when: "It renders", then: "Currency, effective date, and estimated or actual marker are present."}
+    failure_behavior: "A missing effective price MUST yield an unavailable estimate."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {use_cases: [UC-OPS-001], business_metrics: [BM-001], profile: TP-OPS}
+    depends_on: [REQ-F-OPS-001, REQ-NF-COST-003]
+
+  - id: "REQ-F-OPS-004"
+    title: "Expose actionable operational alerts"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system_admin"
+    preconditions: ["An operational alert condition exists."]
+    statement: "The system MUST expose current operational alerts with severity, owner, status, and correlation link."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-OPS-004-01", given: "Missing HITL configuration or a hard-gate violation", when: "The condition is detected", then: "A visible actionable alert is created."}
+    failure_behavior: "Alert-delivery failure MUST emit an independent secondary health signal."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {use_cases: [UC-OPS-001], kpis: [KPI-017, KPI-021], profile: TP-OPS}
+    depends_on: [REQ-F-AUTH-002, REQ-NF-OBS-004]
+
+  - id: "REQ-F-OPS-005"
+    title: "Activate safe mode through confirmed audited action"
+    metadata: {type: functional, status: reviewed, priority: P1, release: V1}
+    actor: "system_admin"
+    preconditions: ["The administrator is authorized to invoke the safe-mode runbook action."]
+    statement: "The system MUST provide a confirmed and audited way to disable generative or action capabilities according to runbook."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-OPS-005-01", given: "An authorized confirmed safe-mode action", when: "It executes", then: "Affected routes are blocked while configured search or ticket fallback remains available."}
+    failure_behavior: "Partial activation MUST be reported and escalated."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-OPS-001], kpis: [KPI-006, KPI-021], profile: TP-OPS}
+    depends_on: [REQ-F-OPS-004, REQ-NF-SEC-005]
+
+  - id: "REQ-F-PRIV-001"
+    title: "Display a versioned privacy notice"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "any_user"
+    preconditions: ["A privacy entry point is shown."]
+    statement: "The system MUST display a versioned privacy notice identifying simulation status, data categories, purposes, retention configuration, and contact-placeholder status."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-PRIV-001-01", given: "A consent-relevant privacy entry", when: "It renders", then: "The active notice, version, and effective date appear before relevant consent."}
+    failure_behavior: "A missing notice MUST block optional data collection."
+    classification: {data: PUBLIC, security_impact: CRITICAL}
+    trace: {use_cases: [UC-PRIV-001], kpis: [KPI-020], profile: TP-PRIV}
+    depends_on: [REQ-F-GOV-001]
+
+  - id: "REQ-F-PRIV-002"
+    title: "Record and honor consent decisions"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The selected feature requires consent."]
+    statement: "The system MUST record consent with notice version, purpose, actor, and timestamp and MUST honor withdrawal prospectively."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-PRIV-002-01", given: "A consent-required processing purpose", when: "Consent is absent or withdrawn", then: "No consent-required processing begins or continues prospectively."}
+    failure_behavior: "Consent-store failure MUST fail closed."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-PRIV-001], kpis: [KPI-020], profile: TP-PRIV}
+    depends_on: [REQ-F-AUTH-002, REQ-F-PRIV-001]
+
+  - id: "REQ-F-PRIV-003"
+    title: "Create typed privacy request receipts"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The actor requests export, correction, or deletion and is authorized."]
+    statement: "The system MUST create a typed privacy-request receipt and tracking status after authorization."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-PRIV-003-01", given: "An authorized export, correction, or deletion request", when: "It is submitted", then: "Exactly one request and receipt with immutable history are created."}
+    failure_behavior: "The system MUST NOT auto-delete data or claim legal completion."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-PRIV-001], kpis: [KPI-008, KPI-020], profile: TP-PRIV}
+    depends_on: [REQ-F-AUTH-002, REQ-F-PRIV-001]
+
+  - id: "REQ-F-PRIV-004"
+    title: "Restrict privacy-request status to its owner"
+    metadata: {type: functional, status: reviewed, priority: P0, release: V1}
+    actor: "authenticated_user"
+    preconditions: ["The actor owns a privacy request."]
+    statement: "The system MUST allow the actor to view status without exposing internal notes or other users' requests."
+    acceptance_criteria:
+      - {id: "AC-REQ-F-PRIV-004-01", given: "Own and foreign privacy-request identifiers", when: "Status is requested", then: "Own status is visible and foreign access receives a non-disclosing denial."}
+    failure_behavior: "Missing ownership MUST deny access."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {use_cases: [UC-PRIV-001], kpis: [KPI-006, KPI-020], profile: TP-PRIV}
+    depends_on: [REQ-F-PRIV-003]
+
+  - id: "REQ-NF-REL-001"
+    title: "Maintain 99.9 percent monthly availability"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["AI and read-only services operate under the V1 reference workload."]
+    statement: "AI and read-only services MUST achieve monthly availability greater than or equal to 99.9 percent as measured by KPI-017."
+    acceptance_criteria: [{id: "AC-REQ-NF-REL-001-01", given: "A complete monthly measurement window", when: "The SLO report is generated", then: "It includes window, exclusions, and capability breakdown and demonstrates availability of at least 99.9 percent."}]
+    failure_behavior: "Missing telemetry MUST be reported as unavailable and not passed."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {kpis: [KPI-017], design: "docs/07-platform/SLO_SLI_ERROR_BUDGETS.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-OBS-003, REQ-NF-OBS-004]
+
+  - id: "REQ-NF-REL-002"
+    title: "Meet a 15-minute production RPO"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Production data services and their approved backup configuration are under recovery test."]
+    statement: "Production data services MUST achieve a recovery point objective of no more than 15 minutes."
+    acceptance_criteria: [{id: "AC-REQ-NF-REL-002-01", given: "A production-equivalent recovery drill", when: "The recovered point is measured", then: "The recovered data is no more than 15 minutes older than the failure point."}]
+    failure_behavior: "A failed recovery drill MUST block production release."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {assumptions: [ASM-006], design: "docs/07-platform/BACKUP_RESTORE_DR.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-REL-005]
+
+  - id: "REQ-NF-REL-003"
+    title: "Meet a 60-minute critical-service RTO"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Critical services are subjected to a timed recovery drill."]
+    statement: "Critical services MUST achieve a recovery time objective of no more than 60 minutes."
+    acceptance_criteria: [{id: "AC-REQ-NF-REL-003-01", given: "A timed production-equivalent recovery drill", when: "Recovery is executed", then: "P0 read and safe paths are restored within 60 minutes."}]
+    failure_behavior: "Failure to meet the threshold MUST produce a release NO-GO."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {assumptions: [ASM-006], kpis: [KPI-017], design: "docs/07-platform/BACKUP_RESTORE_DR.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-REL-005]
+
+  - id: "REQ-NF-REL-004"
+    title: "Bound dependency failures without false success"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An LLM, database, queue, or integration dependency fails or times out."]
+    statement: "A dependency failure MUST produce a bounded degraded or error state and MUST NOT produce false success."
+    acceptance_criteria: [{id: "AC-REQ-NF-REL-004-01", given: "Injected LLM, database, and adapter failures", when: "Affected journeys execute", then: "Each returns its declared state without a fabricated receipt or fabricated data."}]
+    failure_behavior: "Any false success MUST be classified as a Critical defect."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-006, KPI-007, KPI-008, KPI-021], design: "docs/04-architecture/core/ARCH-007_RELIABILITY_SCALABILITY_CACHING.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-SEC-005]
+
+  - id: "REQ-NF-REL-005"
+    title: "Encrypt, monitor, and restore-test backups"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A release candidate is considered for production."]
+    statement: "Backups MUST be encrypted, monitored, and restore-tested at least once per release candidate before production."
+    acceptance_criteria: [{id: "AC-REQ-NF-REL-005-01", given: "A release candidate backup", when: "Its restore drill completes", then: "Evidence includes artifact IDs, timestamps, checksums, and measured RPO and RTO results."}]
+    failure_behavior: "Backup existence without restore evidence MUST NOT pass the requirement."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-017], design: "docs/07-platform/BACKUP_RESTORE_DR.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-002, REQ-NF-OBS-004]
+
+  - id: "REQ-NF-PERF-001"
+    title: "Complete grounded FAQ responses within six-second p95"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["Grounded FAQ traffic runs under the documented V1 reference load."]
+    statement: "A completed grounded FAQ response MUST have p95 latency of no more than 6 seconds under reference load."
+    acceptance_criteria: [{id: "AC-REQ-NF-PERF-001-01", given: "At least 1,000 representative grounded FAQ requests", when: "The performance test completes", then: "The report includes p50, p95, p99, and error rate and p95 is no more than 6 seconds."}]
+    failure_behavior: "Timeouts or errors MAY be excluded only when the KPI measurement policy explicitly permits it."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {kpis: [KPI-018], tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001]
+
+  - id: "REQ-NF-PERF-002"
+    title: "Return read-only tool results within four-second p95"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["Read-only tool traffic runs under the documented V1 reference load."]
+    statement: "A read-only tool result MUST have p95 latency of no more than 4 seconds under reference load."
+    acceptance_criteria: [{id: "AC-REQ-NF-PERF-002-01", given: "Representative schedule and ticket-read calls", when: "Latency is measured with dependency time included", then: "The p95 is no more than 4 seconds."}]
+    failure_behavior: "A stale cache outside the approved freshness policy MUST NOT be used to pass the test."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {kpis: [KPI-018], tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001]
+
+  - id: "REQ-NF-PERF-003"
+    title: "Process confirmed writes within ten-second p95"
+    metadata: {type: non_functional, status: reviewed, priority: P1, release: V1}
+    actor: "system"
+    preconditions: ["A confirmed write is processed under the documented V1 reference load."]
+    statement: "Confirmed-write server processing MUST have p95 latency of no more than 10 seconds, excluding user confirmation time."
+    acceptance_criteria: [{id: "AC-REQ-NF-PERF-003-01", given: "Representative ticket and booking writes", when: "Processing latency is measured", then: "The report defines clock boundaries and p95 is no more than 10 seconds."}]
+    failure_behavior: "An uncertain timeout MUST enter reconciliation and MUST NOT trigger a blind retry."
+    classification: {data: RESTRICTED, security_impact: HIGH}
+    trace: {kpis: [KPI-018], tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-REL-004]
+
+  - id: "REQ-NF-PERF-004"
+    title: "Deliver handovers within five-second p95"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A handover decision is made under the documented V1 reference load."]
+    statement: "Handover delivery MUST have p95 latency of no more than 5 seconds from decision to queue acceptance."
+    acceptance_criteria: [{id: "AC-REQ-NF-PERF-004-01", given: "At least 500 synthetic handovers", when: "Delivery latency is tested", then: "The report demonstrates the p95 threshold and includes error results."}]
+    failure_behavior: "Queue failure MUST return an unavailable state and emit an alert."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-011], tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-REL-004]
+
+  - id: "REQ-NF-SCALE-001"
+    title: "Sustain 200 concurrent active users"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["The system runs the documented reference journey mix."]
+    statement: "The system MUST sustain 200 concurrent active users without violating any P0 latency or error SLO."
+    acceptance_criteria: [{id: "AC-REQ-NF-SCALE-001-01", given: "A 200-user reference journey mix", when: "The load test runs", then: "The report records mix, concurrency, saturation, p95, and error rate and all P0 SLOs pass."}]
+    failure_behavior: "Hidden queueing and timeouts MUST count as failures."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {assumptions: [ASM-001], kpis: [KPI-017, KPI-018], design: "docs/07-platform/CAPACITY_AND_COST_MODEL.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PERF-001, REQ-NF-PERF-002, REQ-NF-OBS-001]
+
+  - id: "REQ-NF-SCALE-002"
+    title: "Support daily chat and ticket volumes"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["The daily-volume test uses a documented peak multiplier."]
+    statement: "The system MUST support 10,000 chat requests per day and 1,000 ticket actions per day with the documented peak multiplier."
+    acceptance_criteria: [{id: "AC-REQ-NF-SCALE-002-01", given: "The reference daily volume and peak model", when: "The soak test completes", then: "The volume is sustained without data loss or duplicate actions."}]
+    failure_behavior: "A duplicate action MUST fail KPI-008 as declared by the source requirement."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {assumptions: [ASM-002], kpis: [KPI-008, KPI-017], design: "docs/07-platform/CAPACITY_AND_COST_MODEL.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SCALE-001, REQ-NF-DATA-004]
+
+  - id: "REQ-NF-SCALE-003"
+    title: "Scale the knowledge pipeline to the stress profile"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_pipeline"
+    preconditions: ["The benchmark corpus contains 150 to 300 source documents and up to 100,000 parsed pages or chunks."]
+    statement: "The knowledge pipeline and search MUST support 150 to 300 source documents and a stress profile of up to 100,000 parsed pages or chunks."
+    acceptance_criteria: [{id: "AC-REQ-NF-SCALE-003-01", given: "The source and stress profiles", when: "Ingestion and retrieval benchmarks run", then: "The report includes duration, failures, index size, and KPI-004."}]
+    failure_behavior: "Dropped chunks or a silent partial index MUST fail the requirement."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {assumptions: [ASM-003], kpis: [KPI-004], design: "docs/05-ai/RAG_PIPELINE.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-DATA-002, REQ-NF-DATA-004, REQ-NF-PERF-001]
+
+  - id: "REQ-NF-SEC-001"
+    title: "Encrypt application traffic in transit"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Application data crosses a network boundary."]
+    statement: "All network traffic carrying application data MUST use authenticated encryption in transit, and plaintext service exposure MUST be disabled in production."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-001-01", given: "The production network and endpoint configuration", when: "Automated configuration and network tests run", then: "No permitted plaintext endpoint is found."}]
+    failure_behavior: "Any permitted plaintext application endpoint MUST fail readiness."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/06-security/01_SECURITY_ARCHITECTURE.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-001]
+
+  - id: "REQ-NF-SEC-002"
+    title: "Encrypt protected data at rest"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Data is stored in a database, backup, object store, or secret store."]
+    statement: "Databases, backups, object storage, and secret stores MUST encrypt data at rest with approved key management."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-002-01", given: "All persistent data stores", when: "Infrastructure evidence is evaluated", then: "Each store maps to an enabled encryption and approved key control."}]
+    failure_behavior: "An unknown or unencrypted store MUST block deployment."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/06-security/07_CRYPTOGRAPHY_AND_SECRETS.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-001]
+
+  - id: "REQ-NF-SEC-003"
+    title: "Enforce default-deny server-side authorization"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A protected operation is requested."]
+    statement: "Authorization MUST be server-side and default-deny and MUST evaluate actor, resource, action, and context for every protected operation."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-003-01", given: "The positive and negative authorization matrix", when: "Direct-object and forged-client tests run", then: "Only explicitly authorized combinations succeed."}]
+    failure_behavior: "A missing policy or attribute MUST deny the request."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-006], design: "docs/06-security/05_AUTHORIZATION_MATRIX.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-002]
+
+  - id: "REQ-NF-SEC-004"
+    title: "Keep secrets in approved secret management"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A runtime or build requires a secret."]
+    statement: "Secrets MUST be injected from an approved secret manager and MUST NOT appear in source, client bundles, logs, prompts, or error responses."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-004-01", given: "Repository, build artifacts, and runtime telemetry with canary values", when: "Secret scans run", then: "Zero secret exposure is found."}]
+    failure_behavior: "Suspected exposure MUST trigger incident handling and rotation."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/06-security/07_CRYPTOGRAPHY_AND_SECRETS.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-MAINT-003]
+
+  - id: "REQ-NF-SEC-005"
+    title: "Create tamper-evident security audit records"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A security-relevant mutation or authorization decision occurs."]
+    statement: "Security-relevant mutations and authorization decisions MUST produce tamper-evident audit records protected from application-user modification."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-005-01", given: "All protected actions", when: "Audit completeness and immutability tests run", then: "Each action maps to an audit event and application users cannot update or delete it."}]
+    failure_behavior: "Mandatory audit unavailability MUST fail closed for a high-impact write."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-006, KPI-021], design: "docs/06-security/09_AUDIT_AND_MONITORING.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-003]
+
+  - id: "REQ-NF-SEC-006"
+    title: "Enforce endpoint abuse limits"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A public or authenticated endpoint receives traffic."]
+    statement: "Public and authenticated endpoints MUST enforce configured rate, size, and abuse limits per actor, IP, and action class."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-006-01", given: "Requests at and above configured limits", when: "Limit tests run", then: "Excess actions are not processed and stable error and retry metadata are returned."}]
+    failure_behavior: "A limit-store outage MUST follow the approved fail mode for the endpoint risk."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {kpis: [KPI-017, KPI-021], design: "docs/06-security/10_THREAT_MODEL.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-003]
+
+  - id: "REQ-NF-SEC-007"
+    title: "Block releases with unresolved high-risk findings"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "delivery_pipeline"
+    preconditions: ["A build or release candidate is evaluated."]
+    statement: "Build and release processes MUST scan secrets, dependencies, licenses, source, and container images; unresolved Critical or High findings MUST block release unless an approved time-bound waiver exists."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-007-01", given: "A release candidate", when: "Security gates execute", then: "Evidence contains tool versions, findings, and any approved waiver links."}]
+    failure_behavior: "A missing required scan MUST fail the release gate."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/06-security/13_SECURE_SDLC_GATES.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-MAINT-003]
+
+  - id: "REQ-NF-SEC-008"
+    title: "Validate untrusted content before use"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["User input, document content, or model output is stored, rendered, or passed to a tool."]
+    statement: "Untrusted user input, document content, and model output MUST be validated and encoded against typed allowlists before storage, rendering, or tool invocation."
+    acceptance_criteria: [{id: "AC-REQ-NF-SEC-008-01", given: "Injection, XSS, and tool-parameter attacks", when: "The security suite runs", then: "Zero policy bypass occurs."}]
+    failure_behavior: "Invalid content MUST be rejected or quarantined and MUST NOT be auto-corrected into an action."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-006, KPI-007, KPI-021], design: "docs/06-security/10_THREAT_MODEL.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-003]
+
+  - id: "REQ-NF-PRIV-001"
+    title: "Keep development and demo data synthetic"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "delivery_team"
+    preconditions: ["Data is created, imported, or used in current development or demo environments."]
+    statement: "Current development and demo environments MUST contain no real student records or directly contactable personal identities."
+    acceptance_criteria: [{id: "AC-REQ-NF-PRIV-001-01", given: "All current datasets", when: "Provenance scans and sampling run", then: "Synthetic markers are present and no known real identifiers are found."}]
+    failure_behavior: "A suspected real record MUST be quarantined and an incident opened."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {decisions: [DEC-004], kpis: [KPI-021], design: "docs/06-security/02_DATA_CLASSIFICATION.md", tests: "docs/08-quality/TEST_DATA_MANAGEMENT.md"}
+    depends_on: [REQ-NF-DATA-001]
+
+  - id: "REQ-NF-PRIV-002"
+    title: "Minimize and de-identify external LLM payloads"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "llm_gateway"
+    preconditions: ["A request is prepared for an external LLM provider."]
+    statement: "Data sent to an external LLM MUST be purpose-minimized and de-identified according to the approved field policy."
+    acceptance_criteria: [{id: "AC-REQ-NF-PRIV-002-01", given: "Outbound LLM payloads containing test identifiers", when: "Payload policy tests run", then: "All prohibited identifier fields are absent."}]
+    failure_behavior: "A redaction or policy outage MUST block the provider call."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {open_questions: [OQ-005], kpis: [KPI-006, KPI-021], design: "docs/06-security/03_DATA_FLOW_AND_PRIVACY.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-008]
+
+  - id: "REQ-NF-PRIV-003"
+    title: "Configure 90-day simulation conversation retention"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Conversation retention is configured for a simulation environment."]
+    statement: "Conversation retention MUST default to 90 days in simulation and MUST be configurable without code changes."
+    acceptance_criteria: [{id: "AC-REQ-NF-PRIV-003-01", given: "The effective retention policy and records around its time boundary", when: "Policy inspection and boundary selection run", then: "The policy is visible and auditable and eligible records are selected correctly."}]
+    failure_behavior: "Deletion execution MUST remain disabled until an approved destructive workflow exists."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {assumptions: [ASM-007], open_questions: [OQ-006], kpis: [KPI-020], design: "docs/06-security/08_RETENTION_AND_DELETION.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PRIV-001, REQ-NF-OBS-003]
+
+  - id: "REQ-NF-PRIV-004"
+    title: "Isolate credentials and data by environment"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["Local, development, staging, or production resources are provisioned."]
+    statement: "Local, development, staging, and production MUST use separate credentials and data stores; real production data MUST NOT be copied to lower environments."
+    acceptance_criteria: [{id: "AC-REQ-NF-PRIV-004-01", given: "All environment configurations", when: "Isolation and promotion tests run", then: "Credentials and stores are distinct and promotion uses synthetic fixtures."}]
+    failure_behavior: "A shared credential or store MUST block release."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/07-platform/ENVIRONMENT_STRATEGY.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-001, REQ-NF-SEC-002, REQ-NF-SEC-004]
+
+  - id: "REQ-NF-PRIV-005"
+    title: "Block unapproved personal-data transfers"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A route could transfer personal data to a location or provider."]
+    statement: "Transfer of personal data outside an approved location or provider MUST be disabled until legal and privacy approval is recorded."
+    acceptance_criteria: [{id: "AC-REQ-NF-PRIV-005-01", given: "No recorded transfer approval", when: "A personal-data transfer route or configuration starts", then: "Startup or the route is blocked."}]
+    failure_behavior: "The system MUST NOT infer consent or use a fallback provider."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {decisions: [DEC-010], open_questions: [OQ-005], kpis: [KPI-021], design: "docs/06-security/03_DATA_FLOW_AND_PRIVACY.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PRIV-002]
+
+  - id: "REQ-NF-A11Y-001"
+    title: "Conform P0 journeys to WCAG 2.2 AA"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "web_application"
+    preconditions: ["A P0 user journey is implemented for release."]
+    statement: "All P0 user journeys MUST conform to WCAG 2.2 Level AA."
+    acceptance_criteria: [{id: "AC-REQ-NF-A11Y-001-01", given: "All implemented P0 journeys", when: "Automated and manual accessibility audits run", then: "No Critical or Serious finding remains open."}]
+    failure_behavior: "Missing manual accessibility evidence MUST fail the gate."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {assumptions: [ASM-010], kpis: [KPI-019], design: "docs/03-ux/ACCESSIBILITY.md", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+    depends_on: [REQ-NF-A11Y-002, REQ-NF-A11Y-003, REQ-NF-A11Y-004]
+
+  - id: "REQ-NF-A11Y-002"
+    title: "Make interactions keyboard operable"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "web_application"
+    preconditions: ["An interactive function is available in a P0 journey."]
+    statement: "Every interactive function MUST be operable by keyboard with a clear focus order and focus indicator."
+    acceptance_criteria: [{id: "AC-REQ-NF-A11Y-002-01", given: "Every P0 use case", when: "A keyboard-only run executes", then: "The journey completes without a keyboard trap."}]
+    failure_behavior: "A keyboard-blocked journey MUST fail release."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {kpis: [KPI-019], design: "docs/03-ux/ACCESSIBILITY.md", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+    depends_on: []
+
+  - id: "REQ-NF-A11Y-003"
+    title: "Expose dynamic state to assistive technology"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "web_application"
+    preconditions: ["Chat, error, status, preview, or handover content changes dynamically."]
+    statement: "Dynamic chat, error, status, preview, and handover updates MUST expose meaningful name, role, and state to assistive technology."
+    acceptance_criteria: [{id: "AC-REQ-NF-A11Y-003-01", given: "Representative dynamic updates", when: "A screen-reader test executes", then: "Each update is announced once and in logical order."}]
+    failure_behavior: "A silent or duplicate critical status announcement MUST be treated as a defect."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {kpis: [KPI-019], design: "docs/03-ux/ACCESSIBILITY.md", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+    depends_on: []
+
+  - id: "REQ-NF-A11Y-004"
+    title: "Preserve usability at 200 percent zoom and reflow"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "web_application"
+    preconditions: ["Content is displayed at supported viewport sizes and zoom levels."]
+    statement: "Content MUST remain usable at 200 percent zoom and reflow and MUST NOT rely on color alone for status."
+    acceptance_criteria: [{id: "AC-REQ-NF-A11Y-004-01", given: "P0 journeys at 200 percent zoom and reflow", when: "Viewport tests run", then: "No P0 content or action is lost and every status has text or icon semantics."}]
+    failure_behavior: "A clipped confirm, cancel, or citation control MUST fail the gate."
+    classification: {data: PUBLIC, security_impact: HIGH}
+    trace: {kpis: [KPI-019], design: "docs/03-ux/ACCESSIBILITY.md", tests: "docs/08-quality/ACCEPTANCE_TEST_CATALOG.md"}
+    depends_on: []
+
+  - id: "REQ-NF-OBS-001"
+    title: "Propagate correlation identifiers end-to-end"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A request, workflow, or tool call is processed."]
+    statement: "Every request, workflow, and tool call MUST propagate a correlation or trace identifier end-to-end."
+    acceptance_criteria: [{id: "AC-REQ-NF-OBS-001-01", given: "A sampled end-to-end journey", when: "Its trace is inspected", then: "Web, API, agent, adapter, and audit spans are linked."}]
+    failure_behavior: "Broken propagation MUST fail verification."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {kpis: [KPI-017, KPI-018], design: "docs/07-platform/OBSERVABILITY.md", tests: "docs/08-quality/TRACEABILITY_AND_EVIDENCE.md"}
+    depends_on: [REQ-NF-PORT-002]
+
+  - id: "REQ-NF-OBS-002"
+    title: "Sanitize structured telemetry"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A log or trace is emitted."]
+    statement: "Logs and traces MUST exclude secrets and prohibited personal fields and MUST use the approved structured schema."
+    acceptance_criteria: [{id: "AC-REQ-NF-OBS-002-01", given: "Canary secret and personal-data values", when: "Telemetry scans run", then: "Zero prohibited value is found."}]
+    failure_behavior: "An affected telemetry sink MUST be disabled or quarantined and an incident opened."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {kpis: [KPI-021], design: "docs/07-platform/OBSERVABILITY.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-SEC-004]
+
+  - id: "REQ-NF-OBS-003"
+    title: "Emit versioned events for KPI calculation"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An implemented requirement contributes to a KPI."]
+    statement: "The system MUST emit versioned events sufficient to calculate every KPI linked to implemented requirements."
+    acceptance_criteria: [{id: "AC-REQ-NF-OBS-003-01", given: "Raw versioned metric events", when: "KPIs are recomputed", then: "The result matches the dashboard within the approved tolerance."}]
+    failure_behavior: "A KPI without sufficient events MUST be marked unavailable."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {kpis: [KPI-001, KPI-002, KPI-003, KPI-004, KPI-005, KPI-006, KPI-007, KPI-008, KPI-009, KPI-010, KPI-011, KPI-012, KPI-013, KPI-014, KPI-015, KPI-016, KPI-017, KPI-018, KPI-019, KPI-020, KPI-021], design: "docs/07-platform/OBSERVABILITY.md", tests: "docs/08-quality/TRACEABILITY_AND_EVIDENCE.md"}
+    depends_on: [REQ-NF-OBS-001]
+
+  - id: "REQ-NF-OBS-004"
+    title: "Alert on P0 hard-gate conditions"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A P0 hard-gate, security, or dependency condition occurs."]
+    statement: "P0 hard-gate, security, and dependency conditions MUST produce an actionable alert with severity, owner route, and correlation evidence."
+    acceptance_criteria: [{id: "AC-REQ-NF-OBS-004-01", given: "Representative hard-gate alert conditions", when: "Alert tests run", then: "Delivery, deduplication, and resolution behavior are verified."}]
+    failure_behavior: "An alert-path failure MUST emit an independent health signal."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {kpis: [KPI-006, KPI-007, KPI-008, KPI-017, KPI-021], design: "docs/07-platform/OBSERVABILITY.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-OBS-003]
+
+  - id: "REQ-NF-OBS-005"
+    title: "Record versions for AI decisions"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["An AI answer or action decision is produced."]
+    statement: "Model, prompt, policy, source, and tool versions MUST be recorded for every AI answer or action decision."
+    acceptance_criteria: [{id: "AC-REQ-NF-OBS-005-01", given: "A sampled AI decision", when: "Reconstruction is attempted", then: "The decision can be reconstructed without storing forbidden raw data."}]
+    failure_behavior: "A missing version MUST invalidate evaluation and audit evidence."
+    classification: {data: CONFIDENTIAL, security_impact: CRITICAL}
+    trace: {kpis: [KPI-002, KPI-003, KPI-004, KPI-005, KPI-021], design: "docs/05-ai/TRACEABILITY.md", tests: "docs/08-quality/TRACEABILITY_AND_EVIDENCE.md"}
+    depends_on: [REQ-NF-OBS-001, REQ-NF-PRIV-002]
+
+  - id: "REQ-NF-MAINT-001"
+    title: "Follow documentation-led implementation order"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "implementation_agent"
+    preconditions: ["An implementation task is selected."]
+    statement: "Implementation MUST follow the approved requirement to acceptance to contract to test to implementation to evidence order."
+    acceptance_criteria: [{id: "AC-REQ-NF-MAINT-001-01", given: "An implementation task output", when: "It is reviewed", then: "It references approved upstream IDs and reproducible evidence."}]
+    failure_behavior: "A missing required upstream artifact MUST block the task."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {decisions: ["DEC-017..DEC-020"], design: "docs/09-agent-execution/EXECUTOR_CONTRACT.md", tests: "docs/09-agent-execution/VERIFICATION_EVIDENCE_PROTOCOL.md"}
+    depends_on: []
+
+  - id: "REQ-NF-MAINT-002"
+    title: "Keep provider SDKs behind the LLM gateway"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "implementation"
+    preconditions: ["LLM provider integration code is implemented or changed."]
+    statement: "The DeepSeek or other provider SDK MUST remain behind the provider-neutral gateway, and domain modules MUST NOT import provider SDKs directly."
+    acceptance_criteria: [{id: "AC-REQ-NF-MAINT-002-01", given: "The implementation dependency graph and deterministic fake provider", when: "Architecture and provider tests run", then: "Import rules pass and domain behavior passes with the fake provider."}]
+    failure_behavior: "A direct provider SDK import from a domain module MUST fail the architecture test."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {decisions: [DEC-008], design: "docs/05-ai/LLM_GATEWAY.md", tests: "docs/08-quality/CONTRACT_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-002]
+
+  - id: "REQ-NF-MAINT-003"
+    title: "Lock and review dependencies"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "delivery_pipeline"
+    preconditions: ["Runtime or build dependencies are installed or changed."]
+    statement: "Runtime and build dependency versions MUST be locked, and every new dependency MUST pass documented approval, security, and license review."
+    acceptance_criteria: [{id: "AC-REQ-NF-MAINT-003-01", given: "A clean build environment and dependency manifest", when: "Installation and review verification run", then: "Installation is reproducible and approval evidence exists for each dependency."}]
+    failure_behavior: "An unreviewed dependency MUST block merge and release."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {decisions: [DEC-020], design: "docs/07-platform/CI_CD_PIPELINE.md", tests: "docs/08-quality/SECURITY_TEST_PLAN.md"}
+    depends_on: [REQ-NF-MAINT-001]
+
+  - id: "REQ-NF-MAINT-004"
+    title: "Make schema changes safely reversible"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "implementation_agent"
+    preconditions: ["A database or schema change is proposed."]
+    statement: "Database and schema changes MUST be backward-compatible during rollout or include an approved migration and rollback plan; destructive migration requires human approval."
+    acceptance_criteria: [{id: "AC-REQ-NF-MAINT-004-01", given: "A proposed database or schema change", when: "Migration verification runs", then: "Dry-run, compatibility, and rollback or restore evidence all pass."}]
+    failure_behavior: "A destructive or irreversible change MUST block the task."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {decisions: [DEC-020], design: "docs/04-architecture/contracts/DATA_MODEL.md", tests: "docs/08-quality/CONTRACT_TEST_PLAN.md"}
+    depends_on: [REQ-NF-MAINT-001]
+
+  - id: "REQ-NF-PORT-001"
+    title: "Use container-first externalized configuration"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A deployable service image is built and promoted between environments."]
+    statement: "Deployable services MUST be container-first, and configuration MUST be externalized by environment."
+    acceptance_criteria: [{id: "AC-REQ-NF-PORT-001-01", given: "One immutable service image", when: "It is smoke-tested with environment-specific configuration", then: "The same image passes in each target environment."}]
+    failure_behavior: "A secret or environment configuration baked into the image MUST fail scanning."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {decisions: [DEC-009, DEC-011], design: "docs/07-platform/ENVIRONMENT_STRATEGY.md", tests: "docs/08-quality/RELEASE_QUALITY_GATES.md"}
+    depends_on: []
+
+  - id: "REQ-NF-PORT-002"
+    title: "Isolate integrations behind typed adapters"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "implementation"
+    preconditions: ["Identity, schedule, ticket, room, or notification integration behavior is implemented."]
+    statement: "Identity, schedule, ticket, room, and notification dependencies MUST be accessed through typed adapter contracts with deterministic fakes."
+    acceptance_criteria: [{id: "AC-REQ-NF-PORT-002-01", given: "A deterministic fake and a candidate integration adapter", when: "The contract suite runs", then: "Both pass without domain changes."}]
+    failure_behavior: "Provider-specific type leakage into the domain MUST fail the architecture test."
+    classification: {data: INTERNAL, security_impact: HIGH}
+    trace: {decisions: [DEC-007], design: "docs/04-architecture/contracts/INTEGRATION_CATALOG.md", tests: "docs/08-quality/CONTRACT_TEST_PLAN.md"}
+    depends_on: [REQ-NF-MAINT-001]
+
+  - id: "REQ-NF-PORT-003"
+    title: "Preserve domain authorization when migrating to Entra"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "identity_adapter"
+    preconditions: ["Mock identity is replaced by Microsoft Entra OIDC."]
+    statement: "Replacing mock identity with Microsoft Entra OIDC later MUST NOT require changes to the domain authorization API."
+    acceptance_criteria: [{id: "AC-REQ-NF-PORT-003-01", given: "Mock and Entra issuer claims", when: "Identity contract mapping tests run", then: "Both map to the unchanged internal actor context and domain authorization API."}]
+    failure_behavior: "A domain dependency on the demo identity selector MUST fail review."
+    classification: {data: RESTRICTED, security_impact: CRITICAL}
+    trace: {decisions: [DEC-007], design: "docs/06-security/06_AUTHENTICATION_AND_ENTRA_MIGRATION.md", tests: "docs/08-quality/CONTRACT_TEST_PLAN.md"}
+    depends_on: [REQ-NF-PORT-002]
+
+  - id: "REQ-NF-DATA-001"
+    title: "Generate deterministic synthetic datasets"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "data_generator"
+    preconditions: ["A synthetic dataset is generated for development, test, or demonstration."]
+    statement: "Synthetic datasets MUST be deterministic from a versioned generator, seed, and manifest."
+    acceptance_criteria: [{id: "AC-REQ-NF-DATA-001-01", given: "The same released generator version, seed, and manifest", when: "Generation is repeated", then: "The canonical checksum matches."}]
+    failure_behavior: "A non-reproducible fixture MUST NOT be used as release evidence."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {decisions: [DEC-004], design: "docs/05-ai/SYNTHETIC_DATA_STRATEGY.md", tests: "docs/08-quality/TEST_DATA_MANAGEMENT.md"}
+    depends_on: []
+
+  - id: "REQ-NF-DATA-002"
+    title: "Preserve knowledge provenance linkage"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_pipeline"
+    preconditions: ["A knowledge source or chunk is stored or indexed."]
+    statement: "Every knowledge source and chunk MUST retain provenance and immutable source-version linkage."
+    acceptance_criteria: [{id: "AC-REQ-NF-DATA-002-01", given: "A citation or indexed chunk", when: "Reverse provenance lookup runs", then: "It resolves the immutable source checksum and version."}]
+    failure_behavior: "An orphan chunk MUST be excluded from the index."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {kpis: [KPI-003, KPI-012], design: "docs/05-ai/RAG_PIPELINE.md", tests: "docs/08-quality/AI_EVALUATION_GATES.md"}
+    depends_on: [REQ-NF-DATA-001]
+
+  - id: "REQ-NF-DATA-003"
+    title: "Use explicit timezone and validity intervals"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "system"
+    preconditions: ["A record or policy has time-dependent applicability."]
+    statement: "Time-dependent data and policies MUST use an explicit timezone and validity intervals."
+    acceptance_criteria: [{id: "AC-REQ-NF-DATA-003-01", given: "A time-dependent record", when: "Before, start, end, and after boundary tests run in Asia/Bangkok or the approved institutional timezone", then: "Applicability is deterministic at every boundary."}]
+    failure_behavior: "A missing timezone or validity interval MUST invalidate the record for current decisions."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {kpis: [KPI-012], design: "docs/04-architecture/contracts/DATA_MODEL.md", tests: "docs/08-quality/CONTRACT_TEST_PLAN.md"}
+    depends_on: [REQ-NF-DATA-001]
+
+  - id: "REQ-NF-DATA-004"
+    title: "Make import and index jobs idempotent"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "knowledge_pipeline"
+    preconditions: ["An import or index job starts or is replayed."]
+    statement: "Import and index jobs MUST be idempotent and MUST report complete, partial, or failed status with counts and checksums."
+    acceptance_criteria: [{id: "AC-REQ-NF-DATA-004-01", given: "A completed import or index manifest", when: "The same job is replayed", then: "No duplicate current source or chunk is created and the manifest remains semantically identical."}]
+    failure_behavior: "A partial result MUST NOT be published."
+    classification: {data: INTERNAL, security_impact: CRITICAL}
+    trace: {kpis: [KPI-008, KPI-012], design: "docs/05-ai/RAG_PIPELINE.md", tests: "docs/08-quality/AI_EVALUATION_GATES.md"}
+    depends_on: [REQ-NF-DATA-001, REQ-NF-DATA-002]
+
+  - id: "REQ-NF-COST-001"
+    title: "Enforce hard provider usage limits"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "llm_gateway"
+    preconditions: ["A paid provider call is requested in an environment with configured usage limits."]
+    statement: "The system MUST enforce configurable hard monthly and daily spend or usage limits per environment and provider."
+    acceptance_criteria: [{id: "AC-REQ-NF-COST-001-01", given: "A simulated exhausted provider limit", when: "Another paid call is attempted", then: "The call is blocked and the approved fallback activates."}]
+    failure_behavior: "Unavailable limit state MUST default to the conservative policy."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {open_questions: [OQ-008], business_metrics: [BM-001], design: "docs/07-platform/CAPACITY_AND_COST_MODEL.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-COST-003]
+
+  - id: "REQ-NF-COST-002"
+    title: "Alert at budget usage thresholds"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "platform"
+    preconditions: ["A provider or environment has a configured budget or usage limit."]
+    statement: "The system MUST alert at 50, 75, and 90 percent of the configured budget or usage limit."
+    acceptance_criteria: [{id: "AC-REQ-NF-COST-002-01", given: "Usage crosses each configured threshold", when: "Threshold processing runs", then: "Exactly one deduplicated alert is produced per crossing and resets by period."}]
+    failure_behavior: "A missing budget MUST mark cost control as misconfigured."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {business_metrics: [BM-001], design: "docs/07-platform/CAPACITY_AND_COST_MODEL.md", tests: "docs/08-quality/PERFORMANCE_RESILIENCE_TEST_PLAN.md"}
+    depends_on: [REQ-NF-COST-001, REQ-NF-OBS-004]
+
+  - id: "REQ-NF-COST-003"
+    title: "Record qualified AI usage and cost"
+    metadata: {type: non_functional, status: reviewed, priority: P0, release: V1}
+    actor: "llm_gateway"
+    preconditions: ["A model, embedding, or reranking call is attempted."]
+    statement: "Every model, embedding, and rerank call MUST record provider, model, billable units, latency, and estimated cost without prompt personal data."
+    acceptance_criteria: [{id: "AC-REQ-NF-COST-003-01", given: "Versioned usage events and effective pricing configuration", when: "BM-001 is recomputed", then: "The recomputed value matches the recorded usage and price basis."}]
+    failure_behavior: "A missing price MUST produce estimated_unavailable and MUST NOT produce zero."
+    classification: {data: CONFIDENTIAL, security_impact: HIGH}
+    trace: {business_metrics: [BM-001], design: "docs/07-platform/CAPACITY_AND_COST_MODEL.md", tests: "docs/08-quality/TRACEABILITY_AND_EVIDENCE.md"}
+    depends_on: [REQ-NF-OBS-003, REQ-NF-PRIV-002]

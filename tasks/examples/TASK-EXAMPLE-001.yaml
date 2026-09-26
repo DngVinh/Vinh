@@ -1,0 +1,61 @@
+schema_version: "1.0"
+id: "TASK-TEST-EXAMPLE-001"
+phase: "P00"
+title: "Demonstrate a focused contract-validation task"
+status: "draft"
+objective: "Add one negative fixture proving unknown boundary fields are rejected by a selected JSON Schema."
+layer: "test"
+bounded_context: "contracts"
+priority: "P2"
+estimated_minutes: 20
+sensitivity: "low"
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["ARCH-009"]
+  contracts: ["DATA-BASE-001"]
+  controls: ["SEC-CTRL-006"]
+  evals: []
+dependencies: []
+inputs:
+  - path: "docs/04-architecture/contracts/README.md"
+    load: "full"
+  - path: "contracts/json-schema/common/error.schema.json"
+    load: "full"
+write_scope:
+  allowed_paths: ["tests/contracts/fixtures/error-extra-field.json", "tests/contracts/test_error_schema.py"]
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 2
+  max_added_lines: 80
+preconditions:
+  - "The selected schema is approved and the contract test harness already exists."
+steps:
+  - "Inspect the schema and one existing invalid-fixture test."
+  - "Add exactly one fixture with an unknown property and one rejection assertion."
+  - "Run the focused contract test and record the exit code."
+acceptance_criteria:
+  - id: "AC-TASK-TEST-EXAMPLE-001-01"
+    assertion: "The fixture is rejected specifically because the unknown property is not allowed."
+  - id: "AC-TASK-TEST-EXAMPLE-001-02"
+    assertion: "Existing valid error fixtures remain accepted."
+verification:
+  - command: "python -m pytest -q tests/contracts/test_error_schema.py"
+    expected_exit_code: 0
+    proves: "Positive and negative schema behavior passes."
+evidence_required: ["changed-file list", "pytest exit code", "fixture-to-criterion mapping"]
+recovery:
+  strategy: "reverse_patch"
+  steps: ["Reverse only the fixture and focused test additions through a reviewed patch."]
+stop_conditions:
+  - "The schema does not prohibit unknown fields or conflicts with prose."
+  - "The test harness or validator dependency is not approved."
+parallelism:
+  eligible: true
+  conflict_keys: ["contract-test-error-schema"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
+

@@ -1,0 +1,34 @@
+schema_version: "1.1"
+id: TASK-API-PRIV-001
+phase: P05
+title: Serve versioned privacy notice and consent decisions
+status: accepted
+objective: Implement versioned privacy-notice retrieval and actor-owned consent recording that fails closed when required notice or consent storage is unavailable.
+layer: api
+bounded_context: privacy-notice-consent
+priority: P0
+estimated_minutes: 35
+sensitivity: critical
+human_approval_required: true
+approval_reasons: [legal_privacy, authorization]
+traceability:
+  requirements: [REQ-F-PRIV-001, REQ-F-PRIV-002]
+  acceptance_criteria: [AC-REQ-F-PRIV-001-01, AC-REQ-F-PRIV-002-01]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: [ARCH-004]
+  contracts: [API-CONV-001]
+  controls: [PRIV-FLOW-015, SEC-AUTHZ-002]
+  evals: []
+dependencies: [TASK-API-IDENTITY-003]
+inputs: [{path: docs/00-governance/DOCUMENT_CONTROL.md, load: full}, {path: docs/01-product/requirements.yaml, load: section, ids: [REQ-F-PRIV-001, AC-REQ-F-PRIV-001-01, REQ-F-PRIV-002, AC-REQ-F-PRIV-002-01]}]
+write_scope: {allowed_paths: [services/api/src/campus247/application/privacy/consent.py, services/api/src/campus247/presentation/privacy_notice.py, tests/api/test_privacy_notice_consent.py], forbidden_paths: [docs/**, contracts/**, .git/**], max_files: 3, max_added_lines: 220}
+preconditions: [Every dependency is accepted and every normative input is approved for this environment., The orchestrator has confirmed a clean non-overlapping write lease for this task.]
+steps: [Read input and actor-ownership patterns., Implement only notice retrieval and consent recording., Add absent-notice consent-withdrawal and store-failure tests., Run verification and return schema-valid evidence.]
+acceptance_criteria: [{id: AC-TASK-API-PRIV-001-01, assertion: Notice version and effective date are available before relevant consent.}, {id: AC-TASK-API-PRIV-001-02, assertion: Required consent processing fails closed on missing consent evidence or store failure.}, {id: AC-TASK-API-PRIV-001-03, assertion: All changed files are within the declared scope.}]
+verification: [{command: python -m pytest -q tests/api/test_privacy_notice_consent.py, expected_exit_code: 0, proves: Privacy notice and consent tests pass.}]
+evidence_required: [initial and final git status, changed-file and diff summary, commands with exit codes, acceptance-to-evidence mapping]
+recovery: {strategy: reverse_patch, steps: [Keep the patch unpromoted and use a reviewed task-scoped reverse patch if rollback is required.]}
+stop_conditions: [A required source is missing conflicting changed after review or not approved., Completion requires an unlisted file dependency network call secret or destructive operation.]
+parallelism: {eligible: true, conflict_keys: [privacy-notice-consent]}
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
