@@ -1,0 +1,708 @@
+document:
+  document_id: "DOC-UX-010"
+  title: "Campus 24/7 machine-readable UI state matrix"
+  version: "0.1.0"
+  status: "reviewed"
+  owner: "Product Design Lead"
+  approvers:
+    - "Product Owner"
+    - "Accessibility Lead"
+    - "Security/Privacy Lead"
+  last_updated: "2026-09-22"
+  normative_language: "MUST"
+  language: "vi-VN"
+
+scope:
+  product: "Campus 24/7 — HUCE Demo"
+  institution_count: 1
+  data_mode: "synthetic_only"
+  channels:
+    - "responsive_web"
+    - "pwa"
+  conformance_target: "WCAG 2.2 AA"
+  source_documents:
+    - "docs/03-ux/README.md"
+    - "docs/03-ux/SCREEN_INVENTORY.md"
+    - "docs/03-ux/INTERACTION_SPECIFICATIONS.md"
+    - "docs/03-ux/TRUST_AND_CITATION_UX.md"
+    - "docs/03-ux/ACTION_PREVIEW_AND_CONFIRMATION_UX.md"
+    - "docs/03-ux/SYSTEM_STATES_AND_RECOVERY.md"
+    - "docs/03-ux/ACCESSIBILITY.md"
+    - "docs/03-ux/CONTENT_STYLE_VI.md"
+
+semantics:
+  unauthorized:
+    http_status: 401
+    state_id: "UX-STATE-012"
+    meaning: "Chưa có hoặc đã hết phiên xác thực; chưa đưa ra quyết định quyền."
+  forbidden:
+    http_status: 403
+    state_id: "UX-STATE-010"
+    meaning: "Đã xác thực nhưng không được phép truy cập tài nguyên hoặc hành động."
+  unknown_is_not:
+    - "empty"
+    - "zero"
+    - "success"
+    - "authorized"
+  write_success_rule: "Chỉ render thành công sau kết quả authoritative; optimistic success bị cấm."
+  protected_render_rule: "Authorize trước fetch và trước render; overlay không được dùng để che dữ liệu đã tải."
+  offline_write_rule: "Không gửi hoặc tự gửi lại write khi offline/reconnect; draft cục bộ chỉ được giữ nếu privacy-safe."
+
+state_precedence:
+  - "security_block_or_suspended"
+  - "emergency_safety_surface"
+  - "forbidden_or_authentication_required"
+  - "action_result_unknown"
+  - "offline"
+  - "degraded_partial_or_stale"
+  - "recoverable_error_or_rate_limit"
+  - "loading_or_processing"
+  - "empty_or_zero_results"
+  - "ready_or_success"
+
+roles:
+  public:
+    persona_refs: []
+    service_role_refs: []
+    description: "Người chưa xác thực; chỉ được xem surface công khai."
+  student:
+    persona_refs: ["PER-001"]
+    service_role_refs: []
+    description: "Sinh viên chỉ thao tác trên dữ liệu và yêu cầu của chính mình."
+  support_officer:
+    persona_refs: ["PER-002"]
+    service_role_refs: ["SVC-ROLE-001"]
+    description: "Cán bộ hỗ trợ trong queue/unit được phân quyền."
+  queue_lead:
+    persona_refs: ["PER-002"]
+    service_role_refs: ["SVC-ROLE-002"]
+    description: "Điều phối queue và escalation trong phạm vi được giao."
+  student_support_lead:
+    persona_refs: ["PER-002"]
+    service_role_refs: ["SVC-ROLE-003"]
+    description: "Chịu trách nhiệm nghiệp vụ hỗ trợ sinh viên."
+  knowledge_administrator:
+    persona_refs: ["PER-003"]
+    service_role_refs: ["SVC-ROLE-004"]
+    description: "Quản trị nguồn, phiên bản, review và publish tri thức."
+  operations_administrator:
+    persona_refs: ["PER-004"]
+    service_role_refs: ["SVC-ROLE-005"]
+    description: "Vận hành dịch vụ; không mặc nhiên được đọc dữ liệu nhạy cảm."
+  security_privacy_lead:
+    persona_refs: ["PER-004"]
+    service_role_refs: ["SVC-ROLE-006"]
+    description: "Review control, incident và privacy evidence theo need-to-know."
+  ai_quality_lead:
+    persona_refs: ["PER-003", "PER-004"]
+    service_role_refs: ["SVC-ROLE-007"]
+    description: "Theo dõi chất lượng AI và evidence; không có quyền nghiệp vụ mặc định."
+  product_owner:
+    persona_refs: ["PER-004"]
+    service_role_refs: ["SVC-ROLE-008"]
+    description: "Phê duyệt outcome sản phẩm; không có quyền dữ liệu mặc định."
+
+telemetry_contract:
+  event_names:
+    state_presented: "ui.state.presented"
+    state_recovered: "ui.state.recovered"
+    action_invoked: "ui.action.invoked"
+    confirmation_presented: "ui.confirmation.presented"
+    confirmation_resolved: "ui.confirmation.resolved"
+    handover_presented: "ui.handover.presented"
+  required_fields:
+    - "schema_version"
+    - "occurred_at"
+    - "screen_id"
+    - "state_id"
+    - "role_key"
+    - "environment"
+    - "release_id"
+    - "correlation_id"
+    - "result"
+  optional_safe_fields:
+    - "latency_bucket"
+    - "retry_count"
+    - "dependency_code"
+    - "action_key"
+    - "source_freshness_bucket"
+  prohibited_fields:
+    - "raw_prompt"
+    - "raw_response"
+    - "message_text"
+    - "student_id"
+    - "email"
+    - "phone"
+    - "access_token"
+    - "confirmation_token"
+    - "ticket_body"
+    - "sensitive_reason"
+  privacy_refs: ["PRIV-FLOW-008", "PRIV-FLOW-014", "SEC-DATA-003", "SEC-CTRL-018"]
+
+wcag_check_catalog:
+  A11Y-SEMANTICS:
+    criteria: ["1.3.1", "4.1.2"]
+    ux_refs: ["UX-A11Y-001", "UX-A11Y-002"]
+    assertion: "Landmark, heading, accessible name, role và value đúng ngữ nghĩa."
+  A11Y-KEYBOARD:
+    criteria: ["2.1.1", "2.4.3", "2.4.7", "2.4.11"]
+    ux_refs: ["UX-A11Y-003", "UX-A11Y-004"]
+    assertion: "Mọi action dùng được bằng bàn phím; focus có thứ tự, nhìn thấy và không bị che."
+  A11Y-DIALOG:
+    criteria: ["2.1.2", "2.4.3", "4.1.2"]
+    ux_refs: ["UX-A11Y-005"]
+    assertion: "Dialog có tên, focus ban đầu hợp lý, trap đúng và trả focus về trigger."
+  A11Y-NONCOLOR:
+    criteria: ["1.4.1", "1.4.3", "1.4.11"]
+    ux_refs: ["UX-A11Y-006"]
+    assertion: "Không truyền đạt status chỉ bằng màu; text và non-text contrast đạt target."
+  A11Y-REFLOW:
+    criteria: ["1.4.10", "1.4.12", "2.5.8"]
+    ux_refs: ["UX-A11Y-007", "UX-A11Y-008"]
+    assertion: "Không mất copy/action ở reflow, zoom, text spacing hoặc viewport nhỏ."
+  A11Y-REDUCED-MOTION:
+    criteria: ["2.2.2", "2.3.3"]
+    ux_refs: ["UX-A11Y-009"]
+    assertion: "Không có chuyển động bắt buộc; animation dừng được và tôn trọng reduced motion."
+  A11Y-FORM-ERROR:
+    criteria: ["3.3.1", "3.3.2", "3.3.3", "3.3.7", "3.3.8"]
+    ux_refs: ["UX-A11Y-010", "UX-A11Y-011"]
+    assertion: "Label/instruction/error rõ, input hợp lệ được giữ, confirmation không dựa vào trí nhớ."
+  A11Y-AUTH:
+    criteria: ["3.3.8"]
+    ux_refs: ["UX-A11Y-012"]
+    assertion: "Authentication không tạo cognitive-function test không có alternative."
+  A11Y-STATUS:
+    criteria: ["4.1.3"]
+    ux_refs: ["UX-A11Y-013"]
+    assertion: "Loading, error, success và recovery được announce một lần, không spam live region."
+  A11Y-CHAT:
+    criteria: ["1.3.1", "2.4.3", "4.1.3"]
+    ux_refs: ["UX-A11Y-014"]
+    assertion: "Transcript có structure/author; streaming không cướp focus hoặc đọc lại toàn bộ."
+  A11Y-DATA:
+    criteria: ["1.3.1", "1.4.1"]
+    ux_refs: ["UX-A11Y-015"]
+    assertion: "Bảng/chart có header, tên, summary và text alternative phù hợp."
+  A11Y-LANGUAGE:
+    criteria: ["3.1.1", "3.1.2"]
+    ux_refs: ["UX-A11Y-016"]
+    assertion: "Ngôn ngữ trang và đoạn đổi ngôn ngữ được khai báo."
+  A11Y-TIME:
+    criteria: ["2.2.1", "2.2.6"]
+    ux_refs: ["UX-A11Y-017"]
+    assertion: "Timeout/expiry được báo trước khi có thể và không gây mất input."
+  A11Y-CRITICAL:
+    criteria: ["1.3.1", "1.4.1", "2.4.3", "4.1.3"]
+    ux_refs: ["UX-A11Y-018"]
+    assertion: "Thông báo safety nổi bật bằng nhiều cue, focus hợp lý và action luôn tiếp cận được."
+
+states:
+  - id: "UX-STATE-001"
+    key: "initial_loading"
+    category: "loading"
+    trigger: "Initial read has started and no authoritative content is available."
+    required_copy:
+      status: "Đang tải thông tin…"
+      timeout_transition: "Chưa thể tải thông tin. Bạn có thể thử lại."
+    required_actions: []
+    telemetry: ["ui.state.presented", "ui.state.recovered"]
+    wcag_checks: ["A11Y-SEMANTICS", "A11Y-STATUS", "A11Y-REDUCED-MOTION"]
+    trace_ids: ["UX-INT-003", "UX-A11Y-013"]
+    prohibitions: ["infinite_spinner", "hide_page_title", "announce_every_skeleton_change"]
+  - id: "UX-STATE-002"
+    key: "ai_generating_or_validating"
+    category: "loading"
+    trigger: "AI response is generating or evidence validation is running."
+    required_copy:
+      generating: "Đang soạn câu trả lời…"
+      validating: "Đang kiểm tra nguồn…"
+      stopped: "Đã dừng tạo câu trả lời. Nội dung hiện tại chưa hoàn tất."
+    required_actions: ["stop_generation"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-CHAT", "A11Y-STATUS", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-INT-010", "UX-INT-011", "UX-TRUST-006", "UX-TRUST-007"]
+    prohibitions: ["enable_citation_before_validation", "render_raw_tool_calls", "move_focus_per_token"]
+  - id: "UX-STATE-003"
+    key: "form_submitting_or_validating"
+    category: "loading"
+    trigger: "A form is validating or a bounded request is in progress."
+    required_copy:
+      validating: "Đang kiểm tra thông tin…"
+      submitting: "Đang gửi…"
+    required_actions: ["prevent_duplicate_activation", "preserve_valid_input"]
+    telemetry: ["ui.state.presented", "ui.state.recovered"]
+    wcag_checks: ["A11Y-FORM-ERROR", "A11Y-STATUS", "A11Y-TIME"]
+    trace_ids: ["UX-INT-020", "UX-INT-052"]
+    prohibitions: ["clear_input_on_failure", "optimistic_success"]
+  - id: "UX-STATE-004"
+    key: "true_empty"
+    category: "empty"
+    trigger: "Authorized read succeeded and the complete collection is empty."
+    required_copy:
+      title: "Chưa có dữ liệu"
+      body: "Không có mục nào trong phạm vi hiện tại."
+    required_actions: ["contextual_primary_action_or_none"]
+    telemetry: ["ui.state.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-SEMANTICS", "A11Y-KEYBOARD", "A11Y-REFLOW"]
+    trace_ids: ["UX-CONTENT-006"]
+    prohibitions: ["show_before_fetch", "show_when_permission_unknown", "reuse_error_copy"]
+  - id: "UX-STATE-005"
+    key: "zero_search_results"
+    category: "empty"
+    trigger: "Authorized search completed but current query or filters matched zero items."
+    required_copy:
+      title: "Không có kết quả phù hợp"
+      body: "Hãy đổi từ khóa hoặc xóa bớt bộ lọc."
+    required_actions: ["clear_filters", "edit_query"]
+    telemetry: ["ui.state.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-SEMANTICS", "A11Y-KEYBOARD", "A11Y-STATUS"]
+    trace_ids: ["UX-INT-030", "UX-CONTENT-006"]
+    prohibitions: ["claim_collection_is_empty", "log_query_text"]
+  - id: "UX-STATE-006"
+    key: "partial_data"
+    category: "degraded"
+    trigger: "At least one independent region succeeded and at least one failed or is unknown."
+    required_copy:
+      banner: "Một phần thông tin chưa tải được."
+      region: "Không thể cập nhật phần này."
+    required_actions: ["retry_failed_region", "continue_with_labeled_available_data"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-NONCOLOR", "A11Y-DATA"]
+    trace_ids: ["UX-INT-003", "REQ-NF-REL-004"]
+    prohibitions: ["blank_entire_screen", "compute_aggregate_as_complete", "mark_unknown_green"]
+  - id: "UX-STATE-007"
+    key: "recoverable_error"
+    category: "error"
+    trigger: "Operation failed with known effect status and safe retry or alternative."
+    required_copy:
+      title: "Chưa thể hoàn tất"
+      impact: "Nêu rõ dữ liệu hoặc yêu cầu đã được ghi hay chưa."
+      reference: "Mã tham chiếu: {correlation_id}"
+    required_actions: ["bounded_retry", "safe_alternative_or_help"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-FORM-ERROR", "A11Y-STATUS", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-CONTENT-010", "UX-INT-003"]
+    prohibitions: ["generic_error_only", "stack_trace", "secret_in_reference", "erase_draft"]
+  - id: "UX-STATE-008"
+    key: "rate_limited_or_busy"
+    category: "error"
+    trigger: "Server reports bounded capacity or rate-limit response."
+    required_copy:
+      title: "Hệ thống đang bận"
+      retry: "Bạn có thể thử lại{retry_after_clause}."
+    required_actions: ["retry_when_safe", "use_alternative_if_available"]
+    telemetry: ["ui.state.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-TIME", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-CONTENT-010", "SEC-CTRL-017"]
+    prohibitions: ["invent_retry_time", "blame_user", "blind_resubmit_after_confirmation"]
+  - id: "UX-STATE-009"
+    key: "degraded_or_safe_mode"
+    category: "degraded"
+    trigger: "One or more capabilities are intentionally restricted or unavailable."
+    required_copy:
+      banner: "Một số chức năng đang tạm hạn chế."
+      detail: "Nêu capability bị ảnh hưởng và phương án còn dùng được."
+    required_actions: ["use_available_alternative", "view_service_status"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-NONCOLOR", "A11Y-CRITICAL"]
+    trace_ids: ["REQ-F-OPS-002", "SEC-CTRL-020"]
+    prohibitions: ["normal_operation_claim", "green_only_indicator", "hide_unavailable_capability"]
+  - id: "UX-STATE-010"
+    key: "not_authorized"
+    category: "forbidden"
+    trigger: "Authenticated actor lacks function, object, field, queue or unit permission."
+    required_copy:
+      title: "Bạn không có quyền truy cập nội dung này"
+      body: "Hãy quay lại khu vực được phép hoặc liên hệ đầu mối đã được phê duyệt."
+    required_actions: ["navigate_to_safe_destination", "request_access_or_help_if_approved"]
+    telemetry: ["ui.state.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-SEMANTICS", "A11Y-KEYBOARD", "A11Y-STATUS"]
+    trace_ids: ["SEC-CTRL-003", "SEC-AUTHZ-001", "UX-SCR-901"]
+    prohibitions: ["fetch_or_render_protected_data", "reveal_object_existence", "show_bypass_action"]
+  - id: "UX-STATE-011"
+    key: "maintenance_or_suspended"
+    category: "degraded"
+    trigger: "Service is planned-maintenance, suspended or security-blocked."
+    required_copy:
+      title: "Dịch vụ tạm thời chưa khả dụng"
+      body: "Hiển thị lý do công khai tối thiểu và kênh trạng thái đã duyệt."
+    required_actions: ["view_service_status", "use_approved_help_channel"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-CRITICAL", "A11Y-STATUS", "A11Y-REFLOW"]
+    trace_ids: ["UX-SCR-904", "SEC-CTRL-021"]
+    prohibitions: ["invent_recovery_time", "leak_root_cause", "show_cached_success_over_block"]
+  - id: "UX-STATE-012"
+    key: "authentication_required_or_expired"
+    category: "unauthorized"
+    trigger: "No valid session exists or session has expired before authorization."
+    required_copy:
+      title: "Bạn cần đăng nhập"
+      expired: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục."
+    required_actions: ["sign_in", "return_to_safe_destination"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-AUTH", "A11Y-KEYBOARD", "A11Y-STATUS"]
+    trace_ids: ["SEC-AUTHN-004", "SEC-AUTHN-009", "UX-INT-051"]
+    prohibitions: ["expose_draft_to_different_account", "render_protected_data", "log_claims_or_token"]
+  - id: "UX-STATE-013"
+    key: "stale_data"
+    category: "degraded"
+    trigger: "Data is available but freshness is outside the approved threshold or unknown."
+    required_copy:
+      known: "Cập nhật lần cuối {timestamp}."
+      unknown: "Chưa xác định thời điểm cập nhật."
+    required_actions: ["refresh", "continue_read_only_when_policy_allows"]
+    telemetry: ["ui.state.presented", "ui.action.invoked", "ui.state.recovered"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-NONCOLOR", "A11Y-DATA"]
+    trace_ids: ["UX-CONTENT-006", "REQ-NF-REL-004"]
+    prohibitions: ["claim_just_updated_when_unknown", "confirm_stale_availability", "hide_timestamp"]
+  - id: "UX-STATE-014"
+    key: "action_preview_ready"
+    category: "confirmation"
+    trigger: "Server-authoritative preview is complete and confirmation is allowed."
+    required_copy:
+      title: "Kiểm tra trước khi xác nhận"
+      expiry: "Thông tin này có hiệu lực đến {expires_at}."
+      consequence: "Nêu rõ dữ liệu, người nhận và hậu quả của hành động."
+    required_actions: ["confirm_explicitly", "edit", "cancel"]
+    telemetry: ["ui.confirmation.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-FORM-ERROR", "A11Y-DIALOG", "A11Y-KEYBOARD", "A11Y-TIME"]
+    trace_ids: ["UX-ACT-001", "UX-ACT-002", "UX-ACT-003", "SEC-CTRL-008"]
+    prohibitions: ["prechecked_confirmation", "hidden_consequence", "log_confirmation_token"]
+  - id: "UX-STATE-015"
+    key: "action_processing"
+    category: "confirmation"
+    trigger: "Confirmed idempotent action is executing or reconciling."
+    required_copy:
+      status: "Đang xử lý yêu cầu…"
+      navigation: "Đừng gửi lại; hệ thống đang kiểm tra kết quả."
+    required_actions: ["prevent_duplicate_submit", "show_persistent_status"]
+    telemetry: ["ui.state.presented", "ui.state.recovered"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-TIME", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-ACT-004", "UX-ACT-006", "SEC-CTRL-008"]
+    prohibitions: ["duplicate_submit", "optimistic_success", "lose_processing_reference"]
+  - id: "UX-STATE-016"
+    key: "action_succeeded"
+    category: "confirmation"
+    trigger: "Authoritative service result confirms the intended effect."
+    required_copy:
+      title: "Đã gửi yêu cầu"
+      body: "Hiển thị mã tham chiếu, trạng thái, thời gian và bước tiếp theo thực tế."
+    required_actions: ["view_result", "return_to_relevant_index"]
+    telemetry: ["ui.confirmation.resolved", "ui.action.invoked"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-SEMANTICS", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-ACT-007", "SEC-CTRL-008"]
+    prohibitions: ["claim_approved_when_only_submitted", "show_success_without_authoritative_result"]
+  - id: "UX-STATE-017"
+    key: "action_failed_no_effect"
+    category: "error"
+    trigger: "Authoritative service result proves no side effect occurred."
+    required_copy:
+      title: "Yêu cầu chưa được gửi"
+      impact: "Không có thay đổi nào được ghi nhận."
+    required_actions: ["safe_retry", "edit", "keep_draft"]
+    telemetry: ["ui.confirmation.resolved", "ui.action.invoked"]
+    wcag_checks: ["A11Y-FORM-ERROR", "A11Y-STATUS", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-ACT-008", "SEC-CTRL-008"]
+    prohibitions: ["discard_draft", "use_when_effect_is_unknown"]
+  - id: "UX-STATE-018"
+    key: "action_result_unknown"
+    category: "error"
+    trigger: "Request may have crossed side-effect boundary but outcome cannot yet be proven."
+    required_copy:
+      title: "Đang kiểm tra kết quả"
+      body: "Không gửi lại yêu cầu. Hệ thống đang đối chiếu trạng thái."
+    required_actions: ["reconcile_status", "handover_if_unresolved"]
+    telemetry: ["ui.state.presented", "ui.state.recovered", "ui.handover.presented"]
+    wcag_checks: ["A11Y-CRITICAL", "A11Y-STATUS", "A11Y-TIME"]
+    trace_ids: ["UX-ACT-009", "HITL-008", "SEC-CTRL-008"]
+    prohibitions: ["immediate_resubmit", "map_to_generic_error", "claim_no_effect"]
+  - id: "UX-STATE-019"
+    key: "preview_expired_or_changed"
+    category: "confirmation"
+    trigger: "Preview expired or revalidation found a material change."
+    required_copy:
+      title: "Thông tin đã thay đổi"
+      body: "Hãy kiểm tra phần thay đổi trước khi xác nhận lại."
+    required_actions: ["review_changes", "request_new_preview", "cancel"]
+    telemetry: ["ui.confirmation.resolved", "ui.action.invoked"]
+    wcag_checks: ["A11Y-FORM-ERROR", "A11Y-NONCOLOR", "A11Y-TIME"]
+    trace_ids: ["UX-ACT-005", "SEC-CTRL-008"]
+    prohibitions: ["reuse_expired_confirmation", "silent_revalidation", "auto_confirm"]
+  - id: "UX-STATE-020"
+    key: "emergency_configuration_unavailable"
+    category: "sensitive_handover"
+    trigger: "Sensitive/emergency handover is needed but approved contact/configuration is absent."
+    required_copy:
+      demo: "DEMO — chưa cấu hình đầu mối khẩn cấp chính thức."
+      production: "BLOCK_LAUNCH"
+    required_actions: ["preserve_safe_context", "show_only_approved_general_help_if_configured"]
+    telemetry: ["ui.handover.presented", "ui.action.invoked"]
+    wcag_checks: ["A11Y-CRITICAL", "A11Y-DIALOG", "A11Y-KEYBOARD", "A11Y-STATUS"]
+    trace_ids: ["UX-HITL-001", "UX-HITL-006", "HITL-008", "SEC-CTRL-025", "OQ-003"]
+    prohibitions: ["invent_contact", "promise_response_time", "diagnose", "launch_real_user_surface"]
+  - id: "UX-STATE-021"
+    key: "offline"
+    category: "offline"
+    trigger: "Browser cannot reach required service or a verified offline signal is active."
+    required_copy:
+      banner: "Bạn đang ngoại tuyến."
+      cached: "Đang hiển thị dữ liệu đã lưu từ {timestamp}."
+    required_actions: ["retry_connection", "keep_privacy_safe_local_draft", "read_labeled_cache_if_allowed"]
+    telemetry: ["ui.state.presented", "ui.state.recovered"]
+    wcag_checks: ["A11Y-STATUS", "A11Y-NONCOLOR", "A11Y-KEYBOARD"]
+    trace_ids: ["UX-INT-050", "UX-SCR-903", "SEC-DATA-004"]
+    prohibitions: ["enable_write", "auto_submit_on_reconnect", "cache_restricted_staff_content"]
+
+screen_matrix:
+  - screen_id: "UX-SCR-001"
+    route: "/"
+    roles: ["public", "student", "support_officer", "knowledge_administrator", "operations_administrator"]
+    required_states: ["UX-STATE-001", "UX-STATE-007", "UX-STATE-009", "UX-STATE-011", "UX-STATE-021"]
+    required_primary_actions: ["Đăng nhập", "Xem trợ giúp"]
+    trace_ids: ["SVC-CAT-001", "UX-TRUST-001"]
+  - screen_id: "UX-SCR-002"
+    route: "/login"
+    roles: ["public"]
+    required_states: ["UX-STATE-003", "UX-STATE-007", "UX-STATE-012", "UX-STATE-021"]
+    required_primary_actions: ["Đăng nhập demo"]
+    trace_ids: ["REQ-F-AUTH-001", "SEC-AUTHN-002", "UX-A11Y-012"]
+  - screen_id: "UX-SCR-003"
+    route: "/auth/error"
+    roles: ["public"]
+    required_states: ["UX-STATE-007", "UX-STATE-010", "UX-STATE-012"]
+    required_primary_actions: ["Thử lại", "Trợ giúp"]
+    trace_ids: ["REQ-F-AUTH-002", "SEC-AUTHN-009"]
+  - screen_id: "UX-SCR-004"
+    route: "/service-status"
+    roles: ["public", "student", "support_officer", "operations_administrator"]
+    required_states: ["UX-STATE-001", "UX-STATE-006", "UX-STATE-007", "UX-STATE-009", "UX-STATE-011", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Làm mới", "Mở kênh hỗ trợ đã duyệt"]
+    trace_ids: ["SVC-CAT-002", "REQ-F-OPS-001"]
+  - screen_id: "UX-SCR-010"
+    route: "/app"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-009", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Hỏi trợ lý", "Xem lịch", "Tạo yêu cầu"]
+    trace_ids: ["REQ-F-SCHEDULE-001", "REQ-F-TICKET-001", "SVC-JRN-001"]
+  - screen_id: "UX-SCR-011"
+    route: "/app/assistant"
+    roles: ["student"]
+    required_states: ["UX-STATE-002", "UX-STATE-007", "UX-STATE-008", "UX-STATE-009", "UX-STATE-012", "UX-STATE-013", "UX-STATE-018", "UX-STATE-020", "UX-STATE-021"]
+    required_primary_actions: ["Gửi câu hỏi", "Dừng", "Thử lại", "Yêu cầu cán bộ hỗ trợ"]
+    trace_ids: ["REQ-F-CHAT-001", "REQ-F-RAG-001", "SVC-JRN-002", "HITL-001"]
+  - screen_id: "UX-SCR-012"
+    route: "citation_detail_surface"
+    roles: ["student", "support_officer", "knowledge_administrator", "ai_quality_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-005", "UX-STATE-007", "UX-STATE-010", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Mở nguồn", "Báo nguồn có vấn đề", "Đóng"]
+    trace_ids: ["UX-TRUST-003", "UX-TRUST-004", "REQ-F-RAG-003"]
+  - screen_id: "UX-SCR-013"
+    route: "/app/schedule"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Đổi ngày", "Đổi tuần", "Làm mới"]
+    trace_ids: ["REQ-F-SCHEDULE-001", "TOOL-SCHEDULE-001", "SVC-JRN-003"]
+  - screen_id: "UX-SCR-014"
+    route: "/app/tickets"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-005", "UX-STATE-007", "UX-STATE-008", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Tạo yêu cầu", "Xóa bộ lọc", "Xem yêu cầu"]
+    trace_ids: ["REQ-F-TICKET-001", "REQ-F-TICKET-005", "SVC-JRN-004"]
+  - screen_id: "UX-SCR-015"
+    route: "/app/tickets/new"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-003", "UX-STATE-007", "UX-STATE-008", "UX-STATE-012", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-020", "UX-STATE-021"]
+    required_primary_actions: ["Tiếp tục", "Kiểm tra yêu cầu", "Xác nhận gửi", "Chỉnh sửa", "Hủy"]
+    trace_ids: ["REQ-F-TICKET-002", "REQ-F-TICKET-003", "TOOL-TICKET-001", "SEC-CTRL-008"]
+  - screen_id: "UX-SCR-016"
+    route: "/app/tickets/:ticketId"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Quay lại danh sách", "Gửi phản hồi nếu được phép"]
+    trace_ids: ["REQ-F-TICKET-005", "SEC-CTRL-003", "SVC-JRN-004"]
+  - screen_id: "UX-SCR-017"
+    route: "/app/document-requests/new"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-003", "UX-STATE-007", "UX-STATE-008", "UX-STATE-012", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-021"]
+    required_primary_actions: ["Kiểm tra yêu cầu", "Xác nhận gửi", "Chỉnh sửa", "Hủy"]
+    trace_ids: ["REQ-F-DOC-001", "TOOL-DOCUMENT-001", "SEC-CTRL-008"]
+  - screen_id: "UX-SCR-018"
+    route: "/app/rooms"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-005", "UX-STATE-007", "UX-STATE-012", "UX-STATE-013", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-021"]
+    required_primary_actions: ["Tìm phòng", "Kiểm tra yêu cầu", "Xác nhận gửi", "Làm mới khả dụng"]
+    trace_ids: ["REQ-F-ROOM-001", "REQ-F-ROOM-003", "TOOL-ROOM-001", "TOOL-ROOM-002"]
+  - screen_id: "UX-SCR-019"
+    route: "/app/profile/privacy"
+    roles: ["student"]
+    required_states: ["UX-STATE-001", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Xem thông tin xử lý dữ liệu", "Tạo yêu cầu quyền nếu được hỗ trợ"]
+    trace_ids: ["REQ-F-PRIV-001", "PRIV-FLOW-010", "PRIV-FLOW-009"]
+  - screen_id: "UX-SCR-020"
+    route: "handover_or_safety_surface"
+    roles: ["student", "support_officer", "queue_lead", "student_support_lead"]
+    required_states: ["UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-020", "UX-STATE-021"]
+    required_primary_actions: ["Yêu cầu cán bộ hỗ trợ", "Xác nhận chuyển tiếp", "Hủy"]
+    trace_ids: ["REQ-F-HITL-001", "HITL-008", "UX-HITL-001", "SEC-CTRL-025"]
+  - screen_id: "UX-SCR-101"
+    route: "/staff/queues"
+    roles: ["support_officer", "queue_lead", "student_support_lead", "operations_administrator"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Mở hàng chờ", "Làm mới"]
+    trace_ids: ["REQ-F-STAFF-001", "SVC-QUE-001", "SEC-CTRL-003"]
+  - screen_id: "UX-SCR-102"
+    route: "/staff/queues/:queueId"
+    roles: ["support_officer", "queue_lead", "student_support_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-005", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Xóa bộ lọc", "Mở case", "Nhận case nếu được phép"]
+    trace_ids: ["REQ-F-STAFF-001", "SVC-QUE-002", "SEC-CTRL-003"]
+  - screen_id: "UX-SCR-103"
+    route: "/staff/cases/:caseId"
+    roles: ["support_officer", "queue_lead", "student_support_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-021"]
+    required_primary_actions: ["Nhận case", "Chuyển hàng chờ", "Gửi phản hồi", "Thêm ghi chú nội bộ", "Giải quyết"]
+    trace_ids: ["REQ-F-STAFF-002", "REQ-F-STAFF-003", "UX-INT-031", "UX-INT-032", "SEC-CTRL-003"]
+  - screen_id: "UX-SCR-104"
+    route: "restricted_access_gate"
+    roles: ["support_officer", "queue_lead", "student_support_lead", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012"]
+    required_primary_actions: ["Quay lại", "Yêu cầu quyền nếu có quy trình"]
+    trace_ids: ["SEC-CTRL-003", "SEC-CTRL-004", "SEC-AUTHN-007"]
+  - screen_id: "UX-SCR-105"
+    route: "/staff/reports/service"
+    roles: ["queue_lead", "student_support_lead", "operations_administrator", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Đổi khoảng thời gian", "Xem định nghĩa chỉ số", "Làm mới"]
+    trace_ids: ["REQ-F-STAFF-007", "PRIV-FLOW-014", "SEC-CTRL-018"]
+  - screen_id: "UX-SCR-201"
+    route: "/knowledge/sources"
+    roles: ["knowledge_administrator", "ai_quality_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-005", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Thêm nguồn", "Xóa bộ lọc", "Mở nguồn"]
+    trace_ids: ["REQ-F-KNOW-001", "REQ-F-KNOW-002", "SEC-CTRL-012"]
+  - screen_id: "UX-SCR-202"
+    route: "/knowledge/sources/new"
+    roles: ["knowledge_administrator"]
+    required_states: ["UX-STATE-001", "UX-STATE-003", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019"]
+    required_primary_actions: ["Đăng ký nguồn ở trạng thái nháp", "Chỉnh sửa", "Hủy"]
+    trace_ids: ["REQ-F-KNOW-002", "SEC-DATA-006", "SEC-CTRL-012"]
+  - screen_id: "UX-SCR-203"
+    route: "/knowledge/sources/:sourceId/versions/:versionId"
+    roles: ["knowledge_administrator", "ai_quality_lead", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Xem provenance", "Xem diff", "Cách ly", "Gửi review"]
+    trace_ids: ["REQ-F-KNOW-003", "REQ-F-KNOW-004", "SEC-CTRL-012"]
+  - screen_id: "UX-SCR-204"
+    route: "/knowledge/reviews"
+    roles: ["knowledge_administrator", "ai_quality_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-019"]
+    required_primary_actions: ["Phê duyệt", "Từ chối", "Yêu cầu chỉnh sửa"]
+    trace_ids: ["REQ-F-KNOW-005", "REQ-F-KNOW-006", "SEC-CTRL-012"]
+  - screen_id: "UX-SCR-205"
+    route: "/knowledge/quality"
+    roles: ["knowledge_administrator", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013"]
+    required_primary_actions: ["Mở lỗi citation", "Làm mới", "Xem định nghĩa chỉ số"]
+    trace_ids: ["REQ-F-KNOW-009", "UX-TRUST-008", "SEC-CTRL-014"]
+  - screen_id: "UX-SCR-301"
+    route: "/operations"
+    roles: ["operations_administrator", "security_privacy_lead", "ai_quality_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-009", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013"]
+    required_primary_actions: ["Mở sự cố", "Mở trạng thái dịch vụ", "Làm mới"]
+    trace_ids: ["REQ-F-OPS-001", "REQ-F-OPS-002", "SEC-CTRL-018"]
+  - screen_id: "UX-SCR-302"
+    route: "/operations/incidents"
+    roles: ["operations_administrator", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-008", "UX-STATE-009", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013"]
+    required_primary_actions: ["Mở sự cố", "Cập nhật theo runbook", "Làm mới"]
+    trace_ids: ["REQ-F-OPS-003", "SEC-CTRL-021"]
+  - screen_id: "UX-SCR-303"
+    route: "/operations/controls"
+    roles: ["operations_administrator", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019"]
+    required_primary_actions: ["Xem trước thay đổi", "Xác nhận", "Hủy"]
+    trace_ids: ["REQ-F-OPS-002", "UX-ACT-001", "SEC-CTRL-008", "SEC-CTRL-024"]
+  - screen_id: "UX-SCR-304"
+    route: "/operations/audit"
+    roles: ["operations_administrator", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-005", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013"]
+    required_primary_actions: ["Lọc sự kiện", "Xem chi tiết được phép"]
+    trace_ids: ["REQ-F-OPS-004", "SEC-CTRL-018", "SEC-DATA-003"]
+  - screen_id: "UX-SCR-305"
+    route: "/operations/configuration"
+    roles: ["operations_administrator", "security_privacy_lead"]
+    required_states: ["UX-STATE-001", "UX-STATE-004", "UX-STATE-006", "UX-STATE-007", "UX-STATE-010", "UX-STATE-012", "UX-STATE-013", "UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019", "UX-STATE-020"]
+    required_primary_actions: ["Xem trước thay đổi", "Xác nhận", "Hủy"]
+    trace_ids: ["REQ-F-OPS-005", "OQ-003", "SEC-CTRL-025"]
+  - screen_id: "UX-SCR-901"
+    route: "forbidden"
+    roles: ["public", "student", "support_officer", "queue_lead", "student_support_lead", "knowledge_administrator", "operations_administrator", "security_privacy_lead", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-010"]
+    required_primary_actions: ["Quay lại khu vực an toàn", "Yêu cầu trợ giúp nếu được duyệt"]
+    trace_ids: ["SEC-CTRL-003", "UX-STATE-010"]
+  - screen_id: "UX-SCR-902"
+    route: "not_found"
+    roles: ["public", "student", "support_officer", "queue_lead", "student_support_lead", "knowledge_administrator", "operations_administrator", "security_privacy_lead", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-007"]
+    required_primary_actions: ["Quay lại trang phù hợp"]
+    trace_ids: ["UX-CONTENT-010"]
+  - screen_id: "UX-SCR-903"
+    route: "offline"
+    roles: ["public", "student", "support_officer", "queue_lead", "student_support_lead", "knowledge_administrator", "operations_administrator", "security_privacy_lead", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-013", "UX-STATE-021"]
+    required_primary_actions: ["Thử kết nối lại", "Xem dữ liệu cache được phép"]
+    trace_ids: ["UX-INT-050", "SEC-DATA-004"]
+  - screen_id: "UX-SCR-904"
+    route: "maintenance_or_suspended"
+    roles: ["public", "student", "support_officer", "queue_lead", "student_support_lead", "knowledge_administrator", "operations_administrator", "security_privacy_lead", "ai_quality_lead", "product_owner"]
+    required_states: ["UX-STATE-009", "UX-STATE-011"]
+    required_primary_actions: ["Xem trạng thái dịch vụ", "Mở kênh trợ giúp đã duyệt"]
+    trace_ids: ["SEC-CTRL-020", "SEC-CTRL-021"]
+
+cross_cutting_requirements:
+  every_screen:
+    required_wcag_checks: ["A11Y-SEMANTICS", "A11Y-KEYBOARD", "A11Y-NONCOLOR", "A11Y-REFLOW", "A11Y-LANGUAGE"]
+    required_telemetry_events: ["ui.state.presented", "ui.action.invoked"]
+    required_test_viewports: ["360x800", "768x1024", "1440x900"]
+    required_negative_tests:
+      - "authorization_checked_before_fetch"
+      - "unknown_not_rendered_as_empty_or_zero"
+      - "protected_content_absent_from_denied_dom_and_network_cache"
+      - "telemetry_contains_no_prohibited_fields"
+  sensitive_or_handover:
+    matching_screens: ["UX-SCR-020", "UX-SCR-103", "UX-SCR-104", "UX-SCR-302", "UX-SCR-304", "UX-SCR-305"]
+    required_wcag_checks: ["A11Y-CRITICAL", "A11Y-DIALOG", "A11Y-STATUS"]
+    required_trace_ids: ["SEC-CTRL-003", "SEC-CTRL-018", "SEC-CTRL-025"]
+    required_negative_tests:
+      - "no_sensitive_text_in_notification_or_telemetry"
+      - "no_unapproved_contact_or_response_promise"
+      - "no_diagnosis_or_autonomous_high_impact_decision"
+  confirmation:
+    matching_states: ["UX-STATE-014", "UX-STATE-015", "UX-STATE-016", "UX-STATE-017", "UX-STATE-018", "UX-STATE-019"]
+    required_trace_ids: ["UX-ACT-001", "UX-ACT-003", "UX-ACT-004", "UX-ACT-005", "UX-ACT-006", "UX-ACT-007", "UX-ACT-008", "UX-ACT-009", "SEC-CTRL-008"]
+    required_negative_tests:
+      - "payload_tamper_rejected"
+      - "expired_confirmation_rejected"
+      - "duplicate_activation_idempotent"
+      - "disconnect_after_confirm_maps_to_result_unknown"
+
+validation_rules:
+  - id: "UI-MATRIX-VAL-001"
+    rule: "Every screen_id and state_id MUST exist in the referenced UX prose documents."
+    failure: "block_implementation"
+  - id: "UI-MATRIX-VAL-002"
+    rule: "Every screen MUST declare at least one role, state, primary action and trace ID."
+    failure: "block_implementation"
+  - id: "UI-MATRIX-VAL-003"
+    rule: "Every state MUST declare category, trigger, required copy, telemetry, WCAG checks, trace IDs and prohibitions."
+    failure: "block_implementation"
+  - id: "UI-MATRIX-VAL-004"
+    rule: "401 MUST map only to UX-STATE-012 and 403 MUST map only to UX-STATE-010."
+    failure: "security_review_required"
+  - id: "UI-MATRIX-VAL-005"
+    rule: "All telemetry MUST comply with the allowlist and prohibited-field list in this document."
+    failure: "privacy_gate_fails"
+  - id: "UI-MATRIX-VAL-006"
+    rule: "A screen implementation is incomplete until every required state has automated or reviewable evidence."
+    failure: "task_not_accepted"

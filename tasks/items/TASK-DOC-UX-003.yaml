@@ -1,0 +1,75 @@
+schema_version: "1.1"
+id: TASK-DOC-UX-003
+phase: P00
+title: "Prepare trust action and Vietnamese content UX for approval"
+status: accepted
+objective: "Prepare review-ready trust, citation, confirmation and Vietnamese content rules, including a safe emergency fallback for named human approval."
+layer: governance
+bounded_context: ux-trust-content
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: true
+approval_reasons: ["requirement_change", "security_policy"]
+traceability:
+  requirements: ["REQ-F-RAG-004", "REQ-F-HITL-007"]
+  acceptance_criteria: ["AC-REQ-F-RAG-004-01", "AC-REQ-F-HITL-007-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: ["UX-TRUST-001", "UX-ACT-001"]
+  contracts: []
+  controls: []
+  evals: []
+dependencies: ["TASK-DOC-GOV-001"]
+inputs: [{path: "docs/00-governance/DOCUMENT_CONTROL.md", load: "full"}, {path: "docs/01-product/PRD.md", load: "full"}, {path: "docs/00-governance/DECISION_REGISTER.md", load: "full"}]
+write_scope:
+  allowed_paths: ["docs/03-ux/TRUST_AND_CITATION_UX.md", "docs/03-ux/ACTION_PREVIEW_AND_CONFIRMATION_UX.md", "docs/03-ux/CONTENT_STYLE_VI.md"]
+  forbidden_paths: [apps/**, contracts/**, .git/**]
+  max_files: 3
+  max_added_lines: 400
+preconditions:
+  - Every dependency is accepted and every normative input is approved for this environment.
+  - The assigned task status is ready and any required human approval names this task and exact scope.
+  - The orchestrator confirmed a clean non-overlapping write lease and the executor preserved all pre-existing workspace changes.
+steps:
+  - Read every input and each existing allowed target before editing.
+  - "Define verifiable citation details without unexplained confidence percentages, distinguish system facts from AI explanations, preserve preview and explicit confirmation, and approve Vietnamese error, uncertainty and emergency copy without invented contacts."
+  - Prepare review-ready trust action and content rules in the allowed paths, leave exact unresolved policy choices visible, and set document status to reviewed rather than approved.
+  - Add or update focused positive keyboard responsive and failure-path evidence that fits this objective.
+  - Run every verification command in order then inspect git status and the exact changed-file set.
+  - Return one JSON object conforming to tasks/task-output.schema.json with acceptance-to-evidence mapping.
+acceptance_criteria:
+  - id: AC-TASK-DOC-UX-003-01
+    assertion: "Trust, citation, confirmation, Vietnamese content and emergency fallback rules are ready for named human reviewers without claiming approval."
+  - id: AC-TASK-DOC-UX-003-02
+    assertion: "Define verifiable citation details without unexplained confidence percentages, distinguish system facts from AI explanations, preserve preview and explicit confirmation, and approve Vietnamese error, uncertainty and emergency copy without invented contacts."
+  - id: AC-TASK-DOC-UX-003-03
+    assertion: The documents prohibit fabricated contacts and success, define verifiable citations and confirmation outcomes, and have status reviewed.
+  - id: AC-TASK-DOC-UX-003-04
+    assertion: Every changed file is inside the declared scope and no unrelated workspace state was altered.
+verification:
+  - command: "rg -n 'status: \"reviewed\"|UX-TRUST-|UX-ACT-|UX-CONTENT-' docs/03-ux/TRUST_AND_CITATION_UX.md docs/03-ux/ACTION_PREVIEW_AND_CONFIRMATION_UX.md docs/03-ux/CONTENT_STYLE_VI.md"
+    expected_exit_code: 0
+    proves: "The trust, action and content sources are review-ready with stable rules and do not self-assert approval."
+evidence_required:
+  - initial and final git status
+  - changed-file and diff summary
+  - commands with exit codes
+  - acceptance-to-evidence mapping
+  - browser or manual evidence marked not_verified when unavailable
+recovery:
+  strategy: reverse_patch
+  steps:
+    - Keep the patch unpromoted and apply only a reviewed task-scoped reverse patch if rollback is required.
+stop_conditions:
+  - A required source is missing conflicting changed after approval or not approved.
+  - Completion needs an unlisted file dependency network call secret or destructive action.
+  - Visual or browser claims cannot be reproduced in the available environment.
+parallelism:
+  eligible: false
+  conflict_keys: ["ux-trust-content"]
+execution_policy:
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+  destructive_operations: false
