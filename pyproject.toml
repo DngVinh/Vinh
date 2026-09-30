@@ -5,6 +5,8 @@ description = "Campus 24/7 — HUCE Demo backend application and services"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "langgraph>=0.1.0",
+    "langchain-core>=0.2.0",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.8.0",
@@ -38,4 +40,5 @@ filterwarnings = [
 
 [tool.setuptools.packages.find]
 where = ['services/api/src', 'packages/synthetic/src']
+
 
