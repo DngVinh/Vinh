@@ -1,7 +1,7 @@
 schema_version: '1.0'
 catalog: campus247-v1
 generated_by: tasks/tools/generate_catalog.py
-task_count: 201
+task_count: 241
 phases:
 - id: P00
   title: Normative readiness and repository bootstrap
@@ -1601,4 +1601,284 @@ supplemental_tasks:
   title: "Verify the redesigned journeys in real browser evidence"
   status: draft
   dependencies: [TASK-WEB-HOME-002, TASK-WEB-CITE-002, TASK-WEB-SCHED-003, TASK-WEB-TICK-003, TASK-WEB-DOCREQ-002, TASK-WEB-ROOM-003, TASK-WEB-SAFE-001, TASK-WEB-STAFF-002, TASK-WEB-KNOW-002, TASK-WEB-OPS-002, TASK-WEB-PRIV-002]
+  human_approval_required: false
+- id: TASK-GOV-AUD-001
+  phase: P00
+  path: tasks/items/TASK-GOV-AUD-001.yaml
+  title: "Reconcile audit findings into one governed remediation ledger"
+  status: accepted
+  dependencies: []
+  human_approval_required: false
+- id: TASK-GOV-AUD-002
+  phase: P00
+  path: tasks/items/TASK-GOV-AUD-002.yaml
+  title: "Enforce remediation task catalog consistency and readiness gates"
+  status: accepted
+  dependencies: [TASK-GOV-AUD-001]
+  human_approval_required: false
+- id: TASK-API-AUTHFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-AUTHFIX-001.yaml
+  title: "Remove request-controlled identity and fail authentication closed"
+  status: draft
+  dependencies: [TASK-API-IDENTITY-002]
+  human_approval_required: true
+- id: TASK-API-SESSFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-SESSFIX-001.yaml
+  title: "Revoke sessions completely on logout and credential rotation"
+  status: draft
+  dependencies: [TASK-API-AUTHFIX-001]
+  human_approval_required: true
+- id: TASK-API-WRITEFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-WRITEFIX-001.yaml
+  title: "Block direct write routes that bypass preview and confirmation"
+  status: draft
+  dependencies: [TASK-API-AUTHFIX-001, TASK-API-ACTION-003]
+  human_approval_required: true
+- id: TASK-API-CONFFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-CONFFIX-001.yaml
+  title: "Make confirmation tokens subject and payload bound"
+  status: draft
+  dependencies: [TASK-API-WRITEFIX-001]
+  human_approval_required: true
+- id: TASK-DB-REPOFIX-001
+  phase: P03
+  path: tasks/items/TASK-DB-REPOFIX-001.yaml
+  title: "Compose production repositories explicitly and fail closed"
+  status: draft
+  dependencies: [TASK-DB-MIG-001]
+  human_approval_required: false
+- id: TASK-DB-AUDITFIX-001
+  phase: P03
+  path: tasks/items/TASK-DB-AUDITFIX-001.yaml
+  title: "Persist append-only audit records for controlled writes"
+  status: draft
+  dependencies: [TASK-DB-REPOFIX-001, TASK-API-CONFFIX-001, TASK-API-AUDIT-001]
+  human_approval_required: true
+- id: TASK-API-PRIVFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-PRIVFIX-001.yaml
+  title: "Enforce consent and purpose at privacy write boundaries"
+  status: draft
+  dependencies: [TASK-API-AUTHFIX-001, TASK-DB-AUDITFIX-001, TASK-API-PRIV-002]
+  human_approval_required: true
+- id: TASK-WORKER-RETENTION-002
+  phase: P08
+  path: tasks/items/TASK-WORKER-RETENTION-002.yaml
+  title: "Make retention processing idempotent and legal-hold aware"
+  status: draft
+  dependencies: [TASK-API-PRIVFIX-001]
+  human_approval_required: true
+- id: TASK-DB-BOOKFIX-001
+  phase: P03
+  path: tasks/items/TASK-DB-BOOKFIX-001.yaml
+  title: "Enforce booking overlap and idempotency in the database"
+  status: draft
+  dependencies: [TASK-DB-BOOKING-001, TASK-API-CONFFIX-001]
+  human_approval_required: true
+- id: TASK-API-CONCEAL-001
+  phase: P03
+  path: tasks/items/TASK-API-CONCEAL-001.yaml
+  title: "Centralize existence concealment for unauthorized objects"
+  status: draft
+  dependencies: [TASK-API-AUTHFIX-001]
+  human_approval_required: true
+- id: TASK-API-CONCEAL-002
+  phase: P03
+  path: tasks/items/TASK-API-CONCEAL-002.yaml
+  title: "Adopt existence concealment across object lookup routes"
+  status: draft
+  dependencies: [TASK-API-CONCEAL-001]
+  human_approval_required: true
+- id: TASK-API-ABUSE-001
+  phase: P03
+  path: tasks/items/TASK-API-ABUSE-001.yaml
+  title: "Apply principal-aware abuse limits before expensive work"
+  status: draft
+  dependencies: [TASK-API-AUTHFIX-001]
+  human_approval_required: true
+- id: TASK-API-HEALTHFIX-001
+  phase: P03
+  path: tasks/items/TASK-API-HEALTHFIX-001.yaml
+  title: "Separate liveness, readiness, and dependency health truthfully"
+  status: draft
+  dependencies: [TASK-DB-REPOFIX-001, TASK-API-HEALTH-002]
+  human_approval_required: false
+- id: TASK-AGENT-CONFIRM-002
+  phase: P04
+  path: tasks/items/TASK-AGENT-CONFIRM-002.yaml
+  title: "Bind agent write confirmation to immutable action previews"
+  status: draft
+  dependencies: [TASK-API-CONFFIX-001, TASK-AGENT-TOOL-002]
+  human_approval_required: true
+- id: TASK-AGENT-EXEC-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-EXEC-001.yaml
+  title: "Make tool execution idempotent with explicit unknown outcomes"
+  status: draft
+  dependencies: [TASK-AGENT-CONFIRM-002, TASK-DB-AUDITFIX-001]
+  human_approval_required: true
+- id: TASK-AGENT-HITL-004
+  phase: P04
+  path: tasks/items/TASK-AGENT-HITL-004.yaml
+  title: "Enforce durable human interrupts and safe resume semantics"
+  status: draft
+  dependencies: [TASK-AGENT-EXEC-001, TASK-API-HITL-003]
+  human_approval_required: true
+- id: TASK-AGENT-EVIDENCE-002
+  phase: P04
+  path: tasks/items/TASK-AGENT-EVIDENCE-002.yaml
+  title: "Require claim-level evidence and abstention before answers"
+  status: draft
+  dependencies: [TASK-AGENT-RAG-001]
+  human_approval_required: false
+- id: TASK-WEB-CITE-003
+  phase: P06
+  path: tasks/items/TASK-WEB-CITE-003.yaml
+  title: "Render citations only from verified claim bindings"
+  status: draft
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-WEB-CITE-002]
+  human_approval_required: false
+- id: TASK-AGENT-INJECT-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-INJECT-001.yaml
+  title: "Isolate instructions from retrieved and tool-supplied content"
+  status: draft
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-AGENT-SAFETY-001]
+  human_approval_required: true
+- id: TASK-AGENT-EGRESS-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-EGRESS-001.yaml
+  title: "Minimize and authorize every model-provider egress payload"
+  status: draft
+  dependencies: [TASK-AGENT-INJECT-001, TASK-AGENT-LLM-003]
+  human_approval_required: true
+- id: TASK-AGENT-BUDGET-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-BUDGET-001.yaml
+  title: "Enforce per-request model cost latency and retry budgets"
+  status: draft
+  dependencies: [TASK-AGENT-EGRESS-001]
+  human_approval_required: false
+- id: TASK-AGENT-STREAM-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-STREAM-001.yaml
+  title: "Validate streamed output before committing visible semantics"
+  status: draft
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-AGENT-BUDGET-001]
+  human_approval_required: true
+- id: TASK-AGENT-TRACE-002
+  phase: P04
+  path: tasks/items/TASK-AGENT-TRACE-002.yaml
+  title: "Create privacy-safe end-to-end agent decision traces"
+  status: draft
+  dependencies: [TASK-AGENT-STREAM-001, TASK-DB-AUDITFIX-001]
+  human_approval_required: true
+- id: TASK-EVAL-AUD-001
+  phase: P09
+  path: tasks/items/TASK-EVAL-AUD-001.yaml
+  title: "Build adversarial release gates for AI safety and writes"
+  status: draft
+  dependencies: [TASK-AGENT-HITL-004, TASK-WEB-CITE-003, TASK-AGENT-INJECT-001, TASK-AGENT-EGRESS-001, TASK-AGENT-BUDGET-001, TASK-AGENT-STREAM-001, TASK-AGENT-TRACE-002]
+  human_approval_required: false
+- id: TASK-WEB-STAFF-003
+  phase: P06
+  path: tasks/items/TASK-WEB-STAFF-003.yaml
+  title: "Close staff queue authorization and stale-action gaps"
+  status: draft
+  dependencies: [TASK-WEB-STAFF-002, TASK-API-CONCEAL-002, TASK-API-WRITEFIX-001]
+  human_approval_required: true
+- id: TASK-WEB-SCHED-004
+  phase: P06
+  path: tasks/items/TASK-WEB-SCHED-004.yaml
+  title: "Make schedule time and freshness semantics explicit"
+  status: draft
+  dependencies: [TASK-WEB-SCHED-003]
+  human_approval_required: false
+- id: TASK-WEB-PRIV-003
+  phase: P06
+  path: tasks/items/TASK-WEB-PRIV-003.yaml
+  title: "Make privacy consent and request states legally honest"
+  status: draft
+  dependencies: [TASK-WEB-PRIV-002, TASK-API-PRIVFIX-001]
+  human_approval_required: true
+- id: TASK-WEB-KNOW-003
+  phase: P06
+  path: tasks/items/TASK-WEB-KNOW-003.yaml
+  title: "Enforce knowledge review provenance and publish authority"
+  status: draft
+  dependencies: [TASK-WEB-KNOW-002, TASK-AGENT-INJECT-001]
+  human_approval_required: true
+- id: TASK-WEB-HOME-003
+  phase: P06
+  path: tasks/items/TASK-WEB-HOME-003.yaml
+  title: "Replace homepage demo truth with live capability truth"
+  status: draft
+  dependencies: [TASK-WEB-HOME-002, TASK-API-HEALTHFIX-001]
+  human_approval_required: false
+- id: TASK-WEB-ADMIN-001
+  phase: P06
+  path: tasks/items/TASK-WEB-ADMIN-001.yaml
+  title: "Secure admin navigation and route capability boundaries"
+  status: draft
+  dependencies: [TASK-WEB-STAFF-003, TASK-WEB-KNOW-003, TASK-WEB-PRIV-003]
+  human_approval_required: true
+- id: TASK-WEB-A11Y-003
+  phase: P06
+  path: tasks/items/TASK-WEB-A11Y-003.yaml
+  title: "Close keyboard focus announcement and contrast blockers"
+  status: draft
+  dependencies: [TASK-WEB-STAFF-003, TASK-WEB-SCHED-004, TASK-WEB-PRIV-003, TASK-WEB-KNOW-003, TASK-WEB-HOME-003, TASK-WEB-ADMIN-001]
+  human_approval_required: false
+- id: TASK-WEB-RESULT-001
+  phase: P06
+  path: tasks/items/TASK-WEB-RESULT-001.yaml
+  title: "Represent ambiguous write outcomes without false success"
+  status: draft
+  dependencies: [TASK-AGENT-EXEC-001, TASK-WEB-STAFF-003]
+  human_approval_required: true
+- id: TASK-OPS-RELEASE-002
+  phase: P09
+  path: tasks/items/TASK-OPS-RELEASE-002.yaml
+  title: "Require immutable evidence before release promotion"
+  status: draft
+  dependencies: [TASK-EVAL-AUD-001, TASK-WEB-A11Y-003, TASK-WEB-RESULT-001]
+  human_approval_required: true
+- id: TASK-TEST-CI-002
+  phase: P09
+  path: tasks/items/TASK-TEST-CI-002.yaml
+  title: "Make CI enforce catalog security AI and release gates"
+  status: draft
+  dependencies: [TASK-OPS-RELEASE-002]
+  human_approval_required: false
+- id: TASK-REPO-DEP-002
+  phase: P01
+  path: tasks/items/TASK-REPO-DEP-002.yaml
+  title: "Pin approved dependencies and verify software provenance"
+  status: draft
+  dependencies: [TASK-TEST-CI-002]
+  human_approval_required: true
+- id: TASK-INFRA-CDK-002
+  phase: P07
+  path: tasks/items/TASK-INFRA-CDK-002.yaml
+  title: "Make infrastructure synthesis deterministic and policy checked"
+  status: draft
+  dependencies: [TASK-REPO-DEP-002, TASK-INFRA-CDK-001]
+  human_approval_required: true
+- id: TASK-GOV-AUD-003
+  phase: P00
+  path: tasks/items/TASK-GOV-AUD-003.yaml
+  title: "Add canonical remediation requirement bindings for output compliance"
+  status: accepted
+  dependencies: []
+  human_approval_required: false
+- id: TASK-AGENT-PARSERFIX-001
+  phase: P04
+  path: tasks/items/TASK-AGENT-PARSERFIX-001.yaml
+  title: "Reject ambiguous and non-finite structured model output"
+  status: accepted
+  dependencies: [TASK-AGENT-LLM-003]
   human_approval_required: false

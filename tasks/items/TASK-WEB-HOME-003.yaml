@@ -1,0 +1,108 @@
+acceptance_criteria:
+- assertion: No metric, capability, or availability claim is rendered without an authoritative
+    source.
+  id: AC-TASK-WEB-HOME-003-01
+- assertion: Unavailable or unauthorized actions are not presented as usable.
+  id: AC-TASK-WEB-HOME-003-02
+- assertion: Degraded state explains impact and safe next action without pretending
+    success.
+  id: AC-TASK-WEB-HOME-003-03
+- assertion: Changes remain inside write_scope; tests cover loading, empty, denied,
+    degraded, failure, retry, and recovery as applicable without secrets or personal
+    data.
+  id: AC-TASK-WEB-HOME-003-99
+approval_reasons: []
+bounded_context: home
+dependencies:
+- TASK-WEB-HOME-002
+- TASK-API-HEALTHFIX-001
+estimated_minutes: 45
+evidence_required:
+- initial and final git status
+- exact changed-file and diff summary
+- commands and exit codes
+- acceptance-to-evidence mapping
+- negative-state screenshots or structured test evidence
+execution_policy:
+  destructive_operations: false
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+human_approval_required: false
+id: TASK-WEB-HOME-003
+inputs:
+- load: full
+  path: docs/00-governance/DOCUMENT_CONTROL.md
+layer: web
+objective: Ensure homepage capability, availability, counts, and calls to action derive
+  from authoritative runtime state and never from fabricated placeholders or optimistic
+  demo defaults.
+parallelism:
+  conflict_keys:
+  - web-home
+  eligible: true
+phase: P06
+preconditions:
+- Every dependency is accepted, every normative input is approved, and this draft
+  task has passed readiness review.
+- The orchestrator has preserved all existing work and granted a non-overlapping write
+  lease for this exact scope.
+- Required human approval names this task, scope, environment, and proposed security
+  or privacy behavior.
+priority: P1
+recovery:
+  steps:
+  - Keep the change unpromoted and apply a reviewed reverse patch limited to this
+    scope if needed; preserve evidence and reconcile ambiguous writes.
+  strategy: stop_before_promotion
+schema_version: '1.1'
+sensitivity: medium
+status: accepted
+steps:
+- Read all inputs and enumerate user states, trust boundaries, authoritative data,
+  failure modes, and forbidden claims before coding.
+- Map each capability and call to action to verified session, authorization, readiness,
+  and data freshness.
+- Remove fabricated totals, example incidents, synthetic status, and unconditional
+  availability claims.
+- Test anonymous, partial outage, stale data, denied capability, loading, empty, and
+  recovery states.
+- Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence
+  mapping.
+stop_conditions:
+- Normative product, UX, security, privacy, or architecture sources conflict or leave
+  the required behavior undefined.
+- An unlisted file, dependency, network call, credential, live service, production
+  access, or destructive operation is required.
+- Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot
+  be verified deterministically.
+title: Replace homepage demo truth with live capability truth
+traceability:
+  contracts:
+  - API-OPS-001
+  controls:
+  - SEC-CTRL-020
+  design:
+  - UX-IA-001
+  - UX-STATE-DEGRADED
+  evals: []
+  requirements: []
+verification:
+- command: npm --prefix apps/web test -- --run src/app/page.test.tsx
+  expected_exit_code: 0
+  proves: Focused positive, authorization, degraded, adversarial, and failure-path
+    behavior passes.
+- command: python -B tasks/tools/validate_catalog.py
+  expected_exit_code: 0
+  proves: Catalog, DAG, traceability, approval, and scope invariants remain valid.
+write_scope:
+  allowed_paths:
+  - apps/web/src/app/page.tsx
+  - apps/web/src/app/page.test.tsx
+  - apps/web/src/features/operations/CapabilityBanner.tsx
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_added_lines: 360
+  max_files: 3

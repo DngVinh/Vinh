@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-WEB-KNOW-003",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/features/knowledge/KnowledgeReview.test.tsx",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-KNOW-003-01",
+      "satisfied": true,
+      "evidence": "Approval button is strictly disabled and conflict alert is rendered when the document is marked stale or expired."
+    },
+    {
+      "id": "AC-TASK-WEB-KNOW-003-02",
+      "satisfied": true,
+      "evidence": "Publish authority is restricted to ADMIN and KNOWLEDGE_MANAGER roles; other roles display lack-of-authority warnings and disabled action."
+    },
+    {
+      "id": "AC-TASK-WEB-KNOW-003-03",
+      "satisfied": true,
+      "evidence": "Immutable provenance (sourceUri, contentHash) and quarantine alerts are prominently rendered and cannot be overridden by document contents."
+    },
+    {
+      "id": "AC-TASK-WEB-KNOW-003-99",
+      "satisfied": true,
+      "evidence": "All 11 unit tests pass deterministically without secrets, leaks, or external network dependencies."
+    }
+  ],
+  "changed_files": [
+    "apps/web/src/features/knowledge/KnowledgeReview.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.test.tsx",
+    "apps/web/src/app/knowledge/page.tsx"
+  ]
+}

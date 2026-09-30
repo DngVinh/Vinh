@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-AGENT-BUDGET-001
+phase: P04
+title: "Enforce per-request model cost latency and retry budgets"
+status: accepted
+objective: "Enforce deterministic token, latency, provider-call, tool-call, and retry budgets across an agent run, including fallback and cancellation behavior."
+layer: agent
+bounded_context: "routing-budget"
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["AI-SYS-012"]
+  contracts: ["AgentState.v1"]
+  controls: ["AI-SYS-006", "SEC-CTRL-013"]
+  evals: ["AI-GW-003", "EVAL-METRIC-015"]
+dependencies: ["TASK-AGENT-EGRESS-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "services/api/src/campus247/agent/budget.py"
+    - "services/api/src/campus247/agent/graph.py"
+    - "tests/unit/agent/test_budget_enforcement.py"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved pre-existing changes and granted a non-overlapping write lease for this exact scope."
+  - "Required security or privacy approval explicitly names this task and the proposed behavior."
+steps:
+  - "Read all inputs and enumerate state transitions, trust domains, invariants, failure modes, and forbidden side effects before coding."
+  - "Track planned and consumed prompt tokens, completion tokens, provider calls, tool calls, elapsed time, and retries in state."
+  - "Check remaining budget before every model or tool dispatch and choose approved fallback, partial response, or abstention."
+  - "Propagate cancellation and deadline exhaustion without launching orphan work."
+  - "Run verification, inspect the exact scoped diff and status, then emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-AGENT-BUDGET-001-01
+    assertion: "No dispatch starts when its conservative estimate exceeds the remaining hard budget."
+  - id: AC-TASK-AGENT-BUDGET-001-02
+    assertion: "Retries and fallbacks consume the same parent budget and cannot reset counters."
+  - id: AC-TASK-AGENT-BUDGET-001-03
+    assertion: "Budget exhaustion yields a truthful safe outcome with no fabricated completion."
+  - id: AC-TASK-AGENT-BUDGET-001-99
+    assertion: "All behavior is deterministic under fakes, changes stay inside write_scope, and no secret, personal payload, hidden prompt, or chain-of-thought appears in evidence."
+verification:
+  - command: "python -B -m pytest -q tests/unit/agent/test_budget_enforcement.py"
+    expected_exit_code: 0
+    proves: "Focused positive, adversarial, replay, concurrency, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "forbidden-side-effect counters and redaction proof"]
+recovery:
+  strategy: feature_disable
+  steps:
+    - "Disable only the new path behind the approved flag or apply a reviewed reverse patch; preserve trace and reconcile any reserved or result-unknown action."
+stop_conditions:
+  - "Normative AI, security, privacy, or contract sources conflict or leave the required transition undefined."
+  - "A live provider, network call, credential, unapproved dependency, destructive operation, or unlisted file is required."
+  - "The implementation cannot prove authorization, evidence grounding, bounded execution, idempotency, redaction, or safe failure."
+parallelism:
+  eligible: true
+  conflict_keys: ["agent-budget"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

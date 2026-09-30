@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-WEB-RESULT-001
+phase: P06
+title: "Represent ambiguous write outcomes without false success"
+status: accepted
+objective: "Create a shared result-unknown experience for controlled writes that blocks unsafe retry, preserves correlation, and supports authoritative reconciliation."
+layer: web
+bounded_context: "controlled-actions"
+priority: P0
+estimated_minutes: 45
+sensitivity: critical
+human_approval_required: true
+approval_reasons: ["authorization", "security_policy"]
+traceability:
+  requirements: []
+  design: ["UX-ACT-001", "UX-STATE-DEGRADED"]
+  contracts: ["ActionPreview.v1", "API-IDEM-007"]
+  controls: ["SEC-CTRL-008", "SEC-AUDIT-006"]
+  evals: ["EVAL-METRIC-010"]
+dependencies: ["TASK-AGENT-EXEC-001", "TASK-WEB-STAFF-003"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "apps/web/src/components/ActionOutcome.tsx"
+    - "apps/web/src/components/ActionOutcome.test.tsx"
+    - "apps/web/src/features/rooms/RoomBooking.tsx"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved all existing work and granted a non-overlapping write lease for this exact scope."
+  - "Required human approval names this task, scope, environment, and proposed security or privacy behavior."
+steps:
+  - "Read all inputs and enumerate user states, trust boundaries, authoritative data, failure modes, and forbidden claims before coding."
+  - "Model pending, confirmed, executing, success, failed-no-effect, result-unknown, and reconciled states as an exhaustive union."
+  - "For result-unknown, disable blind resubmission and expose safe status refresh plus correlation reference."
+  - "Test timeout after dispatch, duplicate events, late success, late failure, cancellation, and page reload."
+  - "Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-WEB-RESULT-001-01
+    assertion: "Ambiguous transport failure is never displayed as success or definite failure."
+  - id: AC-TASK-WEB-RESULT-001-02
+    assertion: "The interface prevents a new write while the same idempotency identity is unresolved."
+  - id: AC-TASK-WEB-RESULT-001-03
+    assertion: "Reconciliation updates the same action record without duplicate confirmation."
+  - id: AC-TASK-WEB-RESULT-001-99
+    assertion: "Changes remain inside write_scope; tests cover loading, empty, denied, degraded, failure, retry, and recovery as applicable without secrets or personal data."
+verification:
+  - command: "npm --prefix apps/web test -- --run src/components/ActionOutcome.test.tsx"
+    expected_exit_code: 0
+    proves: "Focused positive, authorization, degraded, adversarial, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "negative-state screenshots or structured test evidence"]
+recovery:
+  strategy: stop_before_promotion
+  steps:
+    - "Keep the change unpromoted and apply a reviewed reverse patch limited to this scope if needed; preserve evidence and reconcile ambiguous writes."
+stop_conditions:
+  - "Normative product, UX, security, privacy, or architecture sources conflict or leave the required behavior undefined."
+  - "An unlisted file, dependency, network call, credential, live service, production access, or destructive operation is required."
+  - "Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot be verified deterministically."
+parallelism:
+  eligible: true
+  conflict_keys: ["web-action-outcomes"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

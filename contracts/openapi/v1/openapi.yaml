@@ -890,6 +890,34 @@ paths:
         "401": {$ref: "#/components/responses/Problem"}
         "404": {$ref: "#/components/responses/Problem"}
         default: {$ref: "#/components/responses/Problem"}
+  /v1/capabilities:
+    get:
+      operationId: getCapabilities
+      tags: [Capabilities]
+      summary: Discover agent tools and capability manifests
+      responses:
+        "200":
+          description: Capability list returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        default: {$ref: "#/components/responses/Problem"}
+  /v1/operations/capabilities:
+    get:
+      operationId: getOperationCapabilities
+      tags: [Capabilities]
+      summary: Discover operation capabilities
+      responses:
+        "200":
+          description: Operation capability list returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        default: {$ref: "#/components/responses/Problem"}
 components:
   securitySchemes:
     bearerAuth:

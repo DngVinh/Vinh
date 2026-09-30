@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-AGENT-EGRESS-001",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T15:29:30Z",
+  "completed_at": "2026-09-27T15:31:20Z",
+  "changed_files": [
+    "services/api/src/campus247/infrastructure/llm/egress_policy.py",
+    "services/api/src/campus247/infrastructure/llm/gateway.py",
+    "tests/unit/llm/test_egress_policy.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/unit/llm/test_egress_policy.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-AGENT-EGRESS-001-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-EGRESS-001-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-EGRESS-001-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-EGRESS-001-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Enforced LLM provider egress policy: payload minimization to approved inference fields only, prevention of prohibited credential/secret transmission before provider adapters are reached, and complete exclusion of raw secrets from error messages and logs.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

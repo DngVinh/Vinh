@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-DOCREQ-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T17:21:00Z",
+  "completed_at": "2026-09-26T17:24:00Z",
+  "changed_files": [
+    "apps/web/src/features/documents/DocumentRequestForm.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.test.tsx"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/grounded-faq.spec.ts",
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/chat/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "apps/web/src/features/schedule/ScheduleView.tsx",
+    "apps/web/src/features/schedule/ScheduleView.test.tsx",
+    "apps/web/src/features/tickets/TicketList.tsx",
+    "apps/web/src/features/tickets/TicketList.test.tsx",
+    "diff.txt",
+    "tasks/items/TASK-WEB-AUTH-002.yaml",
+    "tasks/items/TASK-WEB-AUTH-002-output.json",
+    "tasks/items/TASK-WEB-CHAT-003.yaml",
+    "tasks/items/TASK-WEB-CHAT-003-output.json",
+    "tasks/items/TASK-WEB-CITE-002.yaml",
+    "tasks/items/TASK-WEB-CITE-002-output.json",
+    "tasks/items/TASK-WEB-HOME-002.yaml",
+    "tasks/items/TASK-WEB-HOME-002-output.json",
+    "tasks/items/TASK-WEB-SAFE-001.yaml",
+    "tasks/items/TASK-WEB-SAFE-001-output.json",
+    "tasks/items/TASK-WEB-SCHED-002.yaml",
+    "tasks/items/TASK-WEB-SCHED-002-output.json",
+    "tasks/items/TASK-WEB-TICK-002.yaml",
+    "tasks/items/TASK-WEB-TICK-002-output.json"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-F-DOC-003",
+        "acceptance_criteria": [
+          "AC-REQ-F-DOC-003-01"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "corepack pnpm --dir apps/web test --run src/features/documents/DocumentRequestForm.test.tsx",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web lint",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-WEB-DOCREQ-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-DOCREQ-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-DOCREQ-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-DOCREQ-002-04",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Rebuilt DocumentRequestForm with progressive disclosure, inline validation (aria-invalid, aria-describedby, role=alert), structured preview showing document type, delivery method, fee, and turnaround timing, with explicit confirmation before submission and full edit/cancel preservation.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

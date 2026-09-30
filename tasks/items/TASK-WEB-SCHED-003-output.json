@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-SCHED-003",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T22:20:00Z",
+  "completed_at": "2026-09-26T22:22:00Z",
+  "changed_files": [
+    "apps/web/src/app/schedule/page.tsx",
+    "apps/web/src/app/schedule/page.test.tsx"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/grounded-faq.spec.ts",
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/chat/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/app/rooms/page.tsx",
+    "apps/web/src/app/rooms/page.test.tsx",
+    "apps/web/src/app/tickets/page.tsx",
+    "apps/web/src/app/tickets/page.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.test.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.test.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.test.tsx",
+    "apps/web/src/features/rooms/RoomBooking.tsx",
+    "apps/web/src/features/rooms/RoomBooking.test.tsx",
+    "apps/web/src/features/schedule/ScheduleView.tsx",
+    "apps/web/src/features/schedule/ScheduleView.test.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.test.tsx",
+    "apps/web/src/features/tickets/TicketList.tsx",
+    "apps/web/src/features/tickets/TicketList.test.tsx",
+    "tasks/items/TASK-WEB-AUTH-002.yaml",
+    "tasks/items/TASK-WEB-AUTH-002-output.json",
+    "tasks/items/TASK-WEB-CHAT-003.yaml",
+    "tasks/items/TASK-WEB-CHAT-003-output.json",
+    "tasks/items/TASK-WEB-CITE-002.yaml",
+    "tasks/items/TASK-WEB-CITE-002-output.json",
+    "tasks/items/TASK-WEB-DOCREQ-002.yaml",
+    "tasks/items/TASK-WEB-DOCREQ-002-output.json",
+    "tasks/items/TASK-WEB-HOME-002.yaml",
+    "tasks/items/TASK-WEB-HOME-002-output.json",
+    "tasks/items/TASK-WEB-KNOW-002.yaml",
+    "tasks/items/TASK-WEB-KNOW-002-output.json",
+    "tasks/items/TASK-WEB-OPS-002.yaml",
+    "tasks/items/TASK-WEB-OPS-002-output.json",
+    "tasks/items/TASK-WEB-PRIV-002.yaml",
+    "tasks/items/TASK-WEB-PRIV-002-output.json",
+    "tasks/items/TASK-WEB-ROOM-002.yaml",
+    "tasks/items/TASK-WEB-ROOM-002-output.json",
+    "tasks/items/TASK-WEB-ROOM-003.yaml",
+    "tasks/items/TASK-WEB-ROOM-003-output.json",
+    "tasks/items/TASK-WEB-SAFE-001.yaml",
+    "tasks/items/TASK-WEB-SAFE-001-output.json",
+    "tasks/items/TASK-WEB-SCHED-002.yaml",
+    "tasks/items/TASK-WEB-SCHED-002-output.json",
+    "tasks/items/TASK-WEB-STAFF-002.yaml",
+    "tasks/items/TASK-WEB-STAFF-002-output.json",
+    "tasks/items/TASK-WEB-TICK-002.yaml",
+    "tasks/items/TASK-WEB-TICK-002-output.json",
+    "tasks/items/TASK-WEB-TICK-003.yaml",
+    "tasks/items/TASK-WEB-TICK-003-output.json"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-REL-004",
+        "acceptance_criteria": [
+          "AC-REQ-NF-REL-004-01"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "corepack pnpm --dir apps/web test --run src/app/schedule/page.test.tsx",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web lint",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-WEB-SCHED-003-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-SCHED-003-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-SCHED-003-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-SCHED-003-04",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Eliminated fabricated demo schedule fallback in schedule page; bound schedule display strictly to authoritative backend responses; retained verified cached schedule upon subsequent refresh failure with prominent [~] Dữ liệu cũ warning and retry CTA; and confirmed an API failure never fabricates successful schedule items.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

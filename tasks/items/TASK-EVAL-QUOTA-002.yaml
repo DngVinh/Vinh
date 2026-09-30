@@ -1,0 +1,8 @@
+id: TASK-EVAL-QUOTA-002
+status: completed
+objective: Create a deterministic generator, manifest and quota/provenance tests.
+write_scope:
+  allowed_paths:
+    - evals/runners/quota_generator.py
+    - tests/evals/test_quota.py
+human_approval_required: false

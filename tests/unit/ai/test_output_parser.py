@@ -30,14 +30,33 @@ def test_parse_valid_json() -> None:
     assert result == {"route": "faq", "confidence": 0.95}
 
 
-def test_parse_markdown_fence() -> None:
+def test_parse_markdown_fence_fails() -> None:
     parser = StrictOutputParser(schema=SAMPLE_SCHEMA)
     raw = """```json
 {"route": "handover", "confidence": 0.8}
 ```"""
-    result = parser.parse(raw)
-    assert result["route"] == "handover"
-    assert result["confidence"] == 0.8
+    with pytest.raises(OutputParseError, match="Malformed JSON"):
+        parser.parse(raw)
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        '{"route": "faq", "route": "ticket", "confidence": 0.5}',
+        '{"route": "faq", "confidence": 0.5, "nested": {"key": 1, "key": 2}}',
+    ],
+)
+def test_parse_duplicate_keys_at_any_depth_fails(raw: str) -> None:
+    with pytest.raises(OutputParseError, match="Duplicate JSON object key"):
+        StrictOutputParser().parse(raw)
+
+
+@pytest.mark.parametrize("number", ["NaN", "Infinity", "-Infinity", "1e400"])
+def test_parse_non_finite_numbers_fail(number: str) -> None:
+    with pytest.raises(OutputParseError, match="Non-finite JSON number"):
+        StrictOutputParser(schema=SAMPLE_SCHEMA).parse(
+            f'{{"route": "faq", "confidence": {number}}}'
+        )
 
 
 def test_parse_malformed_json_fails() -> None:

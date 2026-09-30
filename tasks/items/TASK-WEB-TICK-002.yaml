@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-TICK-002
 phase: P06
 title: "Rebuild the student ticket list and status history"
-status: draft
+status: accepted
 objective: "Rebuild the student ticket experience around ownership, understandable status and the next available action."
 layer: web
 bounded_context: redesign-tickets

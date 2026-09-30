@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-GOV-AUD-001",
+  "result": "completed",
+  "source_revision": "965702e9db7629174b0a6ccb12414db7372e7c01",
+  "started_at": "2026-09-27T21:13:54+07:00",
+  "completed_at": "2026-09-27T21:16:08+07:00",
+  "changed_files": [
+    "docs/10-delivery/AUDIT_REMEDIATION_STATUS_2026-09-27.md",
+    "tests/delivery/test_audit_remediation_ledger.py"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/grounded-faq.spec.ts",
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/globals.css",
+    "apps/web/src/app/layout.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/rooms/page.tsx",
+    "apps/web/src/app/schedule/page.tsx",
+    "apps/web/src/app/staff/page.tsx",
+    "apps/web/src/app/tickets/page.tsx",
+    "apps/web/src/components/AppShell.tsx",
+    "apps/web/src/components/AsyncState.test.tsx",
+    "apps/web/src/components/AsyncState.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.test.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.test.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.test.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.test.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.tsx",
+    "apps/web/src/features/rooms/RoomBooking.test.tsx",
+    "apps/web/src/features/rooms/RoomBooking.tsx",
+    "apps/web/src/features/schedule/ScheduleView.test.tsx",
+    "apps/web/src/features/schedule/ScheduleView.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.test.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.tsx",
+    "apps/web/src/features/tickets/TicketList.test.tsx",
+    "apps/web/src/features/tickets/TicketList.tsx",
+    "apps/web/src/styles/tokens.css",
+    "apps/web/tsconfig.tsbuildinfo",
+    "services/api/src/campus247/bootstrap/app.py",
+    "services/api/src/campus247/presentation/identity.py",
+    "services/api/src/campus247/presentation/rooms.py",
+    "services/api/src/campus247/presentation/ticket_queries.py",
+    "tasks/dag.yaml",
+    "tasks/items/TASK-TEST-WEB-002.yaml",
+    "tasks/items/TASK-WEB-AUTH-002.yaml",
+    "tasks/items/TASK-WEB-CHAT-003.yaml",
+    "tasks/items/TASK-WEB-CITE-002.yaml",
+    "tasks/items/TASK-WEB-DOCREQ-002.yaml",
+    "tasks/items/TASK-WEB-HOME-002.yaml",
+    "tasks/items/TASK-WEB-KNOW-002.yaml",
+    "tasks/items/TASK-WEB-OPS-002.yaml",
+    "tasks/items/TASK-WEB-PRIV-002.yaml",
+    "tasks/items/TASK-WEB-ROOM-002.yaml",
+    "tasks/items/TASK-WEB-ROOM-003.yaml",
+    "tasks/items/TASK-WEB-SAFE-001.yaml",
+    "tasks/items/TASK-WEB-SCHED-002.yaml",
+    "tasks/items/TASK-WEB-SCHED-003.yaml",
+    "tasks/items/TASK-WEB-STAFF-002.yaml",
+    "tasks/items/TASK-WEB-TICK-002.yaml",
+    "tasks/items/TASK-WEB-TICK-003.yaml",
+    "tasks/requirement-acceptance-bindings.yaml",
+    "tasks/task-index.yaml",
+    "tests/delivery/test_task_catalog.py"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "canonical",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-MAINT-001",
+        "acceptance_criteria": ["AC-REQ-NF-MAINT-001-01"]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/delivery/test_audit_remediation_ledger.py",
+      "working_directory": "c:\\Users\\Duong Vinh\\Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": ["test-audit-remediation-ledger-output"]
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:\\Users\\Duong Vinh\\Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": ["catalog-validation-output"]
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-001-01",
+      "status": "passed",
+      "evidence_refs": ["test-audit-remediation-ledger-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-001-02",
+      "status": "passed",
+      "evidence_refs": ["test-audit-remediation-ledger-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-001-03",
+      "status": "passed",
+      "evidence_refs": ["test-audit-remediation-ledger-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-001-99",
+      "status": "passed",
+      "evidence_refs": ["scope-check-output"]
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "test_output",
+      "ref": "test-audit-remediation-ledger-output",
+      "sha256": null
+    },
+    {
+      "kind": "validator_output",
+      "ref": "catalog-validation-output",
+      "sha256": null
+    },
+    {
+      "kind": "git_status",
+      "ref": "scope-check-output",
+      "sha256": null
+    },
+    {
+      "kind": "file_hash",
+      "ref": "docs/10-delivery/AUDIT_REMEDIATION_STATUS_2026-09-27.md",
+      "sha256": "b4166219cee85cde4009682e00f332af62cd0f28e5ec6ac20ae4bce2513fc83f"
+    },
+    {
+      "kind": "file_hash",
+      "ref": "tests/delivery/test_audit_remediation_ledger.py",
+      "sha256": "fd4f7e7fd71c485baf496d5d7874c39c3814c9cd89a7f6c92a876750fec51861"
+    }
+  ],
+  "diff_summary": "Replaced the comma-separated remediation table in AUDIT_REMEDIATION_STATUS_2026-09-27.md with a structured ledger containing Finding ID, Type, Severity, Description, Primary Task, Supporting Tasks, Wave, Status, and Closure Evidence. Added test_audit_remediation_ledger.py to verify ledger invariants.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

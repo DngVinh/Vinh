@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-API-CONCEAL-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T15:18:00Z",
+  "completed_at": "2026-09-27T15:20:00Z",
+  "changed_files": [
+    "services/api/src/campus247/presentation/ticket_queries.py",
+    "services/api/src/campus247/presentation/document_requests.py",
+    "tests/api/test_object_concealment.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/api/test_object_concealment.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-API-CONCEAL-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-CONCEAL-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-CONCEAL-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-CONCEAL-002-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Adopted existence concealment across object lookup routes: converted cross-user/unauthorized ticket and document request lookups to uniform 404 ProblemDetails indistinguishable from absent resources, and verified complete route inventory registration.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

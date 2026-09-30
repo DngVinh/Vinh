@@ -69,7 +69,7 @@ def test_action_preview_payload_hash_tamper_detected():
         ActionPreviewValue(
             id=preview.id,
             actor_user_id=preview.actor_user_id,
-            action_type=preview.action_type,
+            session_id=preview.session_id, conversation_id=preview.conversation_id, tool_version=preview.tool_version, policy_version=preview.policy_version, action_type=preview.action_type,
             normalized_payload=preview.normalized_payload,
             payload_hash="invalid_hash_value",
             policy_decision=preview.policy_decision,

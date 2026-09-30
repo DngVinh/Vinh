@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-AGENT-TRACE-002",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "python -B -m pytest -q tests/unit/observability/test_agent_trace.py",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-AGENT-TRACE-002-01",
+      "satisfied": true,
+      "evidence": "Reconstructed run from decisions records full route, tool_phase, and terminal status without storing prompts or chain-of-thought."
+    },
+    {
+      "id": "AC-TASK-AGENT-TRACE-002-02",
+      "satisfied": true,
+      "evidence": "validate_trace_payload strictly rejects forbidden attributes (thought, cot, prompt, secret), non-allowlisted keys, and oversized string values."
+    },
+    {
+      "id": "AC-TASK-AGENT-TRACE-002-03",
+      "satisfied": true,
+      "evidence": "Correlation across spans uses trace_id and salt-hashed pseudonymized principal_hash without exposing raw identity."
+    },
+    {
+      "id": "AC-TASK-AGENT-TRACE-002-99",
+      "satisfied": true,
+      "evidence": "Deterministic under fakes, changes strictly within write_scope, zero credentials or hidden reasoning exposed."
+    }
+  ],
+  "changed_files": [
+    "services/api/src/campus247/observability/agent_trace.py",
+    "services/api/src/campus247/agent/graph.py",
+    "tests/unit/observability/test_agent_trace.py"
+  ]
+}

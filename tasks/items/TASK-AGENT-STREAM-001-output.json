@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-AGENT-STREAM-001",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "python -B -m pytest -q tests/unit/agent/test_stream_guardrail.py",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-AGENT-STREAM-001-01",
+      "satisfied": true,
+      "evidence": "Unvalidated model tokens buffered provisionally; get_committed_payload() fails closed before terminal validation passes."
+    },
+    {
+      "id": "AC-TASK-AGENT-STREAM-001-02",
+      "satisfied": true,
+      "evidence": "Late failures or safety breaches replace provisional content with approved abstention fallback, never saving partial unvalidated tokens as completed."
+    },
+    {
+      "id": "AC-TASK-AGENT-STREAM-001-03",
+      "satisfied": true,
+      "evidence": "StreamEventSequencer strictly rejects duplicate (seq <= last_seq) or out-of-order stream events deterministically."
+    },
+    {
+      "id": "AC-TASK-AGENT-STREAM-001-99",
+      "satisfied": true,
+      "evidence": "All tests pass with deterministic fakes; scope confined to allowed paths; zero secrets or hidden prompts exposed."
+    }
+  ],
+  "changed_files": [
+    "services/api/src/campus247/agent/streaming.py",
+    "services/api/src/campus247/presentation/chat.py",
+    "tests/unit/agent/test_stream_guardrail.py"
+  ]
+}

@@ -25,7 +25,7 @@ def test_client():
 @pytest.fixture
 def auth_header(test_client: TestClient) -> dict[str, str]:
     resp = test_client.post("/v1/auth/demo-session")
-    token = test_client.cookies.get("auth_token", "").strip('"')
+    token = resp.json().get("token", "")
     return {"Authorization": f"Bearer {token}"}
 
 

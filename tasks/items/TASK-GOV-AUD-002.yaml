@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-GOV-AUD-002
+phase: P00
+title: "Enforce remediation task catalog consistency and readiness gates"
+status: accepted
+objective: "Extend catalog validation so audit micro-tasks cannot become ready while dependencies, normative inputs, approvals, write scope, or traceability are incomplete."
+layer: governance
+bounded_context: "task-governance"
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["ARCH-009"]
+  contracts: []
+  controls: ["SEC-SDLC-002", "SEC-SDLC-003"]
+  evals: ["ARCH-CHECK-009"]
+dependencies: ["TASK-GOV-AUD-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "tasks/tools/validate_catalog.py"
+    - "tests/delivery/test_task_catalog.py"
+    - "tasks/task.schema.json"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 320
+preconditions:
+  - "Every dependency is accepted, each normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has verified a non-overlapping write lease and preserved the complete pre-existing Git state."
+  - "Any required human approval names this task, its exact scope, and the current proposed security behavior."
+steps:
+  - "Read every input fully; map each normative MUST, failure state, and trust boundary to a testable implementation decision."
+  - "Encode audit-specific draft-to-ready invariants as deterministic validation rules."
+  - "Reject missing evidence mappings, unresolved task dependencies, scope overlap, and approval-reason mismatches."
+  - "Add positive and negative fixtures without relaxing existing validation."
+  - "Run verification in order, inspect the scoped diff and final status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-GOV-AUD-002-01
+    assertion: "A draft task may be cataloged, but readiness fails until every dependency is accepted and every approval is attached."
+  - id: AC-TASK-GOV-AUD-002-02
+    assertion: "Validation rejects unknown references, scope overflow, cycles, and unsafe execution policy."
+  - id: AC-TASK-GOV-AUD-002-03
+    assertion: "Existing accepted catalog entries continue to validate unchanged."
+  - id: AC-TASK-GOV-AUD-002-99
+    assertion: "The changed-file set stays inside write_scope and all logs, errors, fixtures, and evidence exclude secrets and unnecessary personal data."
+verification:
+  - command: "python -B -m pytest -q tests/delivery/test_task_catalog.py"
+    expected_exit_code: 0
+    proves: "Focused positive, adversarial, concurrency, and failure-path behavior passes deterministically."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Task catalog, dependency graph, traceability, approval, and write-scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands with exit codes and deterministic test output", "acceptance-criterion to evidence mapping", "negative-path and no-side-effect proof"]
+recovery:
+  strategy: reverse_patch
+  steps:
+    - "Stop promotion and apply a reviewed reverse patch limited to this task; preserve audit evidence and reconcile any result-unknown operation before retry."
+stop_conditions:
+  - "A normative source conflicts with another source, changed after review, or does not define the required security behavior."
+  - "Completion needs an unlisted file, dependency, network call, live provider, credential, destructive operation, or broader policy change."
+  - "Authorization, confirmation binding, idempotency, privacy, auditability, or failure atomicity cannot be proven by deterministic tests."
+parallelism:
+  eligible: true
+  conflict_keys: ["task-validator"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

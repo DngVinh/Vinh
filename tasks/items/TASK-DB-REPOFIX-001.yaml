@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-DB-REPOFIX-001
+phase: P03
+title: "Compose production repositories explicitly and fail closed"
+status: accepted
+objective: "Replace permissive or in-memory production fallbacks with explicit repository composition that aborts startup when required durable adapters are unavailable."
+layer: repository
+bounded_context: "composition-root"
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["ARCH-003"]
+  contracts: ["DATA-BASE-001"]
+  controls: ["SEC-CTRL-006", "SEC-SDLC-005"]
+  evals: ["ARCH-CHECK-009"]
+dependencies: ["TASK-DB-MIG-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "services/api/src/campus247/bootstrap/app.py"
+    - "services/api/src/campus247/infrastructure/repositories/composition.py"
+    - "tests/integration/test_repository_composition.py"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 320
+preconditions:
+  - "Every dependency is accepted, each normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has verified a non-overlapping write lease and preserved the complete pre-existing Git state."
+  - "Any required human approval names this task, its exact scope, and the current proposed security behavior."
+steps:
+  - "Read every input fully; map each normative MUST, failure state, and trust boundary to a testable implementation decision."
+  - "Inventory repository ports and map each runtime environment to an explicit adapter."
+  - "Reject production startup when configuration is missing, an in-memory adapter is selected, or connectivity validation fails."
+  - "Test local deterministic adapters separately from production composition."
+  - "Run verification in order, inspect the scoped diff and final status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-DB-REPOFIX-001-01
+    assertion: "Production composition contains no silent in-memory or no-op fallback."
+  - id: AC-TASK-DB-REPOFIX-001-02
+    assertion: "Startup failure identifies the missing adapter without exposing credentials."
+  - id: AC-TASK-DB-REPOFIX-001-03
+    assertion: "Every repository port is resolved exactly once and environment selection is testable."
+  - id: AC-TASK-DB-REPOFIX-001-99
+    assertion: "The changed-file set stays inside write_scope and all logs, errors, fixtures, and evidence exclude secrets and unnecessary personal data."
+verification:
+  - command: "python -B -m pytest -q tests/integration/test_repository_composition.py"
+    expected_exit_code: 0
+    proves: "Focused positive, adversarial, concurrency, and failure-path behavior passes deterministically."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Task catalog, dependency graph, traceability, approval, and write-scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands with exit codes and deterministic test output", "acceptance-criterion to evidence mapping", "negative-path and no-side-effect proof"]
+recovery:
+  strategy: reverse_patch
+  steps:
+    - "Stop promotion and apply a reviewed reverse patch limited to this task; preserve audit evidence and reconcile any result-unknown operation before retry."
+stop_conditions:
+  - "A normative source conflicts with another source, changed after review, or does not define the required security behavior."
+  - "Completion needs an unlisted file, dependency, network call, live provider, credential, destructive operation, or broader policy change."
+  - "Authorization, confirmation binding, idempotency, privacy, auditability, or failure atomicity cannot be proven by deterministic tests."
+parallelism:
+  eligible: true
+  conflict_keys: ["repository-composition"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

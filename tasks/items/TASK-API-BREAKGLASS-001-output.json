@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK-API-BREAKGLASS-001",
+  "status": "completed",
+  "evidence": {
+    "test_commands": [
+      {
+        "command": "python -m pytest tests/unit/policy/test_breakglass.py",
+        "exit_code": 0,
+        "stdout": "7 passed in 0.49s"
+      }
+    ]
+  }
+}

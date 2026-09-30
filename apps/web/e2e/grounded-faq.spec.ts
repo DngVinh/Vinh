@@ -18,6 +18,9 @@ function GroundedFaqJourney() {
       title: "Quy chế Đào tạo Đại học Chính quy HUCE 2024",
       documentRef: "QC-2024/HUCE-DT",
       quote: "Điều kiện tốt nghiệp: tích lũy đủ học phần, CPA >= 2.0, chứng chỉ ngoại ngữ và GDQP.",
+      authority: "Phòng Quản lý Đào tạo HUCE",
+      locator: "Điều 28, Khoản 1",
+      validityStatus: "active",
       confidence: 0.98,
     },
   ];
@@ -74,7 +77,10 @@ describe("Grounded FAQ Browser Journey E2E (TASK-TEST-E2E-001)", () => {
     expect(dialog).toBeDefined();
     expect(screen.getByText(/Nguồn trích dẫn & Bằng chứng/i)).toBeDefined();
     expect(screen.getByText(/QC-2024\/HUCE-DT/i)).toBeDefined();
-    expect(screen.getByText(/Độ tin cậy: 98%/i)).toBeDefined();
+    expect(screen.getByText(/Văn bản đang hiệu lực/i)).toBeDefined();
+
+    // Must NOT contain raw percentage
+    expect(screen.queryByText(/Độ tin cậy: 98%/i)).toBeNull();
 
     // 4. Close citation drawer
     const closeBtn = screen.getByRole("button", { name: "Đóng" });

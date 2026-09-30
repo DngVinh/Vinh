@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-DOCREQ-002
 phase: P06
 title: "Rebuild the document request flow"
-status: draft
+status: accepted
 objective: "Rebuild the typed document request journey as a short, understandable form with an exact preview and explicit confirmation."
 layer: web
 bounded_context: redesign-document-requests

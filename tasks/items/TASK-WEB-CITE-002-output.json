@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-CITE-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T17:11:00Z",
+  "completed_at": "2026-09-26T17:13:00Z",
+  "changed_files": [
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/e2e/grounded-faq.spec.ts"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/chat/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "diff.txt",
+    "tasks/items/TASK-WEB-AUTH-002.yaml",
+    "tasks/items/TASK-WEB-AUTH-002-output.json",
+    "tasks/items/TASK-WEB-CHAT-003.yaml",
+    "tasks/items/TASK-WEB-CHAT-003-output.json",
+    "tasks/items/TASK-WEB-HOME-002.yaml",
+    "tasks/items/TASK-WEB-HOME-002-output.json",
+    "tasks/items/TASK-WEB-SAFE-001.yaml",
+    "tasks/items/TASK-WEB-SAFE-001-output.json"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-F-RAG-004",
+        "acceptance_criteria": [
+          "AC-REQ-F-RAG-004-01"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "corepack pnpm --dir apps/web test --run src/features/chat/CitationDrawer.test.tsx e2e/grounded-faq.spec.ts",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web lint",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-WEB-CITE-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-CITE-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-CITE-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-CITE-002-04",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Rebuilt citation drawer around verifiable metadata (authority, locator, validity status, canonical link) without raw percentage confidence presentation, with focus return on close.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

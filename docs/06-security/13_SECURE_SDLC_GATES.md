@@ -1,10 +1,10 @@
 ---
 document_id: "DOC-SEC-008"
 version: "0.1.0"
-status: "draft"
+status: "approved"
 owner: "Engineering Security Lead"
 approvers: ["Security Architect", "Engineering Lead", "Release Owner"]
-last_updated: "2026-09-21"
+last_updated: "2026-09-28"
 ---
 
 # Secure SDLC gates

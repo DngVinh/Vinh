@@ -1,0 +1,8 @@
+id: TASK-API-BREAKGLASS-001
+status: completed
+objective: Implement named, step-up, reasoned, expiring staff break-glass policy with an explicit grant and alert port plus focused tests.
+write_scope:
+  allowed_paths:
+    - services/api/src/campus247/domain/policy/breakglass.py
+    - tests/unit/policy/test_breakglass.py
+human_approval_required: false

@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-RAGUP-DEPS-001",
+  "status": "approved",
+  "approved_at": "2026-09-29",
+  "approval_evidence": "Direct human approval in the implementation conversation covers dependency, model, provider, architecture, security, and paid-service blockers for the RAG upgrade backlog.",
+  "source_revision": "965702e9db7629174b0a6ccb12414db7372e7c01",
+  "retrieval_profile": "rag-prod-v1.0.0",
+  "runtime_strategy": {
+    "transport": "private HTTP inference endpoint through the existing httpx dependency",
+    "new_python_packages": [],
+    "mutable_model_revisions_allowed": false,
+    "production_download_from_mutable_main_allowed": false,
+    "artifact_sha256_required_before_activation": true
+  },
+  "models": [
+    {
+      "role": "embedding",
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "dimension": 1024,
+      "license": "MIT",
+      "provenance": "https://huggingface.co/BAAI/bge-m3/commit/5617a9f61b028005a4858fdac845db406aefb181",
+      "activation_condition": "Mirror/import verification records the exact model artifact SHA-256 in embedding_index_manifest."
+    },
+    {
+      "role": "reranker",
+      "model_id": "BAAI/bge-reranker-v2-m3",
+      "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "license": "Apache-2.0",
+      "provenance": "https://huggingface.co/BAAI/bge-reranker-v2-m3/commit/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "activation_condition": "Mirror/import verification records the exact model artifact SHA-256 and contract tests pass."
+    }
+  ],
+  "dependency_evidence": {
+    "pyproject_sha256": "59ae91c203da8c2521f12af231a95f1d28bc2bd6a4aed6df8a19a6a372358a3a",
+    "uv_lock_sha256": "9125f79cc101c80c31feab71e154c690dcd547f1278f565c018eece767b8413f",
+    "dependency_verifier_sha256": "aba3fdd90895a1511d6924bde25ffc61a6e2fc362d21cd79e0c85acb1bfd2744",
+    "httpx_locked_version": "0.28.1",
+    "verifier_result": "passed",
+    "import_smoke_result": "passed",
+    "uv_cli_check": "not_run: uv executable is not installed in this workspace; scripts/verify_dependencies.py performed declared/locked drift and allowlist verification instead"
+  },
+  "security_and_provenance_review": {
+    "licenses_approved": true,
+    "external_sdk_added": false,
+    "credentials_recorded": false,
+    "live_provider_called": false,
+    "raw_query_or_document_logging_allowed": false,
+    "private_endpoint_required": true,
+    "checksum_and_manifest_gate_required": true
+  }
+}

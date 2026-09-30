@@ -1,10 +1,10 @@
 ---
 document_id: "DOC-DATA-002"
-version: "1.0.0"
-status: "reviewed"
+version: "1.1.0"
+status: "approved"
 owner: "Data Architect"
 approvers: ["Solution Architect", "Security Lead", "Privacy Lead"]
-last_updated: "2026-09-21"
+last_updated: "2026-09-29"
 ---
 
 # Data dictionary V1
@@ -202,6 +202,10 @@ Fields MUST conform to `handover.schema.json` for wire values. Persistent fields
 | `authority_level` | smallint | No | INTERNAL | 1..100; higher means more authoritative |
 | `approval_status` | enum | No | INTERNAL | `DRAFT`, `APPROVED`, `REJECTED` |
 | `is_synthetic` | boolean | No | INTERNAL | provenance marker |
+| `campus_scope` | varchar(64) | No | INTERNAL | V1 exact value `HUCE`; SQL authorization predicate |
+| `faculty_scope` | varchar(32)[] | No | INTERNAL | non-empty approved faculties; V1 includes `FIT` |
+| `program_scope` | varchar(64)[] | No | INTERNAL | empty means no program is authorized, never allow-all |
+| `audiences` | varchar(64)[] | No | INTERNAL | non-empty allowlisted roles/cohorts; SQL authorization predicate |
 
 ### DATA-DIC-031 `document_version`
 
@@ -217,6 +221,8 @@ Fields MUST conform to `handover.schema.json` for wire values. Persistent fields
 | `storage_object_key` | text | No | SENSITIVE | private object locator, never public API |
 | `published_at` | timestamp | Yes | PUBLIC | required when published/superseded |
 | `published_by` | uuid | Yes | PERSONAL | knowledge admin actor |
+| `applicability_reviewed_at` | timestamp | Yes | INTERNAL | required for production retrieval when `effective_until` is null |
+| `index_version` | varchar(128) | Yes | INTERNAL | exact immutable index manifest version; required when indexed/published |
 
 ### DATA-DIC-032 `knowledge_chunk`
 
@@ -232,10 +238,20 @@ Fields MUST conform to `handover.schema.json` for wire values. Persistent fields
 | `search_vector` | tsvector | No | INTERNAL | generated/indexed lexical value |
 | `embedding` | vector | Yes | INTERNAL | dimension fixed by approved embedding model |
 | `embedding_model_version` | varchar(128) | Yes | INTERNAL | required when embedding non-null |
+| `embedding_dimension` | integer | Yes | INTERNAL | `1024` for `rag-prod-v1.0.0`; must match manifest |
+| `embedded_at` | timestamp | Yes | INTERNAL | required when embedding non-null |
 
 ### DATA-DIC-033 `retrieval_run`
 
-Store: `id`, `conversation_id`, `message_id`, `query_redacted`, `filter_json`, `lexical_candidate_count`, `vector_candidate_count`, `reranked_count`, `algorithm_version`, `duration_ms`, `created_at`. Candidate scores live in child `retrieval_candidate(run_id, chunk_id, lexical_rank, vector_rank, fused_score, rerank_score, selected)`.
+Store: `id`, `conversation_id`, `message_id`, `query_redacted`, `authorization_scope_hash`, `campus_scope`, `faculty_scope`, `audience_scope`, `effective_at`, `filter_json`, `lexical_candidate_count`, `vector_candidate_count`, `reranked_count`, `retrieval_profile_version`, `embedding_model_version`, `reranker_model_version`, `index_version`, `degraded_reason`, `duration_ms`, `created_at`. Candidate scores live in child `retrieval_candidate(run_id, chunk_id, lexical_rank, vector_rank, fused_score, rerank_score, selected)`. Raw query, unrestricted identity claims và unauthorized candidate metadata MUST NOT được lưu.
+
+### DATA-DIC-034 `retrieval_profile`
+
+Immutable fields: `profile_version` (PK), `embedding_model_id`, `embedding_model_revision`, `embedding_dimension`, `normalization`, `distance_metric`, `lexical_k`, `semantic_k`, `rrf_constant`, `fusion_k`, `rerank_k`, `context_k`, `context_token_budget`, branch/reranker/overall timeouts, retry limit, fallback policy, evidence threshold, release thresholds, `created_at`, `approved_at`, `approval_reference`. `rag-prod-v1.0.0` MUST equal the accepted values in `DOC-RAG-001`; no nullable production field is allowed.
+
+### DATA-DIC-035 `embedding_index_manifest`
+
+Immutable fields: `index_version` (PK), `profile_version` (FK), `embedding_model_id`, `embedding_model_revision`, `artifact_sha256`, `dimension`, `normalization`, `distance_metric`, `corpus_version`, `document_count`, `chunk_count`, `content_checksum`, `build_status`, `built_at`, `validated_at`, `activated_at`. `build_status`: `BUILDING`, `VALIDATING`, `READY`, `ACTIVE`, `RETIRED`, `FAILED`. Activation MUST atomically change a separate active pointer; it MUST NOT overwrite or delete the previous active manifest/index.
 
 ## 6. Action, reliability and audit tables
 
@@ -282,6 +298,7 @@ Append-only fields: `id`, `occurred_at`, `actor_type`, `actor_id`, `action_code`
 | DATA-IDX-003 | `ticket(requester_user_id, updated_at DESC, id DESC)` và `ticket(queue_key, status, priority, created_at)`. |
 | DATA-IDX-004 | `message(conversation_id, sequence_no)` unique. |
 | DATA-IDX-005 | `knowledge_chunk` GIN lexical; vector index chỉ sau benchmark và dimension chốt. |
+| DATA-IDX-005A | production lexical/vector queries MUST apply `approval_status`, version `status`, effective/applicability, campus, faculty/program, audience và simulation predicates in SQL before rank and `LIMIT`. |
 | DATA-IDX-006 | `room_booking` exclusion theo room và `[starts_at, ends_at)` cho status `CONFIRMED`. |
 | DATA-IDX-007 | `idempotency_record(actor_user_id, operation_id, idempotency_key)` unique. |
 | DATA-IDX-008 | `outbox_event(published_at, occurred_at)` partial cho unpublished. |
@@ -289,3 +306,7 @@ Append-only fields: `id`, `occurred_at`, `actor_type`, `actor_id`, `action_code`
 ## 8. Acceptance evidence và failure behavior
 
 Implementation MUST cung cấp migration/schema evidence ánh xạ từng bảng/trường bắt buộc, constraint tests và data-classification review. Nếu kiểu cơ sở dữ liệu không thể biểu diễn một constraint, task MUST dừng với `DATA_CONSTRAINT_UNIMPLEMENTABLE`; không được tự giảm constraint hoặc đổi field nullability.
+
+Production filter semantics fail closed: source phải `APPROVED`, version phải `PUBLISHED`, `effective_from <= effective_at`, `effective_until > effective_at`; nếu `effective_until` null thì `applicability_reviewed_at` phải có giá trị. Campus, audience và faculty/program scope phải intersect với trusted authorized context; empty/missing scope không bao giờ là allow-all. Synthetic source chỉ được candidate khi profile và trusted context cùng cho phép simulation. Các predicate này phải nằm trong cùng SQL candidate relation trước lexical/vector ranking và `LIMIT`.
+
+Approval evidence: direct human approval ngày 2026-09-29 cho `TASK-RAGUP-GOV-001`, bao phủ contract, authorization-filter semantics, model/index manifest và release thresholds của `rag-prod-v1.0.0`.

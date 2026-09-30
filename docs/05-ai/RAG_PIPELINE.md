@@ -1,10 +1,10 @@
 ---
 document_id: "DOC-RAG-001"
-version: "1.0.0"
-status: "reviewed"
+version: "1.1.0"
+status: "approved"
 owner: "Knowledge Engineering Lead"
 approvers: ["AI Architecture Lead", "Knowledge Governance Lead", "Security Architect", "AI Quality Lead"]
-last_updated: "2026-09-21"
+last_updated: "2026-09-29"
 ---
 
 # RAG ingestion, retrieval, reranking, citation và evidence gate
@@ -14,6 +14,23 @@ last_updated: "2026-09-21"
 RAG chỉ được trả lời từ nguồn đã publish, còn hiệu lực và phù hợp audience. Vector similarity không phải bằng chứng. Mỗi material claim phải liên kết tới đoạn nguồn đủ cụ thể để người dùng và evaluator kiểm tra.
 
 Thiết kế dùng PostgreSQL full-text search + pgvector semantic search theo `DEC-012`, hợp nhất bằng Reciprocal Rank Fusion (RRF), rerank tập nhỏ và qua deterministic evidence gate.
+
+## 1.1 Production retrieval profile
+
+Mọi giá trị production trong pipeline này thuộc profile bất biến `rag-prod-v1.0.0`; thay đổi bất kỳ giá trị nào MUST tạo profile version mới và chạy lại full evaluation trên cùng corpus/index.
+
+| Group | `rag-prod-v1.0.0` |
+|---|---|
+| Embedding | `BAAI/bge-m3@5617a9f61b028005a4858fdac845db406aefb181`; dense 1024; L2 normalize; cosine distance; query/document cùng revision |
+| Reranker | `BAAI/bge-reranker-v2-m3@953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`; tối đa 20 input, 8 output |
+| Retrieval | lexical 30, semantic 30, RRF constant 60, fused 20; stable `chunk_id` dedupe |
+| Context | tối đa 6,000 tokenizer tokens; không quá 3 near-duplicate chunks từ một section |
+| Timeouts | lexical 400 ms; semantic 700 ms; reranker 700 ms; hard deadline 1,800 ms; tối đa một transient retry khi còn deadline |
+| Evidence | support threshold 0.78; một repair tối đa; repair chỉ remove/qualify/clarify/abstain |
+| Quality | Recall@10 >=0.90; critical subgroup >=0.85; citation precision >=0.95; grounded correctness >=0.90; exact-ID Recall@5 >=0.98; conflict handling >=0.98; invalid-source leakage =0 |
+| Performance | p95 <=1,800 ms; p99 <=3,000 ms trên `TP-RAG`; error rate <1%; benchmark phải ghi hardware, concurrency, pool và memory |
+
+Profile thiếu field, mutable model revision, model/index mismatch hoặc artifact checksum mismatch MUST block startup/query. Unit tests MAY dùng deterministic fake nhưng fake/stub không hợp lệ làm production/release evidence.
 
 ## 2. Source lifecycle
 
@@ -46,7 +63,7 @@ Chỉ `published` được retrieval production. `superseded` được giữ aud
 | `simulation_label` | `true` cho synthetic. |
 | `parser_version`/`chunker_version`/`embedding_version` | Traceability. |
 
-Thiếu bất kỳ metadata required nào MUST quarantine source. `effective_until = null` nghĩa chưa biết ngày hết hiệu lực, không có nghĩa vĩnh viễn; knowledge owner phải review theo freshness SLA.
+Thiếu bất kỳ metadata required nào MUST quarantine source. `effective_until = null` nghĩa chưa biết ngày hết hiệu lực, không có nghĩa vĩnh viễn. Production retrieval MUST exclude version này cho đến khi knowledge owner xác nhận applicability và đặt `applicability_reviewed_at`; xác nhận không được suy ra tự động từ ngày publish.
 
 ## 3. Ingestion pipeline
 
@@ -91,7 +108,7 @@ Các giá trị baseline phải được tune bằng eval; thay đổi là behav
 - Dùng PostgreSQL `tsvector` và `websearch_to_tsquery` hoặc query builder được kiểm thử cho input người dùng.
 - Rank baseline bằng `ts_rank_cd` với weight title/section/body và normalization đã version hóa.
 - GIN là index baseline cho `tsvector` thường xuyên được search.
-- Lấy `lexical_k = 30` sau metadata filter.
+- Lấy `lexical_k = 30` theo `rag-prod-v1.0.0`, sau metadata/authorization filter trong SQL và trước `LIMIT`.
 
 PostgreSQL docs xác nhận ranking có thể xét tần suất, proximity và structural weight; relevance vẫn application-specific nên phải eval, không coi rank là xác suất. Xem [PostgreSQL text search controls](https://www.postgresql.org/docs/17/textsearch-controls.html) và [preferred indexes](https://www.postgresql.org/docs/17/textsearch-indexes.html) (`SRC-POSTGRES-001`).
 
@@ -100,7 +117,7 @@ PostgreSQL docs xác nhận ranking có thể xét tần suất, proximity và s
 - Embedding model/version/dimension MUST nằm trong index manifest.
 - Similarity function MUST cố định theo model; V1 baseline cosine distance.
 - HNSW MAY được dùng khi exact-search benchmark không đạt latency; profile MUST ghi `m`, `ef_construction`, `ef_search` và iterative-scan settings.
-- Lấy `semantic_k = 30` sau metadata filter. Nếu approximate filtering trả thiếu candidate, use iterative scan/exact fallback theo profile.
+- Lấy `semantic_k = 30` theo `rag-prod-v1.0.0`, sau metadata/authorization filter trong SQL và trước ANN `LIMIT`. Nếu approximate filtering trả thiếu candidate, use iterative scan/exact fallback theo profile.
 
 pgvector phân biệt exact nearest-neighbor và approximate index đánh đổi recall lấy tốc độ; HNSW có tuning và filtering có thể làm giảm kết quả. Xem [pgvector README](https://github.com/pgvector/pgvector) (`SRC-PGVECTOR-001`).
 
@@ -114,7 +131,7 @@ rrf_score(document) = Σ_branch 1 / (60 + rank_branch(document))
 
 - Deduplicate bằng `chunk_id` trước fusion.
 - Exact identifier match nhận deterministic boost versioned, không vượt qua authorization/effective filters.
-- Lấy tối đa `fusion_k = 20` cho reranker.
+- Lấy tối đa `fusion_k = 20` theo `rag-prod-v1.0.0` cho reranker.
 - Nếu một branch unavailable, degraded retrieval MAY dùng branch còn lại nhưng trace MUST ghi degradation; release/online metric phân tách.
 
 ## 6. Reranking và context assembly
@@ -122,8 +139,8 @@ rrf_score(document) = Σ_branch 1 / (60 + rank_branch(document))
 - Reranker nhận query và tối đa 20 candidate với stable IDs.
 - Output chỉ là ordered IDs + bounded score/reason code; MUST NOT sửa chunk text.
 - Candidate ID ngoài allowlist hoặc duplicate làm output invalid.
-- Fallback deterministic là RRF order.
-- Chọn tối đa 8 chunk, tổng context tối đa theo route budget.
+- Fallback deterministic là RRF order và MUST ghi degraded reason. Hai branch fail, hoặc branch còn lại không bảo đảm SQL authorization/effective filters, MUST abstain.
+- Chọn tối đa 8 chunk và 6,000 tokenizer tokens theo `rag-prod-v1.0.0`.
 - Diversity rule: không quá 3 chunk gần trùng từ một section trừ khi query hỏi liệt kê đầy đủ.
 - Conflict detector đánh dấu nguồn mâu thuẫn về hiệu lực/giá trị. Không tự chọn nếu authority order chưa xác định; handover/abstain.
 - Context assembly MUST giữ citation locator và simulation label.
@@ -182,7 +199,7 @@ Gate deterministic MUST kiểm tra:
 7. personal data claim đến từ tool result, không từ RAG;
 8. contact/fee/deadline không được suy ra từ nguồn synthetic như official fact mà không gắn simulation.
 
-Verifier score không phải xác suất. Threshold ban đầu MUST được chọn trên validation set để đạt citation precision ≥95%; value cuối nằm trong versioned profile, không hard-code ở prompt. Nếu một material claim fail, composer MAY được yêu cầu xóa claim và render lại đúng một lần; không được thêm nguồn mới trong revision. Nếu vẫn fail, abstain.
+Verifier score không phải xác suất. `rag-prod-v1.0.0` dùng support threshold `0.78`, chỉ được promote khi validation đạt citation precision ≥95% và các gate mục 11. Threshold nằm trong versioned profile, không hard-code ở prompt. Nếu một material claim fail, composer MAY được yêu cầu remove/qualify/clarify claim và render lại đúng một lần; không được thêm nguồn mới trong revision. Nếu vẫn fail, abstain.
 
 ## 9. Insufficient evidence behavior
 
@@ -230,4 +247,8 @@ Evidence gồm dataset manifest/hash, index/profile/model versions, query-level 
 - Reranker unavailable: RRF fallback và metric degradation.
 - Vector unavailable: lexical fallback nếu route cho phép; citation/evidence gates vẫn giữ nguyên.
 - Lexical unavailable hoặc database degraded: không dùng vector-only nếu authorization/effective filters không được bảo đảm.
+
+## 13. Approval record
+
+Profile `rag-prod-v1.0.0` và các contract changes trong version 1.1.0 được direct human approval ngày 2026-09-29 cho `TASK-RAGUP-GOV-001`. Approval bao phủ architecture, knowledge governance, security và AI quality decision; implementation vẫn phải chứng minh từng gate bằng evidence tái lập được.
 

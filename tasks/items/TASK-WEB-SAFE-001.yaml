@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-SAFE-001
 phase: P06
 title: "Replace fabricated emergency contacts with approved fallback UX"
-status: draft
+status: accepted
 objective: "Replace fabricated emergency telephone details with the human-approved, accessible unavailable-configuration fallback and honest handover status."
 layer: web
 bounded_context: redesign-safety-handover

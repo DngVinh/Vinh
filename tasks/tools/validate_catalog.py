@@ -162,6 +162,36 @@ def main() -> int:
             if dependency not in tasks:
                 errors.append(f"Missing dependency: {task_id} -> {dependency}")
 
+    ready_tasks = {tid: t for tid, t in tasks.items() if t.get("status") == "ready" and not (ITEMS / f"{tid}-output.json").exists()}
+    for tid, t in ready_tasks.items():
+        # 1. Unresolved task dependencies (all dependencies must have output JSON OR status accepted)
+        for dep in t.get("dependencies", []):
+            dep_output = ITEMS / f"{dep}-output.json"
+            dep_status = tasks.get(dep, {}).get("status")
+            if not dep_output.exists() and dep_status != "accepted":
+                errors.append(f"Ready task has unresolved dependency: {tid} -> {dep}")
+        # 2. Approval-reason mismatches
+        req_approval = bool(t.get("human_approval_required"))
+        reasons = t.get("approval_reasons", [])
+        if req_approval and not reasons:
+            errors.append(f"Approval reason missing for task requiring approval: {tid}")
+        if not req_approval and reasons:
+            errors.append(f"Approval reason provided for task not requiring approval: {tid}")
+        # 3. Missing evidence mappings
+        if not t.get("evidence_required"):
+            errors.append(f"Ready task missing evidence_required mappings: {tid}")
+    
+    # 4. Scope overlap among ready tasks
+    ready_task_ids = sorted(ready_tasks.keys())
+    for i in range(len(ready_task_ids)):
+        for j in range(i + 1, len(ready_task_ids)):
+            t1 = ready_task_ids[i]
+            t2 = ready_task_ids[j]
+            t1_allowed = set(ready_tasks[t1].get("write_scope", {}).get("allowed_paths", []))
+            t2_allowed = set(ready_tasks[t2].get("write_scope", {}).get("allowed_paths", []))
+            if t1_allowed & t2_allowed:
+                errors.append(f"Ready task write scope overlap: {t1} and {t2} share {t1_allowed & t2_allowed}")
+
     indegree = {task_id: 0 for task_id in tasks}
     children: dict[str, list[str]] = defaultdict(list)
     for task_id, task in tasks.items():

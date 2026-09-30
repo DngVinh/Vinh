@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-AUTH-002
 phase: P06
 title: "Remove the client-side embedded demo credential"
-status: draft
+status: accepted
 objective: "Remove the embedded bearer-like demo credential from the chat page and consume only the approved session boundary without weakening authentication."
 layer: web
 bounded_context: web-session-boundary

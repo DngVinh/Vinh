@@ -1,0 +1,29 @@
+{
+  "app": "node bin/app.js",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*.json",
+      "yarn.lock",
+      "node_modules",
+      "test"
+    ]
+  },
+  "context": {
+    "@aws-cdk/core:enableStackNameDuplicates": "true",
+    "aws-cdk:enableDiffNoFail": "true",
+    "@aws-cdk/core:stackRelativeExports": "true",
+    "environment": "staging",
+    "region": "ap-southeast-1",
+    "account": "123456789012",
+    "encryptionEnabled": true,
+    "retentionDays": 30,
+    "privateNetworkingOnly": true,
+    "denyWildcardPermissions": true
+  }
+}

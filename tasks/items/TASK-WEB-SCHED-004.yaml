@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-WEB-SCHED-004
+phase: P06
+title: "Make schedule time and freshness semantics explicit"
+status: accepted
+objective: "Render schedule data with authoritative timezone, source freshness, conflict states, and honest unavailable behavior across locale and daylight-boundary cases."
+layer: web
+bounded_context: "schedule"
+priority: P1
+estimated_minutes: 45
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["UX-SCR-SCHEDULE-001", "UX-STATE-DEGRADED"]
+  contracts: ["API-SCHEDULE-001"]
+  controls: ["SEC-DATA-001"]
+  evals: []
+dependencies: ["TASK-WEB-SCHED-003"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "apps/web/src/features/schedule/ScheduleView.tsx"
+    - "apps/web/src/features/schedule/ScheduleView.test.tsx"
+    - "apps/web/src/app/schedule/page.tsx"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved all existing work and granted a non-overlapping write lease for this exact scope."
+  - "Required human approval names this task, scope, environment, and proposed security or privacy behavior."
+steps:
+  - "Read all inputs and enumerate user states, trust boundaries, authoritative data, failure modes, and forbidden claims before coding."
+  - "Normalize instants and academic-local dates from API metadata without browser-locale inference."
+  - "Display source timestamp, timezone, stale marker, overlap, and degraded source state."
+  - "Test midnight boundaries, DST-like offsets, locale changes, stale cache, empty data, and partial failure."
+  - "Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-WEB-SCHED-004-01
+    assertion: "Every displayed time has an unambiguous authoritative timezone."
+  - id: AC-TASK-WEB-SCHED-004-02
+    assertion: "Stale or partial data cannot appear as current complete data."
+  - id: AC-TASK-WEB-SCHED-004-03
+    assertion: "Date boundaries remain correct under supported locale and offset changes."
+  - id: AC-TASK-WEB-SCHED-004-99
+    assertion: "Changes remain inside write_scope; tests cover loading, empty, denied, degraded, failure, retry, and recovery as applicable without secrets or personal data."
+verification:
+  - command: "npm --prefix apps/web test -- --run src/features/schedule/ScheduleView.test.tsx"
+    expected_exit_code: 0
+    proves: "Focused positive, authorization, degraded, adversarial, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "negative-state screenshots or structured test evidence"]
+recovery:
+  strategy: stop_before_promotion
+  steps:
+    - "Keep the change unpromoted and apply a reviewed reverse patch limited to this scope if needed; preserve evidence and reconcile ambiguous writes."
+stop_conditions:
+  - "Normative product, UX, security, privacy, or architecture sources conflict or leave the required behavior undefined."
+  - "An unlisted file, dependency, network call, credential, live service, production access, or destructive operation is required."
+  - "Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot be verified deterministically."
+parallelism:
+  eligible: true
+  conflict_keys: ["web-schedule"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-CITE-002
 phase: P06
 title: "Rebuild citation details around verifiable evidence"
-status: draft
+status: accepted
 objective: "Rebuild citation details so a user can verify source title, locator, validity and freshness without an unexplained numeric confidence score."
 layer: web
 bounded_context: redesign-citations

@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-AGENT-CONFIRM-002
+phase: P04
+title: "Bind agent write confirmation to immutable action previews"
+status: accepted
+objective: "Make the agent confirmation interrupt consume an immutable, actor-bound, expiring action preview and reject any mutation, replay, or context drift before execution."
+layer: agent
+bounded_context: "tool-broker"
+priority: P0
+estimated_minutes: 45
+sensitivity: critical
+human_approval_required: true
+approval_reasons: ["authorization", "security_policy", "cryptography"]
+traceability:
+  requirements: []
+  design: ["ADR-006", "ADR-016", "AI-SYS-007"]
+  contracts: ["ActionPreview.v1", "TOOL-HITL-001"]
+  controls: ["AI-SYS-007", "SEC-CTRL-008", "SEC-AUTHZ-003"]
+  evals: ["EVAL-METRIC-010", "EVAL-DATA-TOOL-001"]
+dependencies: ["TASK-API-CONFFIX-001", "TASK-AGENT-TOOL-002"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "services/api/src/campus247/agent/tools/write_flow.py"
+    - "services/api/src/campus247/agent/state.py"
+    - "tests/unit/agent/test_confirmation_binding.py"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved pre-existing changes and granted a non-overlapping write lease for this exact scope."
+  - "Required security or privacy approval explicitly names this task and the proposed behavior."
+steps:
+  - "Read all inputs and enumerate state transitions, trust domains, invariants, failure modes, and forbidden side effects before coding."
+  - "Represent preview identity, canonical arguments, actor, authorization scope, expiry, and risk disclosure in immutable agent state."
+  - "At resume, re-authorize and compare the exact binding before reserving execution."
+  - "Test state tampering, changed tool arguments, wrong actor, expiry, duplicate resume, and concurrent confirmation."
+  - "Run verification, inspect the exact scoped diff and status, then emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-AGENT-CONFIRM-002-01
+    assertion: "The model cannot create or modify a valid confirmation binding."
+  - id: AC-TASK-AGENT-CONFIRM-002-02
+    assertion: "Resume executes only the exact previewed action for the same authorized actor."
+  - id: AC-TASK-AGENT-CONFIRM-002-03
+    assertion: "Invalid confirmation transitions to a terminal no-effect state with safe evidence."
+  - id: AC-TASK-AGENT-CONFIRM-002-99
+    assertion: "All behavior is deterministic under fakes, changes stay inside write_scope, and no secret, personal payload, hidden prompt, or chain-of-thought appears in evidence."
+verification:
+  - command: "python -B -m pytest -q tests/unit/agent/test_confirmation_binding.py"
+    expected_exit_code: 0
+    proves: "Focused positive, adversarial, replay, concurrency, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "forbidden-side-effect counters and redaction proof"]
+recovery:
+  strategy: feature_disable
+  steps:
+    - "Disable only the new path behind the approved flag or apply a reviewed reverse patch; preserve trace and reconcile any reserved or result-unknown action."
+stop_conditions:
+  - "Normative AI, security, privacy, or contract sources conflict or leave the required transition undefined."
+  - "A live provider, network call, credential, unapproved dependency, destructive operation, or unlisted file is required."
+  - "The implementation cannot prove authorization, evidence grounding, bounded execution, idempotency, redaction, or safe failure."
+parallelism:
+  eligible: true
+  conflict_keys: ["agent-write-confirmation"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

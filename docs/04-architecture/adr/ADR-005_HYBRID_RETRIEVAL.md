@@ -1,11 +1,11 @@
 ---
 document_id: "DOC-ADR-005"
-version: "1.0.0"
-status: "draft"
+version: "1.1.0"
+status: "approved"
 owner: "AI and Retrieval Lead"
 approvers: ["Architecture Lead", "AI Quality Lead", "Knowledge Owner"]
-last_updated: "2026-09-21"
-decision_status: "proposed"
+last_updated: "2026-09-29"
+decision_status: "accepted"
 ---
 
 # ADR-005 — Hybrid lexical/vector retrieval và reranking
@@ -27,6 +27,25 @@ Retrieval pipeline **MUST**:
 7. trả citation tới immutable document version/section/page.
 
 Algorithm, candidate count, score threshold và reranker version là config có eval, không magic constant rải rác.
+
+## Accepted production profile
+
+`rag-prod-v1.0.0` là production retrieval profile đầu tiên. Runtime MUST fail closed khi profile, embedding manifest, reranker revision hoặc index version không khớp.
+
+| Setting | Accepted value |
+|---|---|
+| Embedding | `BAAI/bge-m3@5617a9f61b028005a4858fdac845db406aefb181`, dense output, 1024 dimensions, L2-normalized, cosine distance |
+| Reranker | `BAAI/bge-reranker-v2-m3@953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`, cross-encoder score, multilingual |
+| Candidate/fusion | `lexical_k=30`, `semantic_k=30`, RRF constant `60`, `fusion_k=20` |
+| Rerank/context | tối đa 20 rerank inputs, tối đa 8 selected chunks, tối đa 6,000 context tokens |
+| Deadlines | lexical 400 ms, semantic 700 ms, reranker 700 ms, retrieval+rereank hard deadline 1,800 ms; tối đa một retry chỉ cho lỗi transient còn đủ deadline |
+| Fallback | một branch có thể degrade sang branch còn lại nếu SQL authorization/effective filters vẫn được bảo đảm và evidence gate pass; reranker failure dùng RRF order với degraded reason; hai branch fail hoặc filter assurance mất thì abstain |
+| Evidence | calibrated support threshold `0.78`; mọi material claim phải có trusted citation trước stream commit; một repair tối đa và không được thêm evidence |
+| Performance gate | p95 retrieval+rereank <= 1,800 ms, p99 <= 3,000 ms ở load profile `TP-RAG`; error rate < 1%; connection/memory budgets theo approved benchmark artifact |
+
+Model artifacts MUST được lấy theo exact revision và checksum ghi trong embedding/index manifest. Inference chạy qua nội bộ/private endpoint; production runtime không tải mutable `main` revision. BGE-M3 có output dimension 1024 và hỗ trợ multilingual; model card upstream dùng giấy phép MIT. BGE reranker V2-M3 là multilingual và dùng Apache-2.0. Dependency/runtime packaging vẫn phải qua `TASK-RAGUP-DEPS-001` trước khi adapter được bật.
+
+Approval evidence: direct human approval trong phiên triển khai `TASK-RAGUP-GOV-001` ngày 2026-09-29, bao phủ architecture, contract, model/dependency, security và quality decisions của profile trên. Approval không thay thế verification hoặc production credential/deployment controls.
 
 ## Alternatives
 

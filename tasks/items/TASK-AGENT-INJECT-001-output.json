@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-AGENT-INJECT-001",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T15:25:30Z",
+  "completed_at": "2026-09-27T15:28:40Z",
+  "changed_files": [
+    "services/api/src/campus247/agent/prompts/composer.py",
+    "services/api/src/campus247/agent/guardrails/prompt_injection.py",
+    "tests/unit/agent/test_prompt_injection.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/unit/agent/test_prompt_injection.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-AGENT-INJECT-001-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-INJECT-001-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-INJECT-001-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-INJECT-001-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Isolated prompt instructions from retrieved and tool-supplied content: tagged distinct trust domains, wrapped retrieved evidence in passive untrusted-data delimiters with XML escaping to prevent delimiter breakouts, detected direct and indirect prompt injection attempts, and preserved benign inquiries quoting policy text.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

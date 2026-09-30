@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-ROOM-003
 phase: P06
 title: "Make the room request page fail honestly"
-status: draft
+status: accepted
 objective: "Remove room-page synthetic success behavior and show authoritative failed, unknown or confirmed outcomes."
 layer: web
 bounded_context: room-page-adapter

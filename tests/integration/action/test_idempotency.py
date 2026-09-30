@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+import tempfile
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -14,6 +15,10 @@ from campus247.application.action.idempotency import (
     ReservationStatus,
 )
 from campus247.domain.shared.values import generate_uuid7
+
+
+def durable_test_path() -> Path:
+    return Path(tempfile.gettempdir()) / f"campus247-idempotency-test-{generate_uuid7()}.sqlite3"
 
 
 def test_first_call_acquires_reservation():
@@ -69,3 +74,20 @@ def test_reused_key_different_fingerprint_conflict():
     conflict = ledger.reserve(actor_id, "ticket.create", key, "sha256:DIFFERENT_fingerprint")
     assert conflict.status == ReservationStatus.CONFLICT_REUSED
     assert conflict.error_code == "IDEMPOTENCY_KEY_REUSED"
+
+
+def test_completed_reservation_replays_after_new_ledger_instance():
+    database_path = durable_test_path()
+    actor_id = generate_uuid7()
+    key = "idem-key-restart-12345"
+
+    ledger = IdempotencyLedger(database_path=database_path)
+    ledger.reserve(actor_id, "ticket.create", key, "sha256:fingerprint1")
+    ledger.complete(actor_id, "ticket.create", key, 201, "ticket-reference")
+    replay = IdempotencyLedger(database_path=database_path).reserve(
+        actor_id, "ticket.create", key, "sha256:fingerprint1"
+    )
+
+    assert replay.status == ReservationStatus.REPLAY
+    assert replay.record is not None
+    assert replay.record.response_reference == "ticket-reference"

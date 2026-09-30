@@ -1,0 +1,9 @@
+id: TASK-API-ACTIONSROUTE-001
+status: completed
+objective: Mount canonical /v1/actions/* routes and schemas in presentation/bootstrapping; contract tests.
+write_scope:
+  allowed_paths:
+    - services/api/src/campus247/presentation/actions.py
+    - services/api/src/campus247/bootstrap/app.py
+    - tests/api/test_actions_route.py
+human_approval_required: false

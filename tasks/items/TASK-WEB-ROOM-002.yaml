@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-ROOM-002
 phase: P06
 title: "Rebuild room discovery and booking preview"
-status: draft
+status: accepted
 objective: "Rebuild room discovery and request preview so availability, restrictions and consequences are clear before confirmation."
 layer: web
 bounded_context: redesign-rooms

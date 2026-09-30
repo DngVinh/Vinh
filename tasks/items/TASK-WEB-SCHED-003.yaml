@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-SCHED-003
 phase: P06
 title: "Make the schedule page fail honestly"
-status: draft
+status: accepted
 objective: "Replace schedule-page fabricated fallback data with explicit loading, retryable failure, stale or unavailable states."
 layer: web
 bounded_context: schedule-page-adapter

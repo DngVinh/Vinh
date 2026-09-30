@@ -54,3 +54,49 @@ def test_validate_unknown_tool_fails() -> None:
     registry = ToolRegistry.default_v1()
     with pytest.raises(ToolValidationError, match="Unknown tool ID"):
         registry.validate_candidate(tool_id="TOOL-UNKNOWN-999", arguments={})
+
+
+@pytest.mark.asyncio
+async def test_tool_execute_with_policy_success() -> None:
+    registry = ToolRegistry.default_v1()
+    
+    async def fake_tool():
+        return "success"
+        
+    res = await registry.execute_with_policy("TOOL-ROOM-001", fake_tool)
+    assert res == "success"
+
+@pytest.mark.asyncio
+async def test_tool_execute_with_policy_timeout() -> None:
+    from campus247.agent.tools.registry import ToolExecutionError
+    import asyncio
+    registry = ToolRegistry.default_v1()
+    
+    # Temporarily set timeout to small value
+    tool = registry.get_tool("TOOL-ROOM-001")
+    object.__setattr__(tool, "timeout_ms", 10)
+    
+    async def fake_slow_tool():
+        await asyncio.sleep(0.05)
+        return "success"
+        
+    with pytest.raises(ToolExecutionError) as exc:
+        await registry.execute_with_policy("TOOL-ROOM-001", fake_slow_tool)
+        
+    assert "timed out" in str(exc.value)
+
+@pytest.mark.asyncio
+async def test_tool_execute_with_policy_circuit_breaker() -> None:
+    from campus247.agent.tools.registry import ToolExecutionError, CircuitBreakerTrippedError
+    registry = ToolRegistry.default_v1()
+    
+    async def fake_failing_tool():
+        raise RuntimeError("failed")
+        
+    # Fail 3 times to trip breaker
+    for _ in range(3):
+        with pytest.raises(ToolExecutionError):
+            await registry.execute_with_policy("TOOL-ROOM-001", fake_failing_tool)
+            
+    with pytest.raises(CircuitBreakerTrippedError):
+        await registry.execute_with_policy("TOOL-ROOM-001", fake_failing_tool)

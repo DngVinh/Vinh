@@ -33,7 +33,7 @@ def test_health_ready_unhealthy_negative_path(monkeypatch):
     from campus247.presentation import health
 
     async def failing_check(request=None):
-        return False
+        return 'unavailable'
 
     monkeypatch.setattr(health, "check_database_connectivity", failing_check)
 

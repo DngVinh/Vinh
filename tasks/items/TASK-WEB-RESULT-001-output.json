@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-WEB-RESULT-001",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/components/ActionOutcome.test.tsx",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-RESULT-001-01",
+      "satisfied": true,
+      "evidence": "Ambiguous transport failures are rendered as result_unknown with clear warning, never as success or definite failure."
+    },
+    {
+      "id": "AC-TASK-WEB-RESULT-001-02",
+      "satisfied": true,
+      "evidence": "The interface locks and disables blind resubmission while the idempotency key remains unresolved."
+    },
+    {
+      "id": "AC-TASK-WEB-RESULT-001-03",
+      "satisfied": true,
+      "evidence": "Authoritative reconciliation triggers onReconcile with existing idempotencyKey without asking for duplicate confirmation."
+    },
+    {
+      "id": "AC-TASK-WEB-RESULT-001-99",
+      "satisfied": true,
+      "evidence": "All 4 unit tests pass deterministically; changes confined inside write_scope with zero sensitive leaks."
+    }
+  ],
+  "changed_files": [
+    "apps/web/src/components/ActionOutcome.tsx",
+    "apps/web/src/components/ActionOutcome.test.tsx",
+    "apps/web/src/features/rooms/RoomBooking.tsx"
+  ]
+}

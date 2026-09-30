@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-AGENT-CONFIRM-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T15:21:00Z",
+  "completed_at": "2026-09-27T15:22:30Z",
+  "changed_files": [
+    "services/api/src/campus247/agent/tools/write_flow.py",
+    "tests/unit/agent/test_confirmation_binding.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/unit/agent/test_confirmation_binding.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-AGENT-CONFIRM-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-CONFIRM-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-CONFIRM-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-AGENT-CONFIRM-002-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Bound agent write confirmations to immutable action previews: enforced actor matching, payload drift rejection, single-use replay protection, expiry validation, and transition to terminal safe failure on invalid confirmation.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

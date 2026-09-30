@@ -1,0 +1,7 @@
+id: TASK-CONTRACT-CAPABILITIES-001
+status: completed
+objective: Declare two capability routes in contracts/openapi/v1/openapi.yaml; contract tests.
+write_scope:
+  allowed_paths:
+    - contracts/openapi/v1/openapi.yaml
+human_approval_required: false

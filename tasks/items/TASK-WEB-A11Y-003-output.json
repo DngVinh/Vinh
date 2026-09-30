@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-A11Y-003",
+  "status": "completed",
+  "changed_files": [
+    "apps/web/src/components/AsyncState.tsx",
+    "apps/web/src/components/AsyncState.test.tsx",
+    "apps/web/src/styles/tokens.css"
+  ],
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/components/AsyncState.test.tsx",
+      "exit_code": 0,
+      "details": "15 passed vitest tests for AsyncState a11y, focus recovery, aria live regions, reduced motion"
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "details": "Catalog, DAG, traceability invariants remain valid"
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-A11Y-003-01",
+      "status": "satisfied",
+      "evidence": "Critical controls operable without pointer; buttons have clear tab order and focus-visible indicators"
+    },
+    {
+      "id": "AC-TASK-WEB-A11Y-003-02",
+      "status": "satisfied",
+      "evidence": "Focus recovery auto-focuses retry button on error/offline/result-unknown states; role='status' avoids alert spam"
+    },
+    {
+      "id": "AC-TASK-WEB-A11Y-003-03",
+      "status": "satisfied",
+      "evidence": "vitest suite passes completely with 15/15 checks"
+    },
+    {
+      "id": "AC-TASK-WEB-A11Y-003-99",
+      "status": "satisfied",
+      "evidence": "Scope restricted to AsyncState.tsx, AsyncState.test.tsx, tokens.css with zero secrets or PII"
+    }
+  ]
+}

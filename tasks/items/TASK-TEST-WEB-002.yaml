@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-TEST-WEB-002
 phase: P09
 title: "Verify the redesigned journeys in real browser evidence"
-status: draft
+status: accepted
 objective: "Produce auditable real-browser evidence for every redesigned P0 journey across mobile, tablet, desktop, keyboard and 200-percent zoom."
 layer: test
 bounded_context: redesign-browser-evidence

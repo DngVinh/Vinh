@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-AGENT-HITL-004",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "python -B -m pytest -q tests/unit/agent/test_hitl_resume.py",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-AGENT-HITL-004-01",
+      "satisfied": true,
+      "evidence": "Interrupt state is persisted durably and reloaded across process instances retaining version, role, summary, and payload."
+    },
+    {
+      "id": "AC-TASK-AGENT-HITL-004-02",
+      "satisfied": true,
+      "evidence": "Strict role hierarchy check (STUDENT < STAFF < ADMIN) and expected_state_version match enforce advance permissions."
+    },
+    {
+      "id": "AC-TASK-AGENT-HITL-004-03",
+      "satisfied": true,
+      "evidence": "Atomic resolve_and_execute prevents duplicate or replay review decisions from executing actions repeatedly."
+    },
+    {
+      "id": "AC-TASK-AGENT-HITL-004-99",
+      "satisfied": true,
+      "evidence": "Execution is deterministic under fakes, restricted within write_scope, and emits no credentials or leaks."
+    }
+  ],
+  "changed_files": [
+    "services/api/src/campus247/agent/hitl/interrupts.py",
+    "services/api/src/campus247/agent/state.py",
+    "tests/unit/agent/test_hitl_resume.py"
+  ]
+}

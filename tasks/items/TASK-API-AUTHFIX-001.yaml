@@ -1,0 +1,111 @@
+acceptance_criteria:
+- assertion: Protected endpoints return the approved unauthenticated response when
+    verified identity is absent.
+  id: AC-TASK-API-AUTHFIX-001-01
+- assertion: Untrusted headers cannot select user, role, tenant, or privilege.
+  id: AC-TASK-API-AUTHFIX-001-02
+- assertion: Development identity behavior is explicit, environment-gated, and impossible
+    in production mode.
+  id: AC-TASK-API-AUTHFIX-001-03
+- assertion: The changed-file set stays inside write_scope and all logs, errors, fixtures,
+    and evidence exclude secrets and unnecessary personal data.
+  id: AC-TASK-API-AUTHFIX-001-99
+approval_reasons:
+- authentication
+- authorization
+- security_policy
+bounded_context: identity
+dependencies:
+- TASK-API-IDENTITY-002
+estimated_minutes: 45
+evidence_required:
+- initial and final git status
+- exact changed-file and diff summary
+- commands with exit codes and deterministic test output
+- acceptance-criterion to evidence mapping
+- negative-path and no-side-effect proof
+execution_policy:
+  destructive_operations: false
+  max_fix_attempts: 2
+  network_access: false
+  paid_services: false
+human_approval_required: true
+id: TASK-API-AUTHFIX-001
+inputs:
+- load: full
+  path: docs/00-governance/DOCUMENT_CONTROL.md
+layer: api
+objective: Replace client-controlled identity construction with verified session claims
+  and a deny-by-default authentication boundary for every protected API request.
+parallelism:
+  conflict_keys:
+  - api-identity-boundary
+  eligible: true
+phase: P03
+preconditions:
+- Every dependency is accepted, each normative input is approved, and this draft task
+  has passed readiness review.
+- The orchestrator has verified a non-overlapping write lease and preserved the complete
+  pre-existing Git state.
+- Any required human approval names this task, its exact scope, and the current proposed
+  security behavior.
+priority: P0
+recovery:
+  steps:
+  - Stop promotion and apply a reviewed reverse patch limited to this task; preserve
+    audit evidence and reconcile any result-unknown operation before retry.
+  strategy: reverse_patch
+schema_version: '1.1'
+sensitivity: critical
+status: accepted
+steps:
+- Read every input fully; map each normative MUST, failure state, and trust boundary
+  to a testable implementation decision.
+- Inventory every identity source and mark trusted claims, untrusted headers, and
+  development-only adapters.
+- Build request principal only from verified session or token claims; reject missing,
+  malformed, expired, or mismatched claims.
+- Prove spoofed user, role, tenant, and staff headers never alter authorization decisions.
+- Run verification in order, inspect the scoped diff and final status, and emit schema-valid
+  acceptance-to-evidence mapping.
+stop_conditions:
+- A normative source conflicts with another source, changed after review, or does
+  not define the required security behavior.
+- Completion needs an unlisted file, dependency, network call, live provider, credential,
+  destructive operation, or broader policy change.
+- Authorization, confirmation binding, idempotency, privacy, auditability, or failure
+  atomicity cannot be proven by deterministic tests.
+title: Remove request-controlled identity and fail authentication closed
+traceability:
+  contracts:
+  - INT-IDP-001
+  controls:
+  - SEC-AUTHN-001
+  - SEC-AUTHN-002
+  - SEC-AUTHZ-001
+  design:
+  - ADR-015
+  - ARCH-004
+  evals:
+  - THR-ABUSE-001
+  requirements: []
+verification:
+- command: python -B -m pytest -q tests/api/test_identity_boundary.py
+  expected_exit_code: 0
+  proves: Focused positive, adversarial, concurrency, and failure-path behavior passes
+    deterministically.
+- command: python -B tasks/tools/validate_catalog.py
+  expected_exit_code: 0
+  proves: Task catalog, dependency graph, traceability, approval, and write-scope
+    invariants remain valid.
+write_scope:
+  allowed_paths:
+  - services/api/src/campus247/bootstrap/app.py
+  - services/api/src/campus247/presentation/identity.py
+  - tests/api/test_identity_boundary.py
+  forbidden_paths:
+  - docs/**
+  - contracts/**
+  - .git/**
+  max_added_lines: 320
+  max_files: 3

@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-CHAT-003
 phase: P06
 title: "Rebuild the assistant conversation workspace"
-status: draft
+status: accepted
 objective: "Rebuild the assistant workspace for readable grounded conversations, clear capability limits and calm recovery while preserving actor-owned ordered turns."
 layer: web
 bounded_context: redesign-chat

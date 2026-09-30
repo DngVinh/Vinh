@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-WEB-PRIV-003",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/features/privacy/PrivacyCenter.test.tsx",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-PRIV-003-01",
+      "satisfied": true,
+      "evidence": "No control implies consent while pending; pending confirmation disables checkbox and displays explicit waiting status."
+    },
+    {
+      "id": "AC-TASK-WEB-PRIV-003-02",
+      "satisfied": true,
+      "evidence": "Consequential erasure action renders explicit scope and irreversible legal effect prior to user confirmation."
+    },
+    {
+      "id": "AC-TASK-WEB-PRIV-003-03",
+      "satisfied": true,
+      "evidence": "Legal hold and denied states are explained transparently without exposing technical or restricted subject data."
+    },
+    {
+      "id": "AC-TASK-WEB-PRIV-003-99",
+      "satisfied": true,
+      "evidence": "All 7 unit tests pass deterministically; changes strictly within write_scope; zero secrets or internal identifiers leaked."
+    }
+  ],
+  "changed_files": [
+    "apps/web/src/features/privacy/PrivacyCenter.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.test.tsx",
+    "apps/web/src/app/privacy/page.tsx"
+  ]
+}

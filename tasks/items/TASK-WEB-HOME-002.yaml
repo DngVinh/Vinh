@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-HOME-002
 phase: P06
 title: "Rebuild the student dashboard around current priorities"
-status: draft
+status: accepted
 objective: "Rebuild the student home screen as a concise priority view that guides users to schedule, questions, requests and rooms without a decorative feature grid."
 layer: web
 bounded_context: redesign-student-home

@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-EVAL-AUD-001",
+  "status": "completed",
+  "changed_files": [
+    "evals/scenarios/audit_remediation.yaml",
+    "evals/runners/audit_remediation.py",
+    "tests/evals/test_audit_remediation_gate.py"
+  ],
+  "verification_results": [
+    {
+      "command": "python -B -m pytest -q tests/evals/test_audit_remediation_gate.py",
+      "exit_code": 0,
+      "details": "4 passed tests covering positive and adversarial scenarios across high-risk controls without network dependencies"
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "details": "Catalog, DAG, traceability invariants remain valid"
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-EVAL-AUD-001-01",
+      "status": "satisfied",
+      "evidence": "Controls AI-SYS-005, AI-SYS-008, SEC-SDLC-008 each have at least 1 positive and 2 adversarial scenarios (9 total)"
+    },
+    {
+      "id": "AC-TASK-EVAL-AUD-001-02",
+      "status": "satisfied",
+      "evidence": "Runner blocks release when any safety violation occurs; summary is sanitized to prevent leaking sensitive prompts or tokens"
+    },
+    {
+      "id": "AC-TASK-EVAL-AUD-001-03",
+      "status": "satisfied",
+      "evidence": "Evaluation suite executes entirely offline under deterministic fakes with zero network/live provider calls"
+    },
+    {
+      "id": "AC-TASK-EVAL-AUD-001-99",
+      "status": "satisfied",
+      "evidence": "Write scope maintained to allowed 3 files; zero secret or PII exposure"
+    }
+  ]
+}

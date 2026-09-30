@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-AGENT-EGRESS-001
+phase: P04
+title: "Minimize and authorize every model-provider egress payload"
+status: accepted
+objective: "Classify, minimize, redact, and policy-check all data sent to model or embedding providers, with a deterministic deny path for prohibited data."
+layer: integration
+bounded_context: "llm-gateway"
+priority: P0
+estimated_minutes: 45
+sensitivity: critical
+human_approval_required: true
+approval_reasons: ["security_policy", "legal_privacy"]
+traceability:
+  requirements: []
+  design: ["ADR-007", "ARCH-008"]
+  contracts: ["INT-LLM-001", "INT-EMBED-001"]
+  controls: ["PRIV-FLOW-015", "AI-SYS-009", "SEC-DATA-001"]
+  evals: ["AI-GW-002", "THR-ABUSE-012"]
+dependencies: ["TASK-AGENT-INJECT-001", "TASK-AGENT-LLM-003"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "services/api/src/campus247/infrastructure/llm/egress_policy.py"
+    - "services/api/src/campus247/infrastructure/llm/gateway.py"
+    - "tests/unit/llm/test_egress_policy.py"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved pre-existing changes and granted a non-overlapping write lease for this exact scope."
+  - "Required security or privacy approval explicitly names this task and the proposed behavior."
+steps:
+  - "Read all inputs and enumerate state transitions, trust domains, invariants, failure modes, and forbidden side effects before coding."
+  - "Classify each payload field by purpose, sensitivity, provider, region, retention mode, and necessity."
+  - "Redact or transform identifiers before serialization and deny prohibited payloads before any network adapter call."
+  - "Test nested data, attachments, memory, tool traces, error paths, and logging for leakage."
+  - "Run verification, inspect the exact scoped diff and status, then emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-AGENT-EGRESS-001-01
+    assertion: "Provider payloads contain only fields required for the approved purpose."
+  - id: AC-TASK-AGENT-EGRESS-001-02
+    assertion: "A denied payload reaches no provider adapter and emits a safe auditable reason."
+  - id: AC-TASK-AGENT-EGRESS-001-03
+    assertion: "Logs, metrics, traces, and exceptions never contain raw prohibited content."
+  - id: AC-TASK-AGENT-EGRESS-001-99
+    assertion: "All behavior is deterministic under fakes, changes stay inside write_scope, and no secret, personal payload, hidden prompt, or chain-of-thought appears in evidence."
+verification:
+  - command: "python -B -m pytest -q tests/unit/llm/test_egress_policy.py"
+    expected_exit_code: 0
+    proves: "Focused positive, adversarial, replay, concurrency, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "forbidden-side-effect counters and redaction proof"]
+recovery:
+  strategy: feature_disable
+  steps:
+    - "Disable only the new path behind the approved flag or apply a reviewed reverse patch; preserve trace and reconcile any reserved or result-unknown action."
+stop_conditions:
+  - "Normative AI, security, privacy, or contract sources conflict or leave the required transition undefined."
+  - "A live provider, network call, credential, unapproved dependency, destructive operation, or unlisted file is required."
+  - "The implementation cannot prove authorization, evidence grounding, bounded execution, idempotency, redaction, or safe failure."
+parallelism:
+  eligible: true
+  conflict_keys: ["llm-egress-policy"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

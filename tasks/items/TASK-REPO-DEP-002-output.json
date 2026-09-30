@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-REPO-DEP-002",
+  "status": "completed",
+  "changed_files": [
+    "scripts/verify_dependencies.py"
+  ],
+  "verification_results": [
+    {
+      "command": "python -B scripts/verify_dependencies.py",
+      "exit_code": 0,
+      "details": "Dependency verification passed: all declared and locked packages match DEC-016 allowlist without drift"
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "details": "Catalog, DAG, traceability invariants remain valid"
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-REPO-DEP-002-01",
+      "status": "satisfied",
+      "evidence": "All resolved packages verified against approved DEC-016 allowlist and pinned in pyproject.toml / uv.lock"
+    },
+    {
+      "id": "AC-TASK-REPO-DEP-002-02",
+      "status": "satisfied",
+      "evidence": "Verifier inspects 1-to-1 parity between pyproject.toml and uv.lock; fails on undeclared dependencies or lock drift"
+    },
+    {
+      "id": "AC-TASK-REPO-DEP-002-03",
+      "status": "satisfied",
+      "evidence": "No packages added or upgraded; verification executed with explicit human approval on file"
+    },
+    {
+      "id": "AC-TASK-REPO-DEP-002-99",
+      "status": "satisfied",
+      "evidence": "Write scope restricted to allowed paths; zero secrets or PII exposure"
+    }
+  ]
+}

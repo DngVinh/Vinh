@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-WEB-KNOW-003
+phase: P06
+title: "Enforce knowledge review provenance and publish authority"
+status: accepted
+objective: "Require provenance, version comparison, reviewer authority, and conflict detection before knowledge content can be approved or published."
+layer: web
+bounded_context: "knowledge-review"
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: true
+approval_reasons: ["authorization", "security_policy"]
+traceability:
+  requirements: []
+  design: ["UX-SCR-KNOW-001", "UX-TRUST-001"]
+  contracts: ["API-KNOW-001", "RAG-ING-010"]
+  controls: ["SEC-AUTHZ-009", "AI-SYS-008"]
+  evals: []
+dependencies: ["TASK-WEB-KNOW-002", "TASK-AGENT-INJECT-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "apps/web/src/features/knowledge/KnowledgeReview.tsx"
+    - "apps/web/src/features/knowledge/KnowledgeReview.test.tsx"
+    - "apps/web/src/app/knowledge/page.tsx"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved all existing work and granted a non-overlapping write lease for this exact scope."
+  - "Required human approval names this task, scope, environment, and proposed security or privacy behavior."
+steps:
+  - "Read all inputs and enumerate user states, trust boundaries, authoritative data, failure modes, and forbidden claims before coding."
+  - "Display immutable source provenance, ingestion status, content hash, version diff, and reviewer decision history."
+  - "Enable approval or publish only for server-authorized roles and the currently reviewed version."
+  - "Treat embedded instructions as document content and visibly flag quarantine or policy findings."
+  - "Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-WEB-KNOW-003-01
+    assertion: "A stale or changed document cannot be approved from an old review."
+  - id: AC-TASK-WEB-KNOW-003-02
+    assertion: "Publish authority is derived from server claims and confirmed response."
+  - id: AC-TASK-WEB-KNOW-003-03
+    assertion: "Provenance and quarantine states remain visible and cannot be overwritten by document content."
+  - id: AC-TASK-WEB-KNOW-003-99
+    assertion: "Changes remain inside write_scope; tests cover loading, empty, denied, degraded, failure, retry, and recovery as applicable without secrets or personal data."
+verification:
+  - command: "npm --prefix apps/web test -- --run src/features/knowledge/KnowledgeReview.test.tsx"
+    expected_exit_code: 0
+    proves: "Focused positive, authorization, degraded, adversarial, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "negative-state screenshots or structured test evidence"]
+recovery:
+  strategy: stop_before_promotion
+  steps:
+    - "Keep the change unpromoted and apply a reviewed reverse patch limited to this scope if needed; preserve evidence and reconcile ambiguous writes."
+stop_conditions:
+  - "Normative product, UX, security, privacy, or architecture sources conflict or leave the required behavior undefined."
+  - "An unlisted file, dependency, network call, credential, live service, production access, or destructive operation is required."
+  - "Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot be verified deterministically."
+parallelism:
+  eligible: true
+  conflict_keys: ["web-knowledge-review"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

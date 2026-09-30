@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-GOV-AUD-002",
+  "result": "completed",
+  "source_revision": "965702e9db7629174b0a6ccb12414db7372e7c01",
+  "started_at": "2026-09-27T21:24:24+07:00",
+  "completed_at": "2026-09-27T21:27:39+07:00",
+  "changed_files": [
+    "tasks/tools/validate_catalog.py",
+    "tests/delivery/test_task_catalog.py"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/grounded-faq.spec.ts",
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/globals.css",
+    "apps/web/src/app/layout.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/rooms/page.tsx",
+    "apps/web/src/app/schedule/page.tsx",
+    "apps/web/src/app/staff/page.tsx",
+    "apps/web/src/app/tickets/page.tsx",
+    "apps/web/src/components/AppShell.tsx",
+    "apps/web/src/components/AsyncState.test.tsx",
+    "apps/web/src/components/AsyncState.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.test.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.test.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.test.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.test.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.tsx",
+    "apps/web/src/features/rooms/RoomBooking.test.tsx",
+    "apps/web/src/features/rooms/RoomBooking.tsx",
+    "apps/web/src/features/schedule/ScheduleView.test.tsx",
+    "apps/web/src/features/schedule/ScheduleView.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.test.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.tsx",
+    "apps/web/src/features/tickets/TicketList.test.tsx",
+    "apps/web/src/features/tickets/TicketList.tsx",
+    "apps/web/src/styles/tokens.css",
+    "apps/web/tsconfig.tsbuildinfo",
+    "docs/10-delivery/AUDIT_REMEDIATION_STATUS_2026-09-27.md",
+    "services/api/src/campus247/agent/grounding/evidence_gate.py",
+    "services/api/src/campus247/agent/state.py",
+    "services/api/src/campus247/bootstrap/app.py",
+    "services/api/src/campus247/infrastructure/repositories/composition.py",
+    "services/api/src/campus247/presentation/identity.py",
+    "services/api/src/campus247/presentation/rooms.py",
+    "services/api/src/campus247/presentation/ticket_queries.py",
+    "tasks/dag.yaml",
+    "tasks/items/TASK-AGENT-EVIDENCE-002-output.json",
+    "tasks/items/TASK-DB-REPOFIX-001-output.json",
+    "tasks/items/TASK-GOV-AUD-001-output.json",
+    "tasks/items/TASK-GOV-AUD-003-output.json",
+    "tasks/items/TASK-TEST-WEB-002.yaml",
+    "tasks/items/TASK-WEB-AUTH-002.yaml",
+    "tasks/items/TASK-WEB-CHAT-003.yaml",
+    "tasks/items/TASK-WEB-CITE-002.yaml",
+    "tasks/items/TASK-WEB-DOCREQ-002.yaml",
+    "tasks/items/TASK-WEB-HOME-002.yaml",
+    "tasks/items/TASK-WEB-KNOW-002.yaml",
+    "tasks/items/TASK-WEB-OPS-002.yaml",
+    "tasks/items/TASK-WEB-PRIV-002.yaml",
+    "tasks/items/TASK-WEB-ROOM-002.yaml",
+    "tasks/items/TASK-WEB-ROOM-003.yaml",
+    "tasks/items/TASK-WEB-SAFE-001.yaml",
+    "tasks/items/TASK-WEB-SCHED-002.yaml",
+    "tasks/items/TASK-WEB-SCHED-003.yaml",
+    "tasks/items/TASK-WEB-STAFF-002.yaml",
+    "tasks/items/TASK-WEB-TICK-002.yaml",
+    "tasks/items/TASK-WEB-TICK-003.yaml",
+    "tasks/requirement-acceptance-bindings.yaml",
+    "tasks/task-index.yaml",
+    "tests/delivery/test_audit_remediation_ledger.py",
+    "tests/unit/agent/test_evidence_gate.py"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "canonical",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-MAINT-003",
+        "acceptance_criteria": ["AC-REQ-NF-MAINT-003-01"]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/delivery/test_task_catalog.py",
+      "working_directory": "c:\\Users\\Duong Vinh\\Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": ["test-task-catalog-output"]
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:\\Users\\Duong Vinh\\Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": ["catalog-validation-output"]
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-002-01",
+      "status": "passed",
+      "evidence_refs": ["test-task-catalog-output", "catalog-validation-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-002-02",
+      "status": "passed",
+      "evidence_refs": ["test-task-catalog-output", "catalog-validation-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-002-03",
+      "status": "passed",
+      "evidence_refs": ["test-task-catalog-output", "catalog-validation-output"]
+    },
+    {
+      "criterion_id": "AC-TASK-GOV-AUD-002-99",
+      "status": "passed",
+      "evidence_refs": ["test-task-catalog-output", "catalog-validation-output"]
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "test_output",
+      "ref": "test-task-catalog-output",
+      "sha256": null
+    },
+    {
+      "kind": "validator_output",
+      "ref": "catalog-validation-output",
+      "sha256": null
+    },
+    {
+      "kind": "file_hash",
+      "ref": "tasks/tools/validate_catalog.py",
+      "sha256": "e594e66a38aa38aa38703dc3c84b55e6e5d6926e5a50193991479f4a5ad08ef3"
+    },
+    {
+      "kind": "file_hash",
+      "ref": "tests/delivery/test_task_catalog.py",
+      "sha256": "7cce1c7b1d46efc3a08aff9c63a3e0c7afdbee61519744d3177e0ea18c178155"
+    }
+  ],
+  "diff_summary": "Extended validate_catalog.py to enforce readiness gates: ready tasks must have all dependencies completed (output JSON exists), must declare evidence_required mappings, must provide approval_reasons if human_approval_required is true, and must not have overlapping allowed_paths with other ready tasks. Added negative test fixtures.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

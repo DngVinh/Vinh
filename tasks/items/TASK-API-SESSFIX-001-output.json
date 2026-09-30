@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-API-SESSFIX-001",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T14:52:30Z",
+  "completed_at": "2026-09-27T14:54:00Z",
+  "changed_files": [
+    "services/api/src/campus247/presentation/identity.py",
+    "services/api/src/campus247/application/identity/session_service.py",
+    "tests/api/test_session_revocation.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/api/test_session_revocation.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-API-SESSFIX-001-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-SESSFIX-001-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-SESSFIX-001-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-SESSFIX-001-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Implemented server-side session revocation with SessionService: revoked sessions fail closed immediately in IdentityMiddleware; logout is idempotent and aborts on store failure; audit records log safe hashes without raw tokens or secrets.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

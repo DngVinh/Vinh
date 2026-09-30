@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-OPS-002
 phase: P06
 title: "Rebuild operational capability and KPI presentation"
-status: draft
+status: accepted
 objective: "Rebuild operational status presentation so capability, degradation and KPI context remain understandable without color or hidden metadata."
 layer: web
 bounded_context: redesign-operations

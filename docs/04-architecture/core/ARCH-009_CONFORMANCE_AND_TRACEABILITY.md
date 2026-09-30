@@ -1,10 +1,10 @@
 ---
 document_id: "DOC-ARCH-009"
 version: "1.0.0"
-status: "draft"
+status: "approved"
 owner: "Architecture Governance Lead"
 approvers: ["Architecture Lead", "Product Owner", "Security Lead", "QA Lead"]
-last_updated: "2026-09-21"
+last_updated: "2026-09-28"
 ---
 
 # ARCH-009 — Architecture conformance và traceability

@@ -1,0 +1,43 @@
+{
+  "task_id": "TASK-WEB-STAFF-003",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/features/staff/StaffTicketQueue.test.tsx",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-STAFF-003-01",
+      "satisfied": true,
+      "evidence": "Unauthorized roles (non-STAFF/ADMIN) receive an explicit access-denied view with zero queue items or staff actions rendered."
+    },
+    {
+      "id": "AC-TASK-WEB-STAFF-003-02",
+      "satisfied": true,
+      "evidence": "Stale ticket version triggers version conflict alerts and strictly disables claim and confirmation actions."
+    },
+    {
+      "id": "AC-TASK-WEB-STAFF-003-03",
+      "satisfied": true,
+      "evidence": "Result-unknown action outcomes are rendered with explicit reconciliation banners and retry actions rather than false optimistic success."
+    },
+    {
+      "id": "AC-TASK-WEB-STAFF-003-99",
+      "satisfied": true,
+      "evidence": "10/10 unit tests pass deterministically; changes strictly confined to write_scope without credential or privacy leaks."
+    }
+  ],
+  "changed_files": [
+    "apps/web/src/features/staff/StaffTicketQueue.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.test.tsx",
+    "apps/web/src/app/staff/page.tsx"
+  ]
+}

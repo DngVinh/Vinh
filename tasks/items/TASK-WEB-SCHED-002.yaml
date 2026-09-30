@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-SCHED-002
 phase: P06
 title: "Rebuild the schedule as a responsive agenda"
-status: draft
+status: accepted
 objective: "Rebuild the schedule into a readable day and week agenda that exposes context and freshness on mobile and desktop."
 layer: web
 bounded_context: redesign-schedule

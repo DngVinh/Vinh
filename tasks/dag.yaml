@@ -1465,3 +1465,203 @@ nodes:
   dependencies: [TASK-WEB-HOME-002, TASK-WEB-CITE-002, TASK-WEB-SCHED-003, TASK-WEB-TICK-003, TASK-WEB-DOCREQ-002, TASK-WEB-ROOM-003, TASK-WEB-SAFE-001, TASK-WEB-STAFF-002, TASK-WEB-KNOW-002, TASK-WEB-OPS-002, TASK-WEB-PRIV-002]
   conflict_keys: [redesign-browser-evidence]
   human_approval_required: false
+- id: TASK-GOV-AUD-001
+  phase: P00
+  dependencies: []
+  conflict_keys: [audit-ledger]
+  human_approval_required: false
+- id: TASK-GOV-AUD-002
+  phase: P00
+  dependencies: [TASK-GOV-AUD-001]
+  conflict_keys: [task-validator]
+  human_approval_required: false
+- id: TASK-API-AUTHFIX-001
+  phase: P03
+  dependencies: [TASK-API-IDENTITY-002]
+  conflict_keys: [api-identity-boundary]
+  human_approval_required: true
+- id: TASK-API-SESSFIX-001
+  phase: P03
+  dependencies: [TASK-API-AUTHFIX-001]
+  conflict_keys: [api-session-revocation]
+  human_approval_required: true
+- id: TASK-API-WRITEFIX-001
+  phase: P03
+  dependencies: [TASK-API-AUTHFIX-001, TASK-API-ACTION-003]
+  conflict_keys: [api-write-routes]
+  human_approval_required: true
+- id: TASK-API-CONFFIX-001
+  phase: P03
+  dependencies: [TASK-API-WRITEFIX-001]
+  conflict_keys: [action-confirmation]
+  human_approval_required: true
+- id: TASK-DB-REPOFIX-001
+  phase: P03
+  dependencies: [TASK-DB-MIG-001]
+  conflict_keys: [repository-composition]
+  human_approval_required: false
+- id: TASK-DB-AUDITFIX-001
+  phase: P03
+  dependencies: [TASK-DB-REPOFIX-001, TASK-API-CONFFIX-001, TASK-API-AUDIT-001]
+  conflict_keys: [controlled-write-audit]
+  human_approval_required: true
+- id: TASK-API-PRIVFIX-001
+  phase: P03
+  dependencies: [TASK-API-AUTHFIX-001, TASK-DB-AUDITFIX-001, TASK-API-PRIV-002]
+  conflict_keys: [privacy-authorization]
+  human_approval_required: true
+- id: TASK-WORKER-RETENTION-002
+  phase: P08
+  dependencies: [TASK-API-PRIVFIX-001]
+  conflict_keys: [retention-worker]
+  human_approval_required: true
+- id: TASK-DB-BOOKFIX-001
+  phase: P03
+  dependencies: [TASK-DB-BOOKING-001, TASK-API-CONFFIX-001]
+  conflict_keys: [booking-schema]
+  human_approval_required: true
+- id: TASK-API-CONCEAL-001
+  phase: P03
+  dependencies: [TASK-API-AUTHFIX-001]
+  conflict_keys: [existence-concealment-core]
+  human_approval_required: true
+- id: TASK-API-CONCEAL-002
+  phase: P03
+  dependencies: [TASK-API-CONCEAL-001]
+  conflict_keys: [api-object-lookups]
+  human_approval_required: true
+- id: TASK-API-ABUSE-001
+  phase: P03
+  dependencies: [TASK-API-AUTHFIX-001]
+  conflict_keys: [api-abuse-limits]
+  human_approval_required: true
+- id: TASK-API-HEALTHFIX-001
+  phase: P03
+  dependencies: [TASK-DB-REPOFIX-001, TASK-API-HEALTH-002]
+  conflict_keys: [api-health]
+  human_approval_required: false
+- id: TASK-AGENT-CONFIRM-002
+  phase: P04
+  dependencies: [TASK-API-CONFFIX-001, TASK-AGENT-TOOL-002]
+  conflict_keys: [agent-write-confirmation]
+  human_approval_required: true
+- id: TASK-AGENT-EXEC-001
+  phase: P04
+  dependencies: [TASK-AGENT-CONFIRM-002, TASK-DB-AUDITFIX-001]
+  conflict_keys: [agent-tool-execution]
+  human_approval_required: true
+- id: TASK-AGENT-HITL-004
+  phase: P04
+  dependencies: [TASK-AGENT-EXEC-001, TASK-API-HITL-003]
+  conflict_keys: [agent-hitl]
+  human_approval_required: true
+- id: TASK-AGENT-EVIDENCE-002
+  phase: P04
+  dependencies: [TASK-AGENT-RAG-001]
+  conflict_keys: [agent-evidence-gate]
+  human_approval_required: false
+- id: TASK-WEB-CITE-003
+  phase: P06
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-WEB-CITE-002]
+  conflict_keys: [web-citations]
+  human_approval_required: false
+- id: TASK-AGENT-INJECT-001
+  phase: P04
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-AGENT-SAFETY-001]
+  conflict_keys: [agent-prompt-boundary]
+  human_approval_required: true
+- id: TASK-AGENT-EGRESS-001
+  phase: P04
+  dependencies: [TASK-AGENT-INJECT-001, TASK-AGENT-LLM-003]
+  conflict_keys: [llm-egress-policy]
+  human_approval_required: true
+- id: TASK-AGENT-BUDGET-001
+  phase: P04
+  dependencies: [TASK-AGENT-EGRESS-001]
+  conflict_keys: [agent-budget]
+  human_approval_required: false
+- id: TASK-AGENT-STREAM-001
+  phase: P04
+  dependencies: [TASK-AGENT-EVIDENCE-002, TASK-AGENT-BUDGET-001]
+  conflict_keys: [agent-streaming]
+  human_approval_required: true
+- id: TASK-AGENT-TRACE-002
+  phase: P04
+  dependencies: [TASK-AGENT-STREAM-001, TASK-DB-AUDITFIX-001]
+  conflict_keys: [agent-tracing]
+  human_approval_required: true
+- id: TASK-EVAL-AUD-001
+  phase: P09
+  dependencies: [TASK-AGENT-HITL-004, TASK-WEB-CITE-003, TASK-AGENT-INJECT-001, TASK-AGENT-EGRESS-001, TASK-AGENT-BUDGET-001, TASK-AGENT-STREAM-001, TASK-AGENT-TRACE-002]
+  conflict_keys: [ai-release-evals]
+  human_approval_required: false
+- id: TASK-WEB-STAFF-003
+  phase: P06
+  dependencies: [TASK-WEB-STAFF-002, TASK-API-CONCEAL-002, TASK-API-WRITEFIX-001]
+  conflict_keys: [web-staff-queue]
+  human_approval_required: true
+- id: TASK-WEB-SCHED-004
+  phase: P06
+  dependencies: [TASK-WEB-SCHED-003]
+  conflict_keys: [web-schedule]
+  human_approval_required: false
+- id: TASK-WEB-PRIV-003
+  phase: P06
+  dependencies: [TASK-WEB-PRIV-002, TASK-API-PRIVFIX-001]
+  conflict_keys: [web-privacy]
+  human_approval_required: true
+- id: TASK-WEB-KNOW-003
+  phase: P06
+  dependencies: [TASK-WEB-KNOW-002, TASK-AGENT-INJECT-001]
+  conflict_keys: [web-knowledge-review]
+  human_approval_required: true
+- id: TASK-WEB-HOME-003
+  phase: P06
+  dependencies: [TASK-WEB-HOME-002, TASK-API-HEALTHFIX-001]
+  conflict_keys: [web-home]
+  human_approval_required: false
+- id: TASK-WEB-ADMIN-001
+  phase: P06
+  dependencies: [TASK-WEB-STAFF-003, TASK-WEB-KNOW-003, TASK-WEB-PRIV-003]
+  conflict_keys: [web-admin-shell]
+  human_approval_required: true
+- id: TASK-WEB-A11Y-003
+  phase: P06
+  dependencies: [TASK-WEB-STAFF-003, TASK-WEB-SCHED-004, TASK-WEB-PRIV-003, TASK-WEB-KNOW-003, TASK-WEB-HOME-003, TASK-WEB-ADMIN-001]
+  conflict_keys: [web-accessibility]
+  human_approval_required: false
+- id: TASK-WEB-RESULT-001
+  phase: P06
+  dependencies: [TASK-AGENT-EXEC-001, TASK-WEB-STAFF-003]
+  conflict_keys: [web-action-outcomes]
+  human_approval_required: true
+- id: TASK-OPS-RELEASE-002
+  phase: P09
+  dependencies: [TASK-EVAL-AUD-001, TASK-WEB-A11Y-003, TASK-WEB-RESULT-001]
+  conflict_keys: [release-manifest]
+  human_approval_required: true
+- id: TASK-TEST-CI-002
+  phase: P09
+  dependencies: [TASK-OPS-RELEASE-002]
+  conflict_keys: [ci-contract]
+  human_approval_required: false
+- id: TASK-REPO-DEP-002
+  phase: P01
+  dependencies: [TASK-TEST-CI-002]
+  conflict_keys: [dependency-lock]
+  human_approval_required: true
+- id: TASK-INFRA-CDK-002
+  phase: P07
+  dependencies: [TASK-REPO-DEP-002, TASK-INFRA-CDK-001]
+  conflict_keys: [infra-cdk]
+  human_approval_required: true
+- id: TASK-GOV-AUD-003
+  phase: P00
+  dependencies: []
+  conflict_keys: [remediation-bindings]
+  human_approval_required: false
+- id: TASK-AGENT-PARSERFIX-001
+  phase: P04
+  dependencies: [TASK-AGENT-LLM-003]
+  conflict_keys: [agent-output-parser]
+  human_approval_required: false

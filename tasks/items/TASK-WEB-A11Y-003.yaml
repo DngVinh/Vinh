@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-WEB-A11Y-003
+phase: P06
+title: "Close keyboard focus announcement and contrast blockers"
+status: accepted
+objective: "Meet the approved accessibility baseline across critical journeys, including keyboard order, focus recovery, semantic names, live announcements, contrast, and reduced motion."
+layer: web
+bounded_context: "accessibility"
+priority: P0
+estimated_minutes: 45
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: []
+  design: ["UX-A11Y-001", "UX-STATE-001"]
+  contracts: []
+  controls: ["SEC-SDLC-007"]
+  evals: []
+dependencies: ["TASK-WEB-STAFF-003", "TASK-WEB-SCHED-004", "TASK-WEB-PRIV-003", "TASK-WEB-KNOW-003", "TASK-WEB-HOME-003", "TASK-WEB-ADMIN-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "apps/web/src/components/AsyncState.tsx"
+    - "apps/web/src/components/AsyncState.test.tsx"
+    - "apps/web/src/styles/tokens.css"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved all existing work and granted a non-overlapping write lease for this exact scope."
+  - "Required human approval names this task, scope, environment, and proposed security or privacy behavior."
+steps:
+  - "Read all inputs and enumerate user states, trust boundaries, authoritative data, failure modes, and forbidden claims before coding."
+  - "Audit critical states and controls against semantic, keyboard, focus, announcement, contrast, zoom, and motion requirements."
+  - "Centralize accessible async-state behavior and token fixes without suppressing browser focus indicators."
+  - "Test keyboard-only transitions, modal return focus, validation summaries, status announcements, and reduced motion."
+  - "Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-WEB-A11Y-003-01
+    assertion: "All critical controls are operable and understandable without a pointer."
+  - id: AC-TASK-WEB-A11Y-003-02
+    assertion: "Focus and announcements follow state changes without duplication or focus loss."
+  - id: AC-TASK-WEB-A11Y-003-03
+    assertion: "Approved automated checks pass and documented manual checks have reproducible evidence."
+  - id: AC-TASK-WEB-A11Y-003-99
+    assertion: "Changes remain inside write_scope; tests cover loading, empty, denied, degraded, failure, retry, and recovery as applicable without secrets or personal data."
+verification:
+  - command: "npm --prefix apps/web test -- --run src/components/AsyncState.test.tsx"
+    expected_exit_code: 0
+    proves: "Focused positive, authorization, degraded, adversarial, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "negative-state screenshots or structured test evidence"]
+recovery:
+  strategy: stop_before_promotion
+  steps:
+    - "Keep the change unpromoted and apply a reviewed reverse patch limited to this scope if needed; preserve evidence and reconcile ambiguous writes."
+stop_conditions:
+  - "Normative product, UX, security, privacy, or architecture sources conflict or leave the required behavior undefined."
+  - "An unlisted file, dependency, network call, credential, live service, production access, or destructive operation is required."
+  - "Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot be verified deterministically."
+parallelism:
+  eligible: true
+  conflict_keys: ["web-accessibility"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

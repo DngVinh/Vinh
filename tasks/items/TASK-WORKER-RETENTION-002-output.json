@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WORKER-RETENTION-002",
+  "status": "completed",
+  "changed_files": [
+    "workers/src/campus247_workers/retention/messages.py",
+    "workers/src/campus247_workers/retention/tombstones.py",
+    "tests/integration/retention/test_retention_safety.py"
+  ],
+  "verification_results": [
+    {
+      "command": "python -B -m pytest -q tests/integration/retention/test_retention_safety.py",
+      "exit_code": 0,
+      "details": "4 passed tests covering legal hold, idempotency, checkpoint resume, and non-sensitive tombstones"
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "details": "Catalog, DAG, traceability invariants remain valid"
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WORKER-RETENTION-002-01",
+      "status": "satisfied",
+      "evidence": "RetentionProcessor strictly checks legal_hold and expires_at > now, skipping them from purge"
+    },
+    {
+      "id": "AC-TASK-WORKER-RETENTION-002-02",
+      "status": "satisfied",
+      "evidence": "TombstoneRepository ensures duplicate retries or partial batches create no extra deletions or duplicate tombstones"
+    },
+    {
+      "id": "AC-TASK-WORKER-RETENTION-002-03",
+      "status": "satisfied",
+      "evidence": "Outcomes reconcilable from policy_version, checkpoints, count metrics, and cryptographic non-sensitive checksums"
+    },
+    {
+      "id": "AC-TASK-WORKER-RETENTION-002-99",
+      "status": "satisfied",
+      "evidence": "All files strictly within write_scope; tombstones contain no payload or secrets"
+    }
+  ]
+}

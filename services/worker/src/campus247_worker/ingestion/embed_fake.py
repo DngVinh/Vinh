@@ -3,20 +3,41 @@ from __future__ import annotations
 import hashlib
 import math
 import random
+from typing import Sequence
+
+from campus247.ports.embedding import (
+    EmbeddingBatch,
+    EmbeddingProfile,
+    EmbeddingVector,
+    EmptyEmbeddingInputError,
+    validate_embedding_inputs,
+    validate_embedding_vector,
+)
 
 
 class DeterministicEmbeddingAdapter:
     """Offline, deterministic embedding adapter that produces L2-normalized vectors."""
 
-    def __init__(self, dimension: int = 1536) -> None:
+    def __init__(self, dimension: int = 1536, batch_limit: int = 64) -> None:
         self.dimension = dimension
+        self._profile = EmbeddingProfile(
+            model_id="test-only/deterministic-fake",
+            model_revision="sha256-seeded-v1",
+            dimension=dimension,
+            batch_limit=batch_limit,
+        )
+
+    @property
+    def profile(self) -> EmbeddingProfile:
+        return self._profile
 
     def embed_text(self, text: str) -> list[float]:
         if not text or not text.strip():
-            raise ValueError("Cannot embed empty text")
+            raise EmptyEmbeddingInputError("Cannot embed empty text")
+        cleaned = validate_embedding_inputs((text,), self._profile)[0]
 
         # Derive 64-bit integer seed from sha256 of text
-        digest = hashlib.sha256(text.strip().encode("utf-8")).digest()
+        digest = hashlib.sha256(cleaned.encode("utf-8")).digest()
         seed = int.from_bytes(digest[:8], byteorder="big")
 
         rng = random.Random(seed)
@@ -31,4 +52,22 @@ class DeterministicEmbeddingAdapter:
         return [round(x / norm, 6) for x in raw_vec]
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self.embed_text(t) for t in texts]
+        cleaned = validate_embedding_inputs(texts, self._profile)
+        return [self.embed_text(text) for text in cleaned]
+
+    def embed_query(self, text: str) -> EmbeddingVector:
+        return validate_embedding_vector(self.embed_text(text), self._profile)
+
+    def embed_documents(self, texts: Sequence[str]) -> EmbeddingBatch:
+        cleaned = validate_embedding_inputs(texts, self._profile)
+        vectors = tuple(
+            validate_embedding_vector(self.embed_text(text), self._profile)
+            for text in cleaned
+        )
+        return EmbeddingBatch(
+            vectors=vectors,
+            model_id=self._profile.model_id,
+            model_revision=self._profile.model_revision,
+            dimension=self._profile.dimension,
+            normalization=self._profile.normalization,
+        )

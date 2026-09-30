@@ -66,8 +66,8 @@ describe("Sensitive Handover Browser Journey E2E (TASK-TEST-E2E-003)", () => {
     const emergencyBtn = screen.getByRole("button", { name: /Đường dây nóng khẩn cấp/i });
     fireEvent.click(emergencyBtn);
 
-    expect(screen.getByText(/Hotline Y tế & Tâm lý HUCE/i)).toBeDefined();
-    expect(screen.getByText("024-3869-XXXX")).toBeDefined();
+    expect(screen.getByText(/DEMO — Chưa cấu hình đầu mối khẩn cấp chính thức/i)).toBeDefined();
+    expect(screen.queryByText("024-3869-XXXX")).toBeNull();
   });
 
   it("negative path: renders graceful out-of-hours queue assurance", () => {

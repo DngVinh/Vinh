@@ -1,0 +1,71 @@
+schema_version: "1.1"
+id: TASK-WEB-STAFF-003
+phase: P06
+title: "Close staff queue authorization and stale-action gaps"
+status: accepted
+objective: "Make staff queue actions role-scoped, version-aware, conflict-safe, and truthfully recoverable when the underlying ticket changes or a write outcome is unknown."
+layer: web
+bounded_context: "staff-queue"
+priority: P0
+estimated_minutes: 45
+sensitivity: high
+human_approval_required: true
+approval_reasons: ["authorization"]
+traceability:
+  requirements: []
+  design: ["UX-SCR-STAFF-001", "UX-STATE-001"]
+  contracts: ["API-TICKET-001", "ActionPreview.v1"]
+  controls: ["SEC-AUTHZ-006", "SEC-CTRL-008"]
+  evals: ["EVAL-DATA-TOOL-001"]
+dependencies: ["TASK-WEB-STAFF-002", "TASK-API-CONCEAL-002", "TASK-API-WRITEFIX-001"]
+inputs:
+  - path: "docs/00-governance/DOCUMENT_CONTROL.md"
+    load: full
+write_scope:
+  allowed_paths:
+    - "apps/web/src/features/staff/StaffTicketQueue.tsx"
+    - "apps/web/src/features/staff/StaffTicketQueue.test.tsx"
+    - "apps/web/src/app/staff/page.tsx"
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 3
+  max_added_lines: 360
+preconditions:
+  - "Every dependency is accepted, every normative input is approved, and this draft task has passed readiness review."
+  - "The orchestrator has preserved all existing work and granted a non-overlapping write lease for this exact scope."
+  - "Required human approval names this task, scope, environment, and proposed security or privacy behavior."
+steps:
+  - "Read all inputs and enumerate user states, trust boundaries, authoritative data, failure modes, and forbidden claims before coding."
+  - "Gate staff capabilities from verified server claims, not client role selection."
+  - "Bind preview and mutation to the displayed resource version and invalidate stale selections."
+  - "Render denied, conflict, result-unknown, retry-safe, and reconciliation states without optimistic false success."
+  - "Run verification, inspect exact scoped diff and status, and emit schema-valid acceptance-to-evidence mapping."
+acceptance_criteria:
+  - id: AC-TASK-WEB-STAFF-003-01
+    assertion: "Unauthorized users never see or invoke staff-only actions."
+  - id: AC-TASK-WEB-STAFF-003-02
+    assertion: "A stale resource version cannot be confirmed as if current."
+  - id: AC-TASK-WEB-STAFF-003-03
+    assertion: "Result-unknown remains visibly unresolved until reconciliation."
+  - id: AC-TASK-WEB-STAFF-003-99
+    assertion: "Changes remain inside write_scope; tests cover loading, empty, denied, degraded, failure, retry, and recovery as applicable without secrets or personal data."
+verification:
+  - command: "npm --prefix apps/web test -- --run src/features/staff/StaffTicketQueue.test.tsx"
+    expected_exit_code: 0
+    proves: "Focused positive, authorization, degraded, adversarial, and failure-path behavior passes."
+  - command: "python -B tasks/tools/validate_catalog.py"
+    expected_exit_code: 0
+    proves: "Catalog, DAG, traceability, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact changed-file and diff summary", "commands and exit codes", "acceptance-to-evidence mapping", "negative-state screenshots or structured test evidence"]
+recovery:
+  strategy: stop_before_promotion
+  steps:
+    - "Keep the change unpromoted and apply a reviewed reverse patch limited to this scope if needed; preserve evidence and reconcile ambiguous writes."
+stop_conditions:
+  - "Normative product, UX, security, privacy, or architecture sources conflict or leave the required behavior undefined."
+  - "An unlisted file, dependency, network call, credential, live service, production access, or destructive operation is required."
+  - "Authorization, source truth, accessibility, safe retry, evidence, or rollback cannot be verified deterministically."
+parallelism:
+  eligible: true
+  conflict_keys: ["web-staff-queue"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}
+

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-API-ABUSE-001",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-27T15:13:00Z",
+  "completed_at": "2026-09-27T15:15:00Z",
+  "changed_files": [
+    "services/api/src/campus247/presentation/middleware/abuse_limits.py",
+    "services/api/src/campus247/bootstrap/app.py",
+    "tests/api/test_abuse_limits.py"
+  ],
+  "preexisting_changes": [],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "indirect",
+    "requirements": []
+  },
+  "commands": [
+    {
+      "command": "python -B -m pytest -q tests/api/test_abuse_limits.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-API-ABUSE-001-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-ABUSE-001-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-ABUSE-001-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-API-ABUSE-001-99",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Enforced principal-aware and network-aware rate limiting: excess requests rejected with 429 and Retry-After header before expensive model/retrieval/write operations; peer network IP derived directly from socket connection to prevent forwarding header spoofing; fail-closed degradation policy for protected endpoints.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

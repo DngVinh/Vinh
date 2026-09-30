@@ -59,7 +59,11 @@ def test_pilot_negative_unauthorized_token_rejection(pilot_manifest: dict[str, A
         token="tampered.payload.or.token",
         expected_preview_id="prev-123",
         expected_action_type="BOOK_ROOM",
+        expected_tool_version="1.0",
+        expected_policy_version="1.0",
         expected_actor_id="user-456",
+        expected_session_id="none",
+        expected_conversation_id="none",
         expected_payload_hash="sha256-hash",
     )
     assert result.is_valid is False

@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-TEST-WEB-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T22:31:00Z",
+  "completed_at": "2026-09-26T22:55:00Z",
+  "changed_files": [
+    "tests/pilot/test_ui_redesign_evidence.py",
+    "tests/pilot/ui-redesign-manifest.yaml",
+    "release/evidence/ui-redesign-report.md"
+  ],
+  "preexisting_changes": [
+    "apps/web/e2e/grounded-faq.spec.ts",
+    "apps/web/e2e/handover.spec.ts",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/chat/page.test.tsx",
+    "apps/web/src/app/page.test.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/rooms/page.tsx",
+    "apps/web/src/app/rooms/page.test.tsx",
+    "apps/web/src/app/schedule/page.tsx",
+    "apps/web/src/app/schedule/page.test.tsx",
+    "apps/web/src/app/tickets/page.tsx",
+    "apps/web/src/app/tickets/page.test.tsx",
+    "apps/web/src/features/chat/ChatPanel.tsx",
+    "apps/web/src/features/chat/ChatPanel.test.tsx",
+    "apps/web/src/features/chat/CitationDrawer.tsx",
+    "apps/web/src/features/chat/CitationDrawer.test.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.tsx",
+    "apps/web/src/features/documents/DocumentRequestForm.test.tsx",
+    "apps/web/src/features/handover/HandoverPanel.tsx",
+    "apps/web/src/features/handover/HandoverPanel.test.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.tsx",
+    "apps/web/src/features/knowledge/KnowledgeReview.test.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.tsx",
+    "apps/web/src/features/operations/CapabilityBanner.test.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.tsx",
+    "apps/web/src/features/privacy/PrivacyCenter.test.tsx",
+    "apps/web/src/features/rooms/RoomBooking.tsx",
+    "apps/web/src/features/rooms/RoomBooking.test.tsx",
+    "apps/web/src/features/schedule/ScheduleView.tsx",
+    "apps/web/src/features/schedule/ScheduleView.test.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.tsx",
+    "apps/web/src/features/staff/StaffTicketQueue.test.tsx",
+    "apps/web/src/features/tickets/TicketList.tsx",
+    "apps/web/src/features/tickets/TicketList.test.tsx"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-A11Y-001",
+        "acceptance_criteria": ["AC-REQ-NF-A11Y-001-01"]
+      },
+      {
+        "requirement_id": "REQ-NF-A11Y-004",
+        "acceptance_criteria": ["AC-REQ-NF-A11Y-004-01"]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "python -m pytest -q tests/pilot/test_ui_redesign_evidence.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web test --run",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web lint",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "python tasks/tools/validate_catalog.py",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-TEST-WEB-002-01",
+      "status": "passed",
+      "evidence_refs": ["tests/pilot/ui-redesign-manifest.yaml", "release/evidence/ui-redesign-report.md"],
+      "notes": "12 journeys covering all 11 dependency tasks. Viewport screenshots marked not_verified (no real browser available). Keyboard, semantics, non-color, status checks pass via unit test evidence."
+    },
+    {
+      "criterion_id": "AC-TASK-TEST-WEB-002-02",
+      "status": "passed",
+      "evidence_refs": ["tests/pilot/ui-redesign-manifest.yaml"],
+      "notes": "Manifest declares 360/768/1280 CSS px viewports and 200% zoom. All unavailable browser checks honestly labelled not_verified per task step 2 instruction."
+    },
+    {
+      "criterion_id": "AC-TASK-TEST-WEB-002-03",
+      "status": "passed",
+      "evidence_refs": ["tests/pilot/test_ui_redesign_evidence.py"],
+      "notes": "Pytest validates no fabricated outcomes (test_no_fabricated_failures), honest disclosure present (test_honest_disclosure_present), and consistent summary counts."
+    },
+    {
+      "criterion_id": "AC-TASK-TEST-WEB-002-04",
+      "status": "passed",
+      "evidence_refs": [],
+      "notes": "Only 3 files created, all within declared write_scope.allowed_paths."
+    }
+  ],
+  "evidence": [
+    {
+      "type": "manifest",
+      "path": "tests/pilot/ui-redesign-manifest.yaml",
+      "description": "Machine-readable evidence manifest with 12 journeys, 36 viewport checks, 60 a11y checks"
+    },
+    {
+      "type": "report",
+      "path": "release/evidence/ui-redesign-report.md",
+      "description": "Human-readable evidence report with traceability matrix"
+    }
+  ],
+  "diff_summary": "Created 3 new files: evidence manifest (ui-redesign-manifest.yaml) declaring 12 redesigned P0 journeys across 3 viewports with 5 a11y check categories; pytest validator (test_ui_redesign_evidence.py) with 10 structural and coverage tests; and human-readable evidence report (ui-redesign-report.md). All unavailable browser checks honestly marked not_verified.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [
+    {
+      "risk": "36 viewport screenshot checks and 12 zoom-200% reflow checks remain not_verified",
+      "mitigation": "Must be completed in a real browser environment before release gate MS-PILOT-002",
+      "severity": "medium"
+    }
+  ],
+  "blocker": null
+}

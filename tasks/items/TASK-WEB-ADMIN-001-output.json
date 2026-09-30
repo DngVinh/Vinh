@@ -1,0 +1,42 @@
+{
+  "task_id": "TASK-WEB-ADMIN-001",
+  "status": "completed",
+  "verification_results": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/app/admin/layout.test.tsx",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "command": "python -B tasks/tools/validate_catalog.py",
+      "exit_code": 0,
+      "passed": true
+    }
+  ],
+  "acceptance_criteria_evidence": [
+    {
+      "id": "AC-TASK-WEB-ADMIN-001-01",
+      "satisfied": true,
+      "evidence": "Admin layout actively validates server-backed capabilities beyond merely hiding navigation links."
+    },
+    {
+      "id": "AC-TASK-WEB-ADMIN-001-02",
+      "satisfied": true,
+      "evidence": "Unauthorized requests are intercepted before child content mounts, rendering concealment denial views without sensitive fetches."
+    },
+    {
+      "id": "AC-TASK-WEB-ADMIN-001-03",
+      "satisfied": true,
+      "evidence": "Session expiration prevents stale client state trust and halts administrative rendering."
+    },
+    {
+      "id": "AC-TASK-WEB-ADMIN-001-99",
+      "satisfied": true,
+      "evidence": "Unit tests pass deterministically under fake states; scope confined to allowed paths; zero leaks."
+    }
+  ],
+  "changed_files": [
+    "apps/web/src/app/admin/layout.tsx",
+    "apps/web/src/app/admin/layout.test.tsx"
+  ]
+}

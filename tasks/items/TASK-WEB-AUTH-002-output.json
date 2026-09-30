@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-WEB-AUTH-002",
+  "result": "completed",
+  "source_revision": "HEAD",
+  "started_at": "2026-09-26T16:30:00Z",
+  "completed_at": "2026-09-26T16:35:00Z",
+  "changed_files": [
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/chat/page.test.tsx"
+  ],
+  "preexisting_changes": [
+    "diff.txt"
+  ],
+  "resolved_upstream_traceability": {
+    "resolution_mode": "direct",
+    "binding_ref": "tasks/requirement-acceptance-bindings.yaml",
+    "requirements": [
+      {
+        "requirement_id": "REQ-NF-SEC-004",
+        "acceptance_criteria": [
+          "AC-REQ-NF-SEC-004-01"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "corepack pnpm --dir apps/web test --run src/app/chat/page.test.tsx",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    },
+    {
+      "command": "corepack pnpm --dir apps/web lint",
+      "working_directory": "c:/Users/Duong Vinh/Vinh",
+      "exit_code": 0,
+      "result": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion_id": "AC-TASK-WEB-AUTH-002-01",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-AUTH-002-02",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-AUTH-002-03",
+      "status": "passed",
+      "evidence_refs": []
+    },
+    {
+      "criterion_id": "AC-TASK-WEB-AUTH-002-04",
+      "status": "passed",
+      "evidence_refs": []
+    }
+  ],
+  "evidence": [],
+  "diff_summary": "Removed embedded demo token from ChatPage, consumed session boundary with credentials: include, implemented fail-closed unauthorized AsyncState handling.",
+  "scope_conformance": {
+    "status": "passed",
+    "unexpected_files": []
+  },
+  "deviations": [],
+  "residual_risks": [],
+  "blocker": null
+}

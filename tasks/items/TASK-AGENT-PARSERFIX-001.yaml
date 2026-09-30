@@ -1,0 +1,69 @@
+schema_version: "1.1"
+id: TASK-AGENT-PARSERFIX-001
+phase: P04
+title: Reject ambiguous and non-finite structured model output
+status: accepted
+objective: "Make structured JSON parsing reject duplicate object keys, non-finite values, and Markdown fence rescue before schema validation."
+layer: agent
+bounded_context: llm-output-parsing
+priority: P1
+estimated_minutes: 30
+sensitivity: medium
+human_approval_required: false
+approval_reasons: []
+traceability:
+  requirements: ["REQ-NF-SEC-008"]
+  acceptance_criteria: ["AC-REQ-NF-SEC-008-01"]
+  coverage_binding_ref: tasks/requirement-acceptance-bindings.yaml
+  binding_mode: direct
+  design: []
+  contracts: ["DATA-BASE-001"]
+  controls: ["SEC-CTRL-006"]
+  evals: []
+dependencies: ["TASK-AGENT-LLM-003"]
+inputs:
+  - path: docs/00-governance/DOCUMENT_CONTROL.md
+    load: full
+  - path: docs/04-architecture/contracts/README.md
+    load: full
+  - path: docs/01-product/PRD.md
+    load: full
+write_scope:
+  allowed_paths:
+    - services/api/src/campus247/agent/output_parser.py
+    - tests/unit/ai/test_output_parser.py
+  forbidden_paths: ["docs/**", "contracts/**", ".git/**"]
+  max_files: 2
+  max_added_lines: 140
+preconditions:
+  - "The accepted dependency and approved source baseline are verified."
+  - "The initial working-tree state is preserved and the write lease is limited to the two listed files."
+steps:
+  - "Read the current parser, its callers, and focused tests before editing."
+  - "Reject ambiguous JSON and non-finite numbers without a regex repair path."
+  - "Run the focused tests and catalog validator, then inspect the exact diff and status."
+acceptance_criteria:
+  - id: AC-TASK-AGENT-PARSERFIX-001-01
+    assertion: "Duplicate keys at any object depth and NaN or Infinity values are rejected deterministically."
+  - id: AC-TASK-AGENT-PARSERFIX-001-02
+    assertion: "Markdown fenced output is rejected while a valid JSON object still passes schema validation."
+  - id: AC-TASK-AGENT-PARSERFIX-001-99
+    assertion: "The scoped diff preserves all pre-existing work and uses no network, paid provider, or secret."
+verification:
+  - command: python -B -m pytest -q tests/unit/ai/test_output_parser.py
+    expected_exit_code: 0
+    proves: "Parser accepts valid JSON and rejects ambiguous, non-finite, fenced, and schema-invalid output."
+  - command: python -B tasks/tools/validate_catalog.py
+    expected_exit_code: 0
+    proves: "Task catalog, dependency, approval, and scope invariants remain valid."
+evidence_required: ["initial and final git status", "exact scoped diff", "verification commands and exit codes", "acceptance-to-evidence mapping"]
+recovery:
+  strategy: reverse_patch
+  steps: ["Keep the patch unpromoted and apply a reviewed reverse patch limited to this task if required."]
+stop_conditions:
+  - "A required source is missing, unapproved, or conflicts with another authority."
+  - "The change requires any file outside write_scope, network access, or a policy change."
+parallelism:
+  eligible: true
+  conflict_keys: ["agent-output-parser"]
+execution_policy: {max_fix_attempts: 2, network_access: false, paid_services: false, destructive_operations: false}

@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  catalog-validation:
+    name: "Validate Task Catalog & DAG"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate catalog invariants
+        run: |
+          echo "Commit: ${{ github.sha }}"
+          python -B tasks/tools/validate_catalog.py
+
+  backend-tests:
+    name: "Backend Unit & Integration Gates"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CAMPUS247_ENV: "test"
+      OFFLINE_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir pytest pytest-asyncio pydantic jsonschema pyyaml httpx
+      - name: Run backend tests
+        run: |
+          echo "Commit: ${{ github.sha }}"
+          python -B -m pytest -q tests/unit tests/integration/retention
+
+  web-tests:
+    name: "Web Unit & A11y Gates"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run vitest suite
+        run: |
+          echo "Commit: ${{ github.sha }}"
+          npm --prefix apps/web test -- --run
+
+  ai-eval-gates:
+    name: "AI Safety & Release Gates"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OFFLINE_EVAL_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir pytest pyyaml
+      - name: Run AI adversarial gates
+        run: |
+          echo "Commit: ${{ github.sha }}"
+          python -B -m pytest -q tests/evals/test_audit_remediation_gate.py
+
+  release-manifest-gate:
+    name: "Release Manifest Verification Gate"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir pytest jsonschema pyyaml
+      - name: Run release manifest verifier tests
+        run: |
+          echo "Commit: ${{ github.sha }}"
+          python -B -m pytest -q tests/delivery/test_release_manifest.py

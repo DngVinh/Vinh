@@ -2,7 +2,7 @@ schema_version: "1.1"
 id: TASK-WEB-PRIV-002
 phase: P06
 title: "Rebuild the privacy center and consent presentation"
-status: draft
+status: accepted
 objective: "Rebuild the privacy center so the active notice, version, effective date, consent implications and request status are understandable before action."
 layer: web
 bounded_context: redesign-privacy
