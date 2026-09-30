@@ -1,8 +1,0 @@
-id: TASK-EVAL-REDTEAM-002
-status: completed
-objective: Execute all catalog scenarios and benign controls against offline application boundaries in evals/runners/red_team_catalog.py; security tests.
-write_scope:
-  allowed_paths:
-    - evals/runners/red_team_catalog.py
-    - tests/evals/test_red_team_catalog.py
-human_approval_required: false
