@@ -78,11 +78,9 @@ def create_ticket_query_router(
         identity = get_current_identity(request)
 
         ticket = storage.get(ticket_id)
-        if not ticket:
-            raise HTTPException(status_code=404, detail="Ticket not found")
-
-        if ticket.requester_user_id != identity.subject_id:
-            raise HTTPException(status_code=403, detail="Forbidden: access to another user's ticket denied")
+        if not ticket or ticket.requester_user_id != identity.subject_id:
+            # AC-TASK-API-CONCEAL-002-01 & 02: Conceal existence with uniform 404
+            raise HTTPException(status_code=404, detail="Không tìm thấy tài nguyên")
 
         content = {
             "id": ticket.id,
@@ -105,6 +103,13 @@ def create_ticket_query_router(
                 "ETag": f'"{ticket.version}"',
                 "Cache-Control": "no-store",
             },
+        )
+
+    @router.post("/v1/tickets")
+    async def create_ticket_blocked(request: Request) -> JSONResponse:
+        raise HTTPException(
+            status_code=405,
+            detail="Direct ticket creation is prohibited. State changes require authorization, preview, and explicit confirmation via /v1/tickets/preview.",
         )
 
     return router

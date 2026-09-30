@@ -177,10 +177,11 @@ class LexicalSearchAdapter:
                 c.id,
                 c.document_version_id,
                 c.content_text,
-                c.section_path,
+                CASE WHEN c.section_path IS NULL OR c.section_path = '' OR c.section_path = 'Untitled Document' THEN COALESCE(s.title, 'Văn bản quy định HUCE') ELSE c.section_path END AS section_path,
                 ts_rank_cd(c.content_tsv, plainto_tsquery('simple', $1)) AS rank_score
             FROM knowledge_chunk c
             JOIN document_version v ON c.document_version_id = v.id
+            LEFT JOIN knowledge_source s ON v.knowledge_source_id = s.id
             WHERE v.status = 'PUBLISHED'
               AND c.content_tsv @@ plainto_tsquery('simple', $1)
             ORDER BY rank_score DESC
@@ -201,10 +202,11 @@ class LexicalSearchAdapter:
                             c.id,
                             c.document_version_id,
                             c.content_text,
-                            c.section_path,
+                            CASE WHEN c.section_path IS NULL OR c.section_path = '' OR c.section_path = 'Untitled Document' THEN COALESCE(s.title, 'Văn bản quy định HUCE') ELSE c.section_path END AS section_path,
                             ts_rank_cd(c.content_tsv, to_tsquery('simple', $1)) AS rank_score
                         FROM knowledge_chunk c
                         JOIN document_version v ON c.document_version_id = v.id
+                        LEFT JOIN knowledge_source s ON v.knowledge_source_id = s.id
                         WHERE v.status = 'PUBLISHED'
                           AND c.content_tsv @@ to_tsquery('simple', $1)
                         ORDER BY rank_score DESC

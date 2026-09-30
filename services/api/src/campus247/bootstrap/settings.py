@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Literal
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parents[5]
@@ -58,6 +58,25 @@ class Settings(BaseSettings):
     DEEPSEEK_API_KEY: str | None = Field(default=None, description="Khóa API DeepSeek (Paid)")
     DEEPSEEK_BASE_URL: str = Field(default="https://api.deepseek.com", description="Base URL DeepSeek API")
     DEEPSEEK_MODEL: str = Field(default="deepseek-chat", description="Mô hình DeepSeek")
+    LLM_PRIMARY_PROVIDER: str = Field(default="deepseek", description="Nhà cung cấp LLM chính (deepseek, gemini, auto)")
+
+    _INSECURE_DEFAULTS = frozenset({
+        "campus247-demo-secret-key-huce",
+        "campus247-secret-signing-key",
+    })
+
+    @model_validator(mode="after")
+    def _reject_default_keys_in_production(self) -> "Settings":
+        """Block startup with default insecure keys in production/staging."""
+        if self.ENVIRONMENT in ("production", "staging"):
+            for field_name in ("IDENTITY_SECRET_KEY", "CONFIRMATION_SIGNING_KEY"):
+                value = getattr(self, field_name, "")
+                if value in self._INSECURE_DEFAULTS:
+                    raise ValueError(
+                        f"{field_name} uses an insecure default value in {self.ENVIRONMENT}. "
+                        f"Set a secure secret via environment variable."
+                    )
+        return self
 
 
 def get_settings() -> Settings:

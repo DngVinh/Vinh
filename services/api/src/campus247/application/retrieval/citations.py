@@ -48,7 +48,7 @@ class CitationBundle:
                 source_id=item.get("source_id", ""),
                 document_version_id=item.get("document_version_id", ""),
                 chunk_id=item.get("chunk_id", ""),
-                title=item.get("title", "Untitled Document"),
+                title=item.get("title") or item.get("section_path") or "Tài liệu HUCE",
                 issuer=item.get("issuer", "HUCE"),
                 canonical_uri=item.get("canonical_uri", ""),
                 section_path=item.get("section_path"),

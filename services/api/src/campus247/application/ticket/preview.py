@@ -82,6 +82,7 @@ class TicketPreviewService:
 
         preview = create_action_preview(
             actor_user_id=actor.subject_id,
+            session_id=actor.session_id if hasattr(actor, "session_id") and actor.session_id else "none",
             action_type="CREATE_TICKET",
             payload=normalized_payload,
             ttl_seconds=300,

@@ -228,6 +228,7 @@ def create_app() -> FastAPI:
                     "chunk_id": c.chunk_id,
                     "document_version_id": c.document_version_id,
                     "section_path": c.section_path,
+                    "title": c.section_path or "Văn bản quy định HUCE",
                     "content_text": c.content_text,
                     "score": c.score,
                 }
@@ -273,6 +274,9 @@ def create_app() -> FastAPI:
 
     # Capabilities: /v1/capabilities, /v1/operations/capabilities
     app.include_router(capabilities.create_capabilities_router(manager=capability_manager))
+
+    from campus247.presentation.actions import create_actions_router
+    app.include_router(create_actions_router())
 
     # Logout: /v1/auth/logout & /v1/logout
     app.include_router(logout.create_logout_router(logout_service=logout_service), prefix="/v1/auth")

@@ -41,8 +41,6 @@ class ToolPhase(StrEnum):
 
 class SafetySeverity(StrEnum):
     NORMAL = "normal"
-    LOW = "low"
-    MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 

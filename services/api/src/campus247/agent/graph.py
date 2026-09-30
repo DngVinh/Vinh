@@ -130,7 +130,7 @@ def build_agent_graph(
         if route in (Route.HUMAN_HANDOVER, Route.SENSITIVE_CASE):
             return "prepare_handover"
         if route == Route.UNSUPPORTED:
-            return "compose_grounded"
+            return "output_guard"
         return "retrieve_evidence"
 
     builder.add_conditional_edges(

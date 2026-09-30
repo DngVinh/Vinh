@@ -67,9 +67,12 @@ def create_chat_router(
         )
 
         async def event_generator() -> AsyncGenerator[str, None]:
+            from campus247.agent.streaming import StreamGuardrail
+
             assistant_msg_id = generate_uuid7()
-            full_text = ""
             state: Any | None = None
+            guardrail = StreamGuardrail()
+            seq_counter = 0
 
             try:
                 # Event 1: message.started
@@ -106,42 +109,66 @@ def create_chat_router(
                     if len(chunk_buffer) >= 3 or "\n" in w:
                         delta = "".join(chunk_buffer)
                         chunk_buffer = []
-                        full_text += delta
+                        seq_counter += 1
+                        guardrail.push_provisional(seq=seq_counter, delta=delta)
 
                         if await request.is_disconnected():
                             return
 
-                        delta_data = json.dumps({"delta": delta})
+                        delta_data = json.dumps({"seq": seq_counter, "delta": delta})
                         yield f"id: {generate_uuid7()}\nevent: message.delta\ndata: {delta_data}\n\n"
                         await asyncio.sleep(0.01)
 
                 if chunk_buffer:
                     delta = "".join(chunk_buffer)
-                    full_text += delta
+                    seq_counter += 1
+                    guardrail.push_provisional(seq=seq_counter, delta=delta)
                     if not await request.is_disconnected():
-                        delta_data = json.dumps({"delta": delta})
+                        delta_data = json.dumps({"seq": seq_counter, "delta": delta})
                         yield f"id: {generate_uuid7()}\nevent: message.delta\ndata: {delta_data}\n\n"
 
-                # Save completed assistant message
+                # Validate and commit semantic content
+                validation = guardrail.validate_and_commit()
+
+                if not validation.success:
+                    abstained_data = json.dumps(
+                        {
+                            "status": "abstained",
+                            "message": validation.safe_text,
+                            "reason": validation.reason,
+                        }
+                    )
+                    yield f"id: {generate_uuid7()}\nevent: message.abstained\ndata: {abstained_data}\n\n"
+                    await conv_service.append_message(
+                        conversation_id=conversation_id,
+                        sender_type=SenderType.ASSISTANT,
+                        content=validation.safe_text,
+                    )
+                    return
+
+                # Save validated completed assistant message
                 saved_assistant = await conv_service.append_message(
                     conversation_id=conversation_id,
                     sender_type=SenderType.ASSISTANT,
-                    content=full_text or answer_text,
+                    content=validation.safe_text,
                 )
 
                 citations_payload = []
-                if state is not None and isinstance(getattr(state, "tool_flow", None), dict):
-                    candidates = state.tool_flow.get("candidates", [])
-                    for idx, c in enumerate(candidates[:5]):
-                        citations_payload.append(
-                            {
-                                "id": f"cit-{idx + 1}",
-                                "title": c.get("section_path") or c.get("title") or f"Tài liệu HUCE #{idx + 1}",
-                                "document_ref": c.get("document_version_id") or c.get("chunk_id", f"DOC-{idx + 1}"),
-                                "quote": c.get("content_text", ""),
-                                "confidence": round(float(c.get("score", 0.95)), 4),
-                            }
-                        )
+                flow = getattr(state, "tool_flow", None) if state is not None else None
+                if flow is not None:
+                    candidates = flow.candidates if hasattr(flow, "candidates") else (flow.get("candidates", []) if isinstance(flow, dict) else [])
+                    if candidates and isinstance(candidates, list):
+                        for idx, c in enumerate(candidates[:5]):
+                            c_dict = c if isinstance(c, dict) else (c.__dict__ if hasattr(c, "__dict__") else {})
+                            citations_payload.append(
+                                {
+                                    "id": f"cit-{idx + 1}",
+                                    "title": c_dict.get("section_path") or c_dict.get("title") or f"Tài liệu HUCE #{idx + 1}",
+                                    "document_ref": c_dict.get("document_version_id") or c_dict.get("chunk_id", f"DOC-{idx + 1}"),
+                                    "quote": c_dict.get("content_text", ""),
+                                    "confidence": round(float(c_dict.get("score", 0.95)), 4),
+                                }
+                            )
 
                 # Event 3: message.completed
                 complete_data = json.dumps(
@@ -155,13 +182,8 @@ def create_chat_router(
                 yield f"id: {generate_uuid7()}\nevent: message.completed\ndata: {complete_data}\n\n"
 
             except asyncio.CancelledError:
-                # Client disconnected mid-stream
-                if full_text:
-                    await conv_service.append_message(
-                        conversation_id=conversation_id,
-                        sender_type=SenderType.ASSISTANT,
-                        content=full_text,
-                    )
+                # Do not commit unvalidated partial semantics as complete
+                pass
             except Exception as err:
                 err_data = json.dumps({"error": str(err)})
                 yield f"id: {generate_uuid7()}\nevent: message.error\ndata: {err_data}\n\n"

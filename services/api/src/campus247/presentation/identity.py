@@ -90,7 +90,7 @@ def create_identity_router(adapter: Any | None = None, environment: str = "local
                     key="auth_token",
                     value=token,
                     httponly=True,
-                    secure=True,
+                    secure=is_prod,
                     samesite="lax",
                     path="/",
                 )

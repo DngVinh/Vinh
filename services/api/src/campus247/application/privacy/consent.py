@@ -2,14 +2,31 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import hashlib
 from typing import Any
 
 from campus247.application.audit.writer import AuditWriter
 from campus247.domain.shared.values import generate_uuid7
-from campus247.ports.identity import IdentityContext
+from campus247.ports.identity import IdentityContext, IdentityRole
 
 
 class ServiceUnavailableError(Exception):
+    pass
+
+
+class ConsentRequiredError(Exception):
+    pass
+
+
+class CrossSubjectUnauthorizedError(Exception):
+    pass
+
+
+class LegalHoldConflictError(Exception):
+    pass
+
+
+class DuplicateOperationError(Exception):
     pass
 
 
@@ -35,8 +52,53 @@ class ConsentRecord:
     recorded_at: datetime
 
 
-VALID_PURPOSES = {"QUALITY_FEEDBACK", "OPTIONAL_PERSONALIZATION"}
+@dataclass(frozen=True)
+class LegalHoldRecord:
+    id: str
+    user_id: str
+    reason: str
+    hold_reference: str
+    created_at: datetime
+
+
+@dataclass
+class PrivacyOperationRecord:
+    id: str
+    operation_type: str
+    target_subject_id: str
+    requester_id: str
+    purpose: str
+    scope: list[str]
+    status: str
+    tracking_reference: str
+    created_at: datetime
+    requester_note: str | None = None
+
+
+VALID_PURPOSES = {"QUALITY_FEEDBACK", "OPTIONAL_PERSONALIZATION", "DATA_PORTABILITY", "ACCOUNT_CLOSURE", "SERVICE_DELIVERY"}
 VALID_DECISIONS = {"GRANTED", "WITHDRAWN"}
+VALID_OPERATIONS = {"EXPORT", "CORRECTION", "ERASURE"}
+ALLOWED_SCOPES = {"ACCOUNT_CONTEXT", "CONVERSATION_CONTENT", "REQUEST_METADATA", "AUDIT_METADATA", "TICKETS", "BOOKINGS"}
+CONSENT_REQUISITE_PURPOSES = {"OPTIONAL_PERSONALIZATION", "QUALITY_FEEDBACK"}
+
+
+class LegalHoldRegistry:
+    def __init__(self) -> None:
+        self._holds: dict[str, list[LegalHoldRecord]] = {}
+
+    def is_under_hold(self, user_id: str) -> bool:
+        return bool(self._holds.get(user_id))
+
+    def add_hold(self, user_id: str, reason: str, hold_reference: str) -> LegalHoldRecord:
+        rec = LegalHoldRecord(
+            id=generate_uuid7(),
+            user_id=user_id,
+            reason=reason,
+            hold_reference=hold_reference,
+            created_at=datetime.now(timezone.utc),
+        )
+        self._holds.setdefault(user_id, []).append(rec)
+        return rec
 
 
 class PrivacyConsentService:
@@ -56,6 +118,13 @@ class PrivacyConsentService:
 
     def list_user_consents(self, user_id: str) -> list[ConsentRecord]:
         return [c for c in self._consents if c.user_id == user_id]
+
+    def has_active_consent(self, user_id: str, purpose: str) -> bool:
+        matching = [c for c in self._consents if c.user_id == user_id and c.purpose == purpose]
+        if not matching:
+            return False
+        # Last record determines current state
+        return matching[-1].decision == "GRANTED"
 
     def record_consent(
         self,
@@ -95,4 +164,93 @@ class PrivacyConsentService:
             metadata={"purpose": purpose, "notice_version": notice_version},
         )
 
+        return record
+
+
+class PrivacyOperationAuthorizationService:
+    def __init__(
+        self,
+        consent_service: PrivacyConsentService,
+        legal_hold_registry: LegalHoldRegistry | None = None,
+        audit_writer: AuditWriter | None = None,
+    ) -> None:
+        self._consent_service = consent_service
+        self._legal_holds = legal_hold_registry or LegalHoldRegistry()
+        self._audit_writer = audit_writer or AuditWriter()
+        self._operations: dict[str, PrivacyOperationRecord] = {}
+
+    def authorize_and_queue(
+        self,
+        actor: IdentityContext,
+        operation_type: str,
+        target_subject_id: str,
+        purpose: str,
+        scope: list[str],
+        requester_note: str | None = None,
+    ) -> PrivacyOperationRecord:
+        if operation_type not in VALID_OPERATIONS:
+            raise ValueError(f"Unsupported operation type: {operation_type}")
+
+        if purpose not in VALID_PURPOSES:
+            raise ValueError(f"Invalid or unapproved purpose: {purpose}")
+
+        if not scope or not all(s in ALLOWED_SCOPES for s in scope):
+            raise ValueError(f"Scope contains unapproved or overbroad data categories: {scope}")
+
+        # Authorization: subject themselves or staff role
+        is_owner = actor.subject_id == target_subject_id
+        is_staff = any(r in (IdentityRole.SUPPORT_OFFICER, IdentityRole.SYSTEM_ADMIN) for r in actor.roles)
+        if not is_owner and not is_staff:
+            raise CrossSubjectUnauthorizedError("Caller not authorized to act on behalf of target subject")
+
+        # Consent prerequisite check: no implicit approval
+        if purpose in CONSENT_REQUISITE_PURPOSES:
+            if not self._consent_service.has_active_consent(target_subject_id, purpose):
+                raise ConsentRequiredError(f"No active affirmative consent granted for purpose '{purpose}'")
+
+        # Legal hold conflict check: legal holds block erasure/deletion
+        if operation_type == "ERASURE" and self._legal_holds.is_under_hold(target_subject_id):
+            raise LegalHoldConflictError("Erasure cannot proceed due to active statutory or legal hold")
+
+        # Duplicate pending operation check
+        for op in self._operations.values():
+            if (
+                op.target_subject_id == target_subject_id
+                and op.operation_type == operation_type
+                and op.status in ("ACCEPTED", "PENDING")
+            ):
+                raise DuplicateOperationError(f"Duplicate {operation_type} operation is already in-flight")
+
+        now = datetime.now(timezone.utc)
+        op_id = generate_uuid7()
+        hash_suffix = hashlib.sha256(f"{op_id}:{now.isoformat()}".encode("utf-8")).hexdigest()[:12].upper()
+        tracking_ref = f"PRIV-OP-{hash_suffix}"
+
+        record = PrivacyOperationRecord(
+            id=op_id,
+            operation_type=operation_type,
+            target_subject_id=target_subject_id,
+            requester_id=actor.subject_id,
+            purpose=purpose,
+            scope=scope,
+            status="ACCEPTED",
+            tracking_reference=tracking_ref,
+            created_at=now,
+            requester_note=requester_note,
+        )
+        self._operations[op_id] = record
+
+        self._audit_writer.record_event(
+            actor_type=actor.roles[0].value if actor.roles else "STUDENT",
+            actor_id=actor.subject_id,
+            action_code=f"privacy.operation_{operation_type.lower()}",
+            resource_type="privacy_operation",
+            resource_id=op_id,
+            outcome="SUCCESS",
+            metadata={
+                "operation_type": operation_type,
+                "purpose": purpose,
+                "tracking_reference": tracking_ref,
+            },
+        )
         return record

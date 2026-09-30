@@ -180,10 +180,11 @@ class VectorSearchAdapter:
                 c.id,
                 c.document_version_id,
                 c.content_text,
-                c.section_path,
+                CASE WHEN c.section_path IS NULL OR c.section_path = '' OR c.section_path = 'Untitled Document' THEN COALESCE(s.title, 'Văn bản quy định HUCE') ELSE c.section_path END AS section_path,
                 (c.embedding <=> $1) AS distance
             FROM knowledge_chunk c
             JOIN document_version v ON c.document_version_id = v.id
+            LEFT JOIN knowledge_source s ON v.knowledge_source_id = s.id
             WHERE v.status = 'PUBLISHED'
               AND c.embedding IS NOT NULL
             ORDER BY distance ASC

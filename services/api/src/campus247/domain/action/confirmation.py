@@ -29,7 +29,11 @@ class ConfirmationTokenService:
         payload = {
             "pid": preview.id,
             "act": preview.actor_user_id,
+            "sid": preview.session_id,
+            "cid": preview.conversation_id,
             "atyp": preview.action_type,
+            "tver": preview.tool_version,
+            "pver": preview.policy_version,
             "phash": preview.payload_hash,
             "pdec": preview.policy_decision,
             "exp": int(preview.expires_at.timestamp()),
@@ -46,7 +50,11 @@ class ConfirmationTokenService:
         token: str,
         expected_preview_id: str,
         expected_actor_id: str,
+        expected_session_id: str,
+        expected_conversation_id: str,
         expected_action_type: str,
+        expected_tool_version: str,
+        expected_policy_version: str,
         expected_payload_hash: str,
         at_time: datetime | None = None,
     ) -> ConfirmationValidationResult:

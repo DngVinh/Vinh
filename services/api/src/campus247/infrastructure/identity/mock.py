@@ -35,10 +35,12 @@ class SyntheticIdentityAdapter:
             raise ValueError(f"User not found in synthetic directory: {user_id_or_code}")
         now = datetime.now(timezone.utc)
         exp = now + timedelta(seconds=ttl_seconds)
+        import secrets
         payload = {
             "sub": uid,
             "iat": int(now.timestamp()),
             "exp": int(exp.timestamp()),
+            "jti": secrets.token_urlsafe(8),
         }
         payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
         b64_payload = base64.urlsafe_b64encode(payload_bytes).decode("ascii")

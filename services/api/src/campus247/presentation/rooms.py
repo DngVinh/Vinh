@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from starlette.responses import JSONResponse
 
 from campus247.application.booking.availability import ExistingBooking, RoomInfo
+from campus247.presentation.identity import get_current_identity
 
 
 def create_rooms_router(
@@ -105,5 +106,39 @@ def create_rooms_router(
             "advisory": True,
         }
         return JSONResponse(status_code=200, content=content, headers={"Cache-Control": "no-store"})
+
+    @router.post("/v1/rooms/book")
+    async def book_room(request: Request) -> JSONResponse:
+        get_current_identity(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        idempotency_key = (
+            request.headers.get("Idempotency-Key")
+            or request.headers.get("X-Idempotency-Key")
+            or body.get("idempotency_key")
+        )
+        confirmation_token = body.get("confirmation_token")
+
+        if not confirmation_token:
+            raise HTTPException(
+                status_code=422,
+                detail="confirmation_token is required: direct write without preview confirmation is forbidden.",
+            )
+        if not idempotency_key:
+            raise HTTPException(
+                status_code=422,
+                detail="Idempotency-Key is required for state-changing booking operations.",
+            )
+
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Room booking is unavailable until durable preview and confirmation "
+                "controls are enabled."
+            ),
+        )
 
     return router

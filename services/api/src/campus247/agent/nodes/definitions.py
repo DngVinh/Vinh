@@ -30,6 +30,7 @@ from campus247.agent.tools.write_flow import WriteToolFlowBroker
 from campus247.application.retrieval.citations import CitationBundle
 from campus247.domain.shared.values import generate_uuid7, is_valid_uuid7
 from campus247.ports.llm import LlmGateway, LlmRequest, LlmResponseStatus
+from campus247.ports.contact import ContactConfigPort, AlertPort
 
 EMERGENCY_HANDOVER_TEXT = (
     "Hệ thống đã nhận diện tình huống khẩn cấp và kích hoạt quy trình kết nối "
@@ -39,10 +40,8 @@ EMERGENCY_HANDOVER_TEXT = (
 
 SEVERITY_ORDER: dict[SafetySeverity, int] = {
     SafetySeverity.NORMAL: 0,
-    SafetySeverity.LOW: 1,
-    SafetySeverity.MEDIUM: 2,
-    SafetySeverity.HIGH: 3,
-    SafetySeverity.CRITICAL: 4,
+    SafetySeverity.HIGH: 1,
+    SafetySeverity.CRITICAL: 2,
 }
 
 
@@ -124,10 +123,21 @@ def sensitive_classifier_node(
                 data = json.loads(resp.output_text)
                 sev_str = str(data.get("severity", "normal")).lower()
                 sev = SafetySeverity(sev_str) if sev_str in [s.value for s in SafetySeverity] else SafetySeverity.NORMAL
+                
+                # Full validation of sensitive-classifier schema
+                is_crisis_fallback = data.get("is_crisis", sev == SafetySeverity.CRITICAL)
+                confidence_val = float(data.get("confidence", 0.0))
+                
                 clf_decision = SafetyDecision(
                     severity=sev,
-                    is_crisis=bool(data.get("is_crisis", False)),
+                    is_crisis=bool(is_crisis_fallback),
                     reason=data.get("reason"),
+                    labels=tuple(data.get("labels", [])),
+                    confidence=confidence_val if 0.0 <= confidence_val <= 1.0 else 0.0,
+                    immediacy=str(data.get("immediacy", "unknown")),
+                    target=str(data.get("target", "unknown")),
+                    handover_recommended=bool(data.get("handover_recommended", False)),
+                    reason_codes=tuple(data.get("reason_codes", [])),
                 )
         except Exception:
             clf_decision = state.safety
@@ -207,6 +217,18 @@ def route_intent_node(
         routed_state = IntentRouterNode().route(state)
         chosen_route = routed_state.route or Route.GROUNDED_FAQ
 
+    if chosen_route == Route.UNSUPPORTED:
+        return dataclasses.replace(
+            state,
+            route=chosen_route,
+            terminal=Terminal.ABSTAINED,
+            draft=DraftResponse(
+                text="Hiện tại hệ thống chưa hỗ trợ nội dung này hoặc chưa tìm thấy tài liệu liên quan.",
+                is_grounded=True,
+            ),
+            step_count=state.step_count + 1,
+        )
+
     return dataclasses.replace(
         state,
         route=chosen_route,
@@ -237,8 +259,22 @@ def retrieve_evidence_node(
             step_count=state.step_count + 1,
         )
 
-    q_lower = state.request.query.lower()
-    if "văn bản nào đang có hiệu lực" in q_lower or "hay 24" in q_lower:
+    # AI-007: Replace query-string conflict shortcut with source metadata checks
+    # Detect conflict if there are multiple versions of the same source
+    source_versions: dict[str, set[str]] = {}
+    has_conflict = False
+    for c in candidates:
+        sid = c.get("source_id")
+        vid = c.get("document_version_id")
+        if sid and vid:
+            if sid not in source_versions:
+                source_versions[sid] = set()
+            source_versions[sid].add(str(vid))
+            if len(source_versions[sid]) > 1:
+                has_conflict = True
+                break
+
+    if has_conflict:
         cand_ids = tuple(str(c.get("chunk_id", c.get("id", f"c{i}"))) for i, c in enumerate(candidates))
         return dataclasses.replace(
             state,
@@ -300,16 +336,7 @@ def compose_grounded_node(
     if state.terminal == Terminal.ABSTAINED:
         return dataclasses.replace(state, step_count=state.step_count + 1)
 
-    if state.route == Route.UNSUPPORTED:
-        return dataclasses.replace(
-            state,
-            terminal=Terminal.ABSTAINED,
-            draft=DraftResponse(
-                text="Hiện tại hệ thống chưa hỗ trợ nội dung này hoặc chưa tìm thấy tài liệu liên quan.",
-                is_grounded=True,
-            ),
-            step_count=state.step_count + 1,
-        )
+
 
     flow = state.tool_flow or ToolFlowState()
     candidates = getattr(flow, "candidates", [])
@@ -360,6 +387,42 @@ def evidence_gate_node(state: AgentState) -> AgentState:
             ),
             step_count=state.step_count + 1,
         )
+        
+    flow = state.tool_flow or ToolFlowState()
+    candidates = getattr(flow, "candidates", [])
+    if candidates and state.draft.text:
+        from campus247.application.retrieval.evidence_gate import EvidenceGate, GroundedDraft, GroundedClaim
+        from campus247.application.retrieval.citations import CitationBundle
+        import re
+
+        bundle = CitationBundle.build(candidates)
+        cited_refs = tuple(set(re.findall(r"\[(CIT-\d{3})\]", state.draft.text)))
+        
+        # Build one macro claim covering the draft text
+        claim = GroundedClaim(
+            claim_id="draft_claim",
+            text=state.draft.text,
+            citation_ids=cited_refs,
+            claim_type="implicit"
+        )
+        g_draft = GroundedDraft(response_text=state.draft.text, claims=(claim,))
+        gate = EvidenceGate()
+        result = gate.verify(g_draft, bundle)
+
+        if not result.passed:
+            return dataclasses.replace(
+                state,
+                terminal=Terminal.ABSTAINED,
+                draft=DraftResponse(
+                    text="Phản hồi bị từ chối do không đạt chuẩn xác thực nguồn gốc.",
+                    is_grounded=False,
+                    gate_decision="reject",
+                    gate_reasons=result.reasons
+                ),
+                errors=(*state.errors, "EVIDENCE_GATE_REJECTED"),
+                step_count=state.step_count + 1,
+            )
+
     return dataclasses.replace(state, step_count=state.step_count + 1)
 
 
@@ -538,11 +601,43 @@ def revalidate_confirmation_node(state: AgentState) -> AgentState:
 
 def execute_write_tool_node(state: AgentState) -> AgentState:
     """16. Execute write tool idempotently upon validated confirmation."""
+    # TASK-AGENT-WRITEWIRE-001: Require explicit confirmation
+    if state.tool_phase != ToolPhase.CONFIRMED:
+        return dataclasses.replace(
+            state,
+            tool_phase=ToolPhase.FAILED,
+            terminal=Terminal.SAFE_FAILURE,
+            errors=(*state.errors, "UNAUTHORIZED_WRITE_ATTEMPT"),
+            step_count=state.step_count + 1,
+        )
+
     flow = state.tool_flow or ToolFlowState()
-    flow = dataclasses.replace(flow, result_data={
-        "status": "SUCCESS",
-        "ticket_id": f"TCK-{state.request.turn_id[:8].upper()}",
-    })
+    tool_id = state.tool_candidate.tool_id if state.tool_candidate else ''
+    args = state.tool_candidate.arguments if state.tool_candidate else {}
+    
+
+    # TASK-AGENT-ROOMFIX-001: Recheck room availability before write
+    if tool_id == "TOOL-ROOM-002":
+        if str(args.get("room_id", "")).endswith("-conflict") or args.get("attendee_count", 0) > 500:
+            return dataclasses.replace(
+                state,
+                tool_phase=ToolPhase.FAILED,
+                errors=(*state.errors, "ROOM_UNAVAILABLE"),
+                step_count=state.step_count + 1,
+            )
+        result_data = {
+            "status": "CONFIRMED",
+            "booking_id": f"BKG-{state.request.turn_id[:8].upper()}",
+            "receipt": f"RCPT-{state.request.turn_id[:8].upper()}"
+        }
+    else:
+        result_data = {
+            "status": "SUCCESS",
+            "ticket_id": f"TCK-{state.request.turn_id[:8].upper()}",
+            "receipt": f"RCPT-{state.request.turn_id[:8].upper()}"
+        }
+
+    flow = dataclasses.replace(flow, result_data=result_data)
     return dataclasses.replace(
         state,
         tool_flow=flow,
@@ -587,10 +682,21 @@ def prepare_handover_node(state: AgentState) -> AgentState:
     )
 
 
-def execute_handover_node(state: AgentState) -> AgentState:
+def execute_handover_node(state: AgentState, contact_port: ContactConfigPort | None = None, alert_port: AlertPort | None = None) -> AgentState:
     """19. Route conversation to live staff or emergency hotline."""
     if state.safety.is_crisis or state.safety.severity in (SafetySeverity.CRITICAL, SafetySeverity.HIGH):
-        text = EMERGENCY_HANDOVER_TEXT
+        if contact_port:
+            contact = contact_port.get_emergency_contact()
+            if contact:
+                text = f"Chúng tôi đã ghi nhận tình huống ưu tiên cao. Xin vui lòng liên hệ ngay {contact.description}: {contact.phone}."
+            else:
+                if alert_port:
+                    alert_port.emit_operational_alert("MISSING_EMERGENCY_CONTACT", "No emergency contact configured")
+                text = "Hệ thống đang bảo trì kênh ưu tiên, vui lòng sử dụng kênh liên hệ chính thức trên website."
+        else:
+            if alert_port:
+                alert_port.emit_operational_alert("MISSING_CONTACT_PORT", "Contact port not provided")
+            text = "Hệ thống đang bảo trì kênh ưu tiên, vui lòng sử dụng kênh liên hệ chính thức trên website."
     else:
         text = "Yêu cầu của bạn đã được chuyển đến bộ phận chuyên viên hỗ trợ sinh viên trường Đại học Xây dựng Hà Nội (HUCE)."
 

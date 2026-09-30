@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import re
+import math
 from typing import Any
 from jsonschema import Draft202012Validator, ValidationError
 
@@ -18,24 +18,34 @@ class StrictOutputParser:
         self._schema = schema
         self._validator = Draft202012Validator(schema) if schema else None
 
-    def _extract_json_text(self, raw_text: str) -> str:
-        text = raw_text.strip()
-        # Handle markdown fence ```json ... ``` or ``` ... ```
-        if text.startswith("```"):
-            fence_pattern = re.compile(r"^```(?:json)?\s*\n?(.*?)\n?```$", re.DOTALL | re.IGNORECASE)
-            match = fence_pattern.search(text)
-            if match:
-                text = match.group(1).strip()
-        return text
-
     def parse(self, raw_text: str) -> dict[str, Any]:
         if not raw_text or not raw_text.strip():
             raise OutputParseError("LLM response output is empty")
 
-        cleaned = self._extract_json_text(raw_text)
+        def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+            result: dict[str, Any] = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValueError("Duplicate JSON object key")
+                result[key] = value
+            return result
+
+        def reject_constant(_: str) -> None:
+            raise ValueError("Non-finite JSON number")
+
+        def finite_float(value: str) -> float:
+            number = float(value)
+            if not math.isfinite(number):
+                raise ValueError("Non-finite JSON number")
+            return number
 
         try:
-            parsed = json.loads(cleaned)
+            parsed = json.loads(
+                raw_text,
+                object_pairs_hook=unique_object,
+                parse_constant=reject_constant,
+                parse_float=finite_float,
+            )
         except (json.JSONDecodeError, ValueError) as err:
             raise OutputParseError(f"Malformed JSON in LLM response: {err}") from err
 

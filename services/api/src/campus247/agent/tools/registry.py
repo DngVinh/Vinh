@@ -1,7 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable, TypeVar, Awaitable
+
+T = TypeVar("T")
+
+class CircuitBreakerTrippedError(Exception):
+    pass
+
+class ToolExecutionError(Exception):
+    pass
+
 
 
 class ToolValidationError(Exception):
@@ -20,6 +30,9 @@ class ToolDefinition:
     is_write: bool
     requires_confirmation: bool
     allowed_arguments: tuple[str, ...] = ()
+    timeout_ms: int = 2500
+    max_attempts: int = 1
+    circuit_breaker_enabled: bool = True
 
 
 class ToolRegistry:
@@ -27,6 +40,47 @@ class ToolRegistry:
 
     def __init__(self, tools: dict[str, ToolDefinition]) -> None:
         self._tools = tools
+        self._breaker_failures: dict[str, int] = {k: 0 for k in tools}
+        self._breaker_tripped: dict[str, bool] = {k: False for k in tools}
+
+    def record_success(self, tool_id: str) -> None:
+        if tool_id in self._tools:
+            self._breaker_failures[tool_id] = 0
+            self._breaker_tripped[tool_id] = False
+
+    def record_failure(self, tool_id: str) -> None:
+        tool = self._tools.get(tool_id)
+        if tool and tool.circuit_breaker_enabled:
+            self._breaker_failures[tool_id] += 1
+            if self._breaker_failures[tool_id] >= 3:
+                self._breaker_tripped[tool_id] = True
+
+    async def execute_with_policy(self, tool_id: str, fn: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
+        tool = self.get_tool(tool_id)
+        if tool.circuit_breaker_enabled and self._breaker_tripped.get(tool_id):
+            raise CircuitBreakerTrippedError(f"Circuit breaker tripped for tool {tool_id}")
+
+        attempts = 0
+        max_attempts = tool.max_attempts
+        timeout_seconds = tool.timeout_ms / 1000.0
+        last_error = None
+
+        while attempts < max_attempts:
+            attempts += 1
+            try:
+                result = await asyncio.wait_for(fn(*args, **kwargs), timeout=timeout_seconds)
+                self.record_success(tool_id)
+                return result
+            except asyncio.TimeoutError as e:
+                last_error = ToolExecutionError(f"Tool {tool_id} timed out after {tool.timeout_ms}ms")
+            except Exception as e:
+                last_error = ToolExecutionError(f"Tool {tool_id} failed: {e}")
+                
+        self.record_failure(tool_id)
+        if last_error:
+            raise last_error
+        raise ToolExecutionError(f"Tool {tool_id} failed after {max_attempts} attempts")
+
 
     @classmethod
     def default_v1(cls) -> ToolRegistry:
@@ -46,6 +100,7 @@ class ToolRegistry:
                 is_write=True,
                 requires_confirmation=True,
                 allowed_arguments=("category", "subject", "description", "contact_preference", "attachment_refs", "title", "priority"),
+                timeout_ms=5000,
             ),
             ToolDefinition(
                 tool_id="TOOL-TICKET-002",
@@ -62,6 +117,7 @@ class ToolRegistry:
                 is_write=True,
                 requires_confirmation=True,
                 allowed_arguments=("document_type", "purpose", "delivery_method", "copies", "quantity"),
+                timeout_ms=5000,
             ),
             ToolDefinition(
                 tool_id="TOOL-ROOM-001",
@@ -78,6 +134,7 @@ class ToolRegistry:
                 is_write=True,
                 requires_confirmation=True,
                 allowed_arguments=("room_id", "starts_at", "ends_at", "purpose", "attendee_count", "start_time", "end_time"),
+                timeout_ms=5000,
             ),
             ToolDefinition(
                 tool_id="TOOL-HITL-001",
@@ -86,6 +143,7 @@ class ToolRegistry:
                 is_write=True,
                 requires_confirmation=False,
                 allowed_arguments=("category", "summary", "urgency", "reason"),
+                timeout_ms=3000,
             ),
         ]
         return cls(tools={t.tool_id: t for t in defs})

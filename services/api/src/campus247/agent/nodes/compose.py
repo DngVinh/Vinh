@@ -52,7 +52,14 @@ class OutputGuardNode:
 
         text = state.draft.text
 
-        # Check for secret leakage
+        rejection_conditions = [
+            (r"hứa sẽ trả lời trong vòng \d+ (phút|giờ|ngày)", "hứa human response time chưa approved"),
+            (r"(cứu hộ|cảnh sát|cấp cứu|đã gọi|đã báo) thành công", "tuyên bố đã gọi/chuyển thành công không xác nhận"),
+            (r"(chẩn đoán|kết luận pháp lý|kỷ luật|vi phạm pháp luật)", "có chẩn đoán/phán quyết pháp lý/kỷ luật"),
+            (r"(sudo|rm -rf|chmod 777|DROP TABLE)", "có executable instruction nguy hiểm"),
+            (r"(hidden prompt|chain-of-thought|<thought>)", "hidden prompt, chain-of-thought leakage"),
+        ]
+
         for pattern in SECRET_PATTERNS:
             if re.search(pattern, text, re.IGNORECASE):
                 return dataclasses.replace(
@@ -63,6 +70,18 @@ class OutputGuardNode:
                         is_grounded=False,
                     ),
                     errors=state.errors + ("Secret leakage detected in output",),
+                )
+
+        for pattern, reason in rejection_conditions:
+            if re.search(pattern, text, re.IGNORECASE):
+                return dataclasses.replace(
+                    state,
+                    terminal=Terminal.SAFE_FAILURE,
+                    draft=DraftResponse(
+                        text="Phản hồi bị chặn do vi phạm quy tắc nội dung.",
+                        is_grounded=False,
+                    ),
+                    errors=state.errors + (f"Policy violation: {reason}",),
                 )
 
         terminal = state.terminal if state.terminal is not None else Terminal.ANSWERED

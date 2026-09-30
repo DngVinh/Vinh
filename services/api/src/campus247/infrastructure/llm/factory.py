@@ -33,7 +33,7 @@ def create_llm_gateway(
     else:
         fallback_fake = DeterministicFakeProvider.default()
 
-    # 1. Primary Free Provider: Gemini via OpenAI-compatible endpoint
+    # 1. Gemini Adapter (Free Tier)
     gemini_key = app_settings.OPENAI_API_KEY or app_settings.GEMINI_API_KEY
     gemini_adapter = OpenAICompatibleAdapter(
         provider_id="gemini",
@@ -41,21 +41,32 @@ def create_llm_gateway(
         api_key=gemini_key,
         model_name=app_settings.LAB_MODEL,
         is_free=True,
+        default_timeout_sec=3.0,
     )
 
-    # 2. Secondary Paid Provider: DeepSeek
+    # 2. DeepSeek Adapter (High-performance Tier)
     deepseek_adapter = OpenAICompatibleAdapter(
         provider_id="deepseek",
         base_url=app_settings.DEEPSEEK_BASE_URL,
         api_key=app_settings.DEEPSEEK_API_KEY,
         model_name=app_settings.DEEPSEEK_MODEL,
         is_free=False,
+        default_timeout_sec=10.0,
     )
 
-    providers: list[tuple[str, LlmGateway, bool]] = [
-        ("gemini_free", gemini_adapter, True),
-        ("deepseek_paid", deepseek_adapter, False),
-    ]
+    providers: list[tuple[str, LlmGateway, bool]] = []
+    primary = getattr(app_settings, "LLM_PRIMARY_PROVIDER", "deepseek").lower()
+
+    if primary == "deepseek" and deepseek_adapter.is_configured:
+        providers.append(("deepseek_primary", deepseek_adapter, True))
+        if gemini_adapter.is_configured:
+            providers.append(("gemini_fallback", gemini_adapter, False))
+    else:
+        if gemini_adapter.is_configured:
+            providers.append(("gemini_free", gemini_adapter, True))
+        if deepseek_adapter.is_configured:
+            providers.append(("deepseek_paid", deepseek_adapter, False))
+
 
     return MultiProviderFallbackGateway(
         providers=providers,

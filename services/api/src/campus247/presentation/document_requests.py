@@ -73,11 +73,9 @@ def create_document_request_router(
         identity = get_current_identity(request)
 
         doc = storage.get(document_request_id)
-        if not doc:
-            raise HTTPException(status_code=404, detail="Document request not found")
-
-        if doc.student_user_id != identity.subject_id:
-            raise HTTPException(status_code=403, detail="Forbidden: access to another student's document request denied")
+        if not doc or doc.student_user_id != identity.subject_id:
+            # AC-TASK-API-CONCEAL-002-01 & 02: Conceal existence with uniform 404
+            raise HTTPException(status_code=404, detail="Không tìm thấy tài nguyên")
 
         content = {
             "id": doc.id,

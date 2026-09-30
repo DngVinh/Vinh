@@ -13,6 +13,11 @@ from campus247.domain.action.confirmation import ConfirmationTokenService
 from campus247.domain.shared.values import generate_uuid7
 from campus247.domain.ticket.model import Ticket, TicketCategory, TicketPriority, TicketStatus
 from campus247.ports.identity import IdentityContext
+from campus247.ports.policy import (
+    AuthorizationPolicyPort,
+    PolicyEvaluationRequest,
+    PolicyResourceContext,
+)
 
 
 @dataclass(frozen=True)
@@ -27,10 +32,12 @@ class TicketConfirmationService:
         confirmation_service: ConfirmationTokenService,
         idempotency_ledger: IdempotencyLedger,
         audit_writer: AuditWriter,
+        policy_engine: AuthorizationPolicyPort | None = None,
     ) -> None:
         self._confirmation_service = confirmation_service
         self._idempotency_ledger = idempotency_ledger
         self._audit_writer = audit_writer
+        self._policy_engine = policy_engine
         self._tickets: dict[str, Ticket] = {}
 
     async def confirm_ticket(
@@ -41,6 +48,18 @@ class TicketConfirmationService:
         idempotency_key: str,
         payload: CreateTicketPayload,
     ) -> TicketConfirmationResult:
+        if self._policy_engine is not None:
+            eval_req = PolicyEvaluationRequest(
+                actor=actor,
+                action="ticket.create",
+                resource_type="ticket",
+                correlation_id=generate_uuid7(),
+                resource=PolicyResourceContext(owner_subject_id=actor.subject_id),
+            )
+            decision = self._policy_engine.evaluate(eval_req)
+            if not decision.is_allowed:
+                raise PermissionError(f"Action not permitted by policy at confirmation: {decision.reason_code}")
+
         normalized_dict = {
             "requester_user_id": actor.subject_id,
             "category": TicketCategory(payload.category).value,
@@ -50,13 +69,19 @@ class TicketConfirmationService:
             "queue_key": payload.queue_key,
         }
         normalized_str = json.dumps(normalized_dict, sort_keys=True, separators=(",", ":"))
-        payload_hash = hashlib.sha256(normalized_str.encode("utf-8")).hexdigest()
+        raw_hash = hashlib.sha256(normalized_str.encode("utf-8")).hexdigest()
+        payload_hash = f"sha256:{raw_hash}"
 
         # 1. Validate confirmation token
         val_result = self._confirmation_service.validate_token(
             token=confirmation_token,
             expected_preview_id=preview_id,
             expected_actor_id=actor.subject_id,
+            expected_session_id=actor.session_id if hasattr(actor, "session_id") and actor.session_id else "none",
+            expected_conversation_id="none",
+            expected_action_type="CREATE_TICKET",
+            expected_tool_version="1.0",
+            expected_policy_version="1.0",
             expected_payload_hash=payload_hash,
         )
         if not val_result.is_valid:

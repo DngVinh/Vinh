@@ -1,9 +1,11 @@
 from __future__ import annotations
-
 from typing import Literal, List
-from fastapi import APIRouter, Response, status
+
+import asyncio
+from fastapi import APIRouter, Response, status, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import text
 
 
 class HealthStatus(BaseModel):
@@ -37,10 +39,18 @@ class ReadinessStatus(BaseModel):
     security_configuration: SecurityConfiguration
 
 
-async def check_database_connectivity() -> bool:
-    """Bounded database connectivity probe. Returns True when database is reachable."""
-    # In local demo / synthetic mode, default to True unless overridden
-    return True
+async def check_database_connectivity(request: Request) -> Literal["ready", "unavailable", "disabled"]:
+    """Bounded database connectivity probe. Returns status string."""
+    try:
+        engine = getattr(request.app.state, "db_engine", None)
+        if engine is None:
+            return "disabled"
+        
+        async with engine.connect() as conn:
+            await asyncio.wait_for(conn.execute(text("SELECT 1")), timeout=2.0)
+        return "ready"
+    except Exception:
+        return "unavailable"
 
 
 router = APIRouter(tags=["System"])
@@ -67,10 +77,13 @@ async def get_liveness() -> HealthStatus:
     summary="Dependency readiness",
     operation_id="getReadiness",
 )
-async def get_readiness() -> Response:
+async def get_readiness(request: Request) -> Response:
     """Check bounded database connectivity and startup configuration."""
-    db_ok = await check_database_connectivity()
-    if not db_ok:
+    db_status = await check_database_connectivity(request)
+    
+    # We consider "disabled" to mean it's running without DB (e.g. synthetic mode).
+    # But if it's "unavailable", we fail readiness.
+    if db_status == "unavailable":
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={
@@ -80,17 +93,18 @@ async def get_readiness() -> Response:
                 "detail": "Required database dependency is currently unreachable.",
                 "instance": "/health/ready",
                 "code": "DEPENDENCY_UNAVAILABLE",
-                "request_id": "019213ab-0000-7000-8000-000000000001",
+                "request_id": getattr(request.state, "request_id", "unknown"),
                 "retryable": True,
             },
         )
 
+    # Redis is optional/mocked in this demo. Let's just say "ready".
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=ReadinessStatus(
             status="ready",
             dependencies=[
-                DependencyItem(name="database", status="ready"),
+                DependencyItem(name="database", status=db_status),
                 DependencyItem(name="redis", status="ready"),
             ],
             security_configuration=SecurityConfiguration(demo_auth_guard="ENFORCED"),
