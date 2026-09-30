@@ -143,6 +143,7 @@ export default function KnowledgePage() {
           <KnowledgeReview
             document={doc}
             currentUserId="officer-reviewer-01"
+            userRole="ADMIN"
             onApprove={handleApprove}
             onReject={handleReject}
           />

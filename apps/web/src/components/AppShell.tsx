@@ -1,3 +1,5 @@
+"use client";
+
 import React, { type ReactNode } from "react";
 
 export type Role = "student" | "staff" | "admin" | "guest";
@@ -23,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: "rooms", label: "Mượn phòng", href: "/rooms", roles: ["student", "staff", "admin"] },
   { key: "staff", label: "Cán bộ", href: "/staff", roles: ["staff", "admin"] },
   { key: "knowledge", label: "Tri thức", href: "/knowledge", roles: ["admin", "staff"] },
+  { key: "admin", label: "Quản trị", href: "/admin", roles: ["admin"] },
   { key: "privacy", label: "Quyền riêng tư", href: "/privacy", roles: ["student", "staff", "admin", "guest"] },
 ];
 
@@ -30,6 +33,18 @@ export function AppShell({ children, activeNav, userRole = "student" }: AppShell
   const currentKey = activeNav || "home";
   const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
+      fetch("http://localhost:8000/v1/auth/demo-session", { credentials: "include" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.token && typeof window.localStorage !== "undefined") {
+            window.localStorage.setItem("campus247_token", data.token);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-slate-50, #f8fafc)" }}>
@@ -175,6 +190,26 @@ export function AppShell({ children, activeNav, userRole = "student" }: AppShell
               </a>
             );
           })}
+        </div>
+
+        {/* User Identity Pill Badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 10px",
+              borderRadius: "9999px",
+              backgroundColor: "#f1f5f9",
+              color: "#334155",
+              fontSize: "12px",
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#10b981" }} />
+            SV240000 (Demo)
+          </span>
         </div>
       </nav>
 

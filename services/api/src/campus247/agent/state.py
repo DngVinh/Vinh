@@ -61,6 +61,12 @@ class SafetyDecision:
     severity: SafetySeverity = SafetySeverity.NORMAL
     is_crisis: bool = False
     reason: str | None = None
+    labels: tuple[str, ...] = ()
+    confidence: float = 0.0
+    immediacy: str = "unknown"
+    target: str = "unknown"
+    handover_recommended: bool = False
+    reason_codes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -74,6 +80,55 @@ class DraftResponse:
     text: str
     claim_count: int = 0
     is_grounded: bool = False
+    gate_decision: str = "abstain"
+    gate_reasons: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ConfirmationContext:
+    """Immutable, serializable binding carried by a pending write action."""
+
+    preview_id: str
+    tool_id: str
+    canonical_arguments: str
+    payload_hash: str
+    actor_id: str
+    authorization_scope: str
+    contract_version: str
+    policy_version: str
+    expires_at: str
+    risk_level: str
+
+
+@dataclass(frozen=True)
+class ExecutionContext:
+    """Safe terminal evidence for a reserved tool execution."""
+
+    idempotency_key: str
+    action_name: str
+    payload_hash: str
+    correlation_id: str
+    outcome: str
+    permitted_next_action: str
+
+
+@dataclass(frozen=True)
+class ToolCandidate:
+    tool_id: str
+    arguments: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ToolFlowState:
+    validated_arguments: dict[str, Any] | None = None
+    preview: Any | None = None
+    interrupt: dict[str, Any] | None = None
+    result_data: Any | None = None
+    candidates: list[Any] | None = None
+    classifier_safety: Any | None = None
+    coordinator_status: str | None = None
+    idempotency_key: str | None = None
+    correlation_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -87,12 +142,16 @@ class AgentState:
     safety: SafetyDecision = field(default_factory=SafetyDecision)
     retrieval: RetrievalState | None = None
     draft: DraftResponse | None = None
-    tool_candidate: Any | None = None
-    tool_flow: Any | None = None
+    tool_candidate: ToolCandidate | None = None
+    tool_flow: ToolFlowState | None = None
     tool_phase: ToolPhase = ToolPhase.NONE
     terminal: Terminal | None = None
+    state_version: int = 1
+    interrupt_id: str | None = None
     errors: tuple[str, ...] = ()
     step_count: int = 0
+    confirmation_context: ConfirmationContext | None = None
+    execution_context: ExecutionContext | None = None
 
     def __post_init__(self) -> None:
         if self.schema_version != "1.0":

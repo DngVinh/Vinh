@@ -13,6 +13,8 @@ from campus247.agent.nodes.intent import IntentRouterNode
 from campus247.agent.nodes.retrieve import RetrieveEvidenceNode
 from campus247.agent.nodes.safety_rules import evaluate_deterministic_safety
 from campus247.agent.state import (
+    ToolCandidate,
+    ToolFlowState,
     AgentState,
     DraftResponse,
     NormalizedTurn,
@@ -130,8 +132,8 @@ def sensitive_classifier_node(
         except Exception:
             clf_decision = state.safety
 
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["classifier_safety"] = clf_decision
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, classifier_safety=clf_decision)
     return dataclasses.replace(
         state,
         tool_flow=flow,
@@ -141,8 +143,8 @@ def sensitive_classifier_node(
 
 def merge_safety_node(state: AgentState) -> AgentState:
     """4. Take max(rule, classifier) severity and update route if sensitive."""
-    flow = state.tool_flow if isinstance(state.tool_flow, dict) else {}
-    clf_safety: SafetyDecision = flow.get("classifier_safety", state.safety)
+    flow = state.tool_flow or ToolFlowState()
+    clf_safety: SafetyDecision = getattr(flow, "classifier_safety", None) or state.safety
 
     pre_level = SEVERITY_ORDER.get(state.safety.severity, 0)
     clf_level = SEVERITY_ORDER.get(clf_safety.severity, 0)
@@ -253,8 +255,8 @@ def retrieve_evidence_node(
         )
 
     cand_ids = tuple(str(c.get("chunk_id", c.get("id", f"c{i}"))) for i, c in enumerate(candidates))
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["candidates"] = candidates
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, candidates=candidates)
 
     return dataclasses.replace(
         state,
@@ -272,11 +274,11 @@ def rerank_evidence_node(state: AgentState) -> AgentState:
     if state.terminal == Terminal.ABSTAINED or state.retrieval is None:
         return dataclasses.replace(state, step_count=state.step_count + 1)
 
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    candidates = flow.get("candidates", [])
+    flow = state.tool_flow or ToolFlowState()
+    candidates = getattr(flow, "candidates", [])
     if candidates and isinstance(candidates, list):
         sorted_cands = sorted(candidates, key=lambda c: float(c.get("score", 1.0)), reverse=True)
-        flow["candidates"] = sorted_cands
+        flow = dataclasses.replace(flow, candidates=sorted_cands)
         cand_ids = tuple(str(c.get("chunk_id", c.get("id", f"c{i}"))) for i, c in enumerate(sorted_cands))
         state = dataclasses.replace(
             state,
@@ -309,8 +311,8 @@ def compose_grounded_node(
             step_count=state.step_count + 1,
         )
 
-    flow = state.tool_flow if isinstance(state.tool_flow, dict) else {}
-    candidates = flow.get("candidates", [])
+    flow = state.tool_flow or ToolFlowState()
+    candidates = getattr(flow, "candidates", [])
     bundle = CitationBundle.build(candidates) if candidates else None
 
     if gateway is not None:
@@ -397,7 +399,7 @@ def prepare_tool_candidate_node(state: AgentState) -> AgentState:
         tool_id = "TOOL-HITL-001"
         args = {"reason": state.request.query[:100]}
 
-    candidate = {"tool_id": tool_id, "arguments": args}
+    candidate = ToolCandidate(tool_id=tool_id, arguments=args)
     return dataclasses.replace(
         state,
         tool_candidate=candidate,
@@ -408,15 +410,17 @@ def prepare_tool_candidate_node(state: AgentState) -> AgentState:
 
 def authorize_tool_node(state: AgentState) -> AgentState:
     """11. Validate tool against ToolRegistry authorization rules."""
-    candidate = state.tool_candidate or {}
-    tool_id = candidate.get("tool_id", "")
-    args = candidate.get("arguments", {})
+    candidate = state.tool_candidate
+    if not candidate:
+        return dataclasses.replace(state, tool_phase=ToolPhase.FAILED, step_count=state.step_count + 1)
+    tool_id = candidate.tool_id
+    args = candidate.arguments
 
     registry = ToolRegistry.default_v1()
     try:
         validated_args = registry.validate_candidate(tool_id=tool_id, arguments=args)
-        flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-        flow["validated_arguments"] = validated_args
+        flow = state.tool_flow or ToolFlowState()
+        flow = dataclasses.replace(flow, validated_arguments=validated_args)
         return dataclasses.replace(
             state,
             tool_phase=ToolPhase.AUTHORIZED,
@@ -434,13 +438,13 @@ def authorize_tool_node(state: AgentState) -> AgentState:
 
 def execute_read_tool_node(state: AgentState) -> AgentState:
     """12. Execute read tool safely without side effects."""
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["read_result"] = {
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, result_data={
         "schedule": [
             {"course": "Giải tích 1", "room": "H1-201", "time": "Thứ 2, Tiết 1-3"},
             {"course": "Sức bền vật liệu 1", "room": "H1-305", "time": "Thứ 4, Tiết 4-6"},
         ]
-    }
+    })
     return dataclasses.replace(
         state,
         tool_flow=flow,
@@ -453,8 +457,8 @@ def build_action_preview_node(state: AgentState) -> AgentState:
     """13. Build action preview for high-impact write operations."""
     broker = WriteToolFlowBroker()
     candidate = state.tool_candidate or {}
-    tool_id = candidate.get("tool_id", "TOOL-TICKET-001")
-    args = candidate.get("arguments", {})
+    tool_id = getattr(candidate, "tool_id", "TOOL-TICKET-001")
+    args = getattr(candidate, "arguments", {})
 
     actor_id = state.request.user_id
     if not is_valid_uuid7(actor_id):
@@ -465,8 +469,8 @@ def build_action_preview_node(state: AgentState) -> AgentState:
         tool_id=tool_id,
         arguments=args,
     )
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["preview"] = preview
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, preview=preview)
     return dataclasses.replace(
         state,
         tool_flow=flow,
@@ -478,12 +482,12 @@ def build_action_preview_node(state: AgentState) -> AgentState:
 def await_confirmation_node(state: AgentState) -> AgentState:
     """14. Generates confirmation interrupt and waits for explicit user consent."""
     broker = WriteToolFlowBroker()
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    preview = flow.get("preview")
+    flow = state.tool_flow or ToolFlowState()
+    preview = getattr(flow, "preview", None)
 
     if preview:
         interrupt = broker.create_confirmation_interrupt(preview)
-        flow["interrupt"] = interrupt
+        flow = dataclasses.replace(flow, interrupt=interrupt)
 
     return dataclasses.replace(
         state,
@@ -494,14 +498,30 @@ def await_confirmation_node(state: AgentState) -> AgentState:
 
 
 def revalidate_confirmation_node(state: AgentState) -> AgentState:
-    """15. Revalidates confirmation cryptographic payload, expiry, and actor permissions."""
+    """15. Revalidates confirmation cryptographic payload, expiry, and actor permissions.
+    
+    Must fail closed if explicit confirmation_context (representing user consent) is absent,
+    preventing side-effects without explicit confirmation, even if graph has no checkpointer.
+    """
     broker = WriteToolFlowBroker()
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    preview = flow.get("preview")
-    candidate = state.tool_candidate or {}
-    args = candidate.get("arguments", {})
+    flow = state.tool_flow or ToolFlowState()
+    preview = getattr(flow, "preview", None)
+    candidate = state.tool_candidate
+    args = candidate.arguments if candidate else {}
 
-    is_valid = broker.revalidate(preview, args) if preview else True
+    # If preview exists, we MUST have a confirmation_context provided by the user via state update
+    if preview:
+        if state.confirmation_context is None:
+            return dataclasses.replace(
+                state,
+                tool_phase=ToolPhase.FAILED,
+                terminal=Terminal.CANCELLED,
+                step_count=state.step_count + 1,
+            )
+        is_valid = broker.revalidate(preview, args)
+    else:
+        is_valid = True
+
     if is_valid:
         return dataclasses.replace(
             state,
@@ -518,11 +538,11 @@ def revalidate_confirmation_node(state: AgentState) -> AgentState:
 
 def execute_write_tool_node(state: AgentState) -> AgentState:
     """16. Execute write tool idempotently upon validated confirmation."""
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["write_result"] = {
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, result_data={
         "status": "SUCCESS",
         "ticket_id": f"TCK-{state.request.turn_id[:8].upper()}",
-    }
+    })
     return dataclasses.replace(
         state,
         tool_flow=flow,
@@ -554,12 +574,12 @@ def compose_tool_response_node(state: AgentState) -> AgentState:
 
 def prepare_handover_node(state: AgentState) -> AgentState:
     """18. Prepare handover package for human staff / advisor queue."""
-    flow = dict(state.tool_flow) if isinstance(state.tool_flow, dict) else {}
-    flow["handover"] = {
+    flow = state.tool_flow or ToolFlowState()
+    flow = dataclasses.replace(flow, result_data={
         "reason": state.safety.reason or "Yêu cầu tư vấn viên hoặc trường hợp đặc biệt",
         "is_crisis": state.safety.is_crisis,
         "severity": state.safety.severity.value,
-    }
+    })
     return dataclasses.replace(
         state,
         tool_flow=flow,

@@ -31,6 +31,7 @@ def test_mint_and_validate_confirmation_token():
         token=token,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="ticket.create",
         expected_payload_hash=preview.payload_hash,
     )
     assert res.is_valid is True
@@ -49,6 +50,7 @@ def test_reject_tampered_confirmation_token():
         token=tampered_token,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="ticket.create",
         expected_payload_hash=preview.payload_hash,
     )
     assert res.is_valid is False
@@ -67,6 +69,7 @@ def test_reject_expired_confirmation_token():
         token=token,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="ticket.create",
         expected_payload_hash=preview.payload_hash,
         at_time=future_time,
     )
@@ -85,6 +88,7 @@ def test_reject_actor_or_payload_mismatch():
         token=token,
         expected_preview_id=preview.id,
         expected_actor_id=wrong_actor_id,
+        expected_action_type="ticket.create",
         expected_payload_hash=preview.payload_hash,
     )
     assert res.is_valid is False

@@ -102,6 +102,24 @@ export default function PrivacyPage() {
     [notice.version]
   );
 
+  const handleRequestErasure = useCallback(async () => {
+    try {
+      const client = new ApiClient({ baseUrl: API_BASE_URL });
+      await client.post("/v1/privacy/requests", { request_type: "DELETE_DATA" });
+    } catch {
+      // In demo mode, append a new request locally
+    }
+    setRequests((prev) => [
+      {
+        requestId: `REQ-DEL-${Date.now().toString().slice(-4)}`,
+        requestType: "DELETE_DATA",
+        status: "processing",
+        submittedAt: new Date().toLocaleDateString("vi-VN"),
+      },
+      ...prev,
+    ]);
+  }, []);
+
   useEffect(() => {
     fetchPrivacyData();
   }, [fetchPrivacyData]);
@@ -128,6 +146,7 @@ export default function PrivacyPage() {
             notice={notice}
             requests={requests}
             onConsentChange={handleConsentChange}
+            onRequestErasure={handleRequestErasure}
           />
         </AsyncState>
       </div>

@@ -8,8 +8,6 @@ import { AsyncState, type AsyncStatus } from "../../components/AsyncState";
 import { FileTextIcon } from "../../components/Icons";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const DEFAULT_DEMO_TOKEN = "eyJleHAiOiAxODIxNjg1NzI0LCAiaWF0IjogMTc5MDE0OTcyNCwgInN1YiI6ICI0YjQxOWExYi02ZDQxLTdkZmItODk0My0yZWRkOWYwNzEzODUifQ==.4LsklT3l1DyqPFznuTJJFAfcieGPSkzZBxRL0aOkqS0=";
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || DEFAULT_DEMO_TOKEN;
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -41,17 +39,38 @@ export default function ChatPage() {
     let accumulatedText = "";
 
     try {
-      // 1. Ensure active conversation session exists
+      // 1. Read optional bearer token from localStorage
+      let token: string | null = null;
+      try {
+        if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
+          token = window.localStorage.getItem("campus247_token");
+        }
+      } catch {
+        // ignore
+      }
+
+      const authHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        authHeaders["Authorization"] = ["Bearer", token].join(" ");
+      }
+
+      // 2. Ensure active conversation session exists
       let convId = conversationIdRef.current;
       if (!convId) {
         const convRes = await fetch(`${API_BASE_URL}/v1/conversations`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_TOKEN}`,
-          },
+          headers: authHeaders,
+          credentials: "include",
           body: JSON.stringify({}),
         });
+
+        if (convRes.status === 401) {
+          setStatus("unauthorized");
+          setErrorMessage("Yêu cầu phiên đăng nhập hợp lệ để tiếp tục.");
+          return;
+        }
 
         if (!convRes.ok) {
           throw new Error(`Không thể khởi tạo phiên trò chuyện (Mã lỗi ${convRes.status})`);
@@ -62,18 +81,22 @@ export default function ChatPage() {
         conversationIdRef.current = convId;
       }
 
-      // 2. Stream message from backend
+      // 3. Stream message from backend
       const response = await fetch(
         `${API_BASE_URL}/v1/conversations/${convId}/messages:stream`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_TOKEN}`,
-          },
+          headers: authHeaders,
+          credentials: "include",
           body: JSON.stringify({ content }),
         }
       );
+
+      if (response.status === 401) {
+        setStatus("unauthorized");
+        setErrorMessage("Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`Máy chủ phản hồi lỗi: ${response.status}`);
@@ -121,14 +144,27 @@ export default function ChatPage() {
                 });
               }
               if (parsed.citations && Array.isArray(parsed.citations)) {
-                setCitations(
-                  parsed.citations.map((rawCitation: Record<string, unknown>, idx: number) => ({
-                    id: (rawCitation.id as string) || `cit-${idx}`,
-                    title: (rawCitation.title as string) || (rawCitation.document_title as string) || `Tài liệu tham khảo #${idx + 1}`,
-                    documentRef: (rawCitation.document_ref as string) || (rawCitation.section as string) || (rawCitation.section_title as string) || `VB-${idx + 1}`,
-                    quote: (rawCitation.quote as string) || (rawCitation.snippet as string) || (rawCitation.text as string) || "",
-                    confidence: typeof rawCitation.confidence === "number" ? rawCitation.confidence : 0.95,
-                  }))
+                const mappedCitations: CitationItem[] = parsed.citations.map((rawCitation: Record<string, unknown>, idx: number) => ({
+                  id: (rawCitation.id as string) || `cit-${idx + 1}`,
+                  title: (rawCitation.title as string) || (rawCitation.document_title as string) || `Tài liệu tham khảo #${idx + 1}`,
+                  documentRef: (rawCitation.document_ref as string) || (rawCitation.section as string) || (rawCitation.section_title as string) || `VB-${idx + 1}`,
+                  quote: (rawCitation.quote as string) || (rawCitation.snippet as string) || (rawCitation.text as string) || "",
+                  confidence: typeof rawCitation.confidence === "number" ? rawCitation.confidence : 0.95,
+                }));
+                setCitations(mappedCitations);
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId
+                      ? {
+                          ...m,
+                          citations: mappedCitations.map((c, i) => ({
+                            id: c.id,
+                            index: i + 1,
+                            title: c.title,
+                          })),
+                        }
+                      : m
+                  )
                 );
               }
             } catch {
@@ -216,11 +252,25 @@ export default function ChatPage() {
           </div>
         )}
 
+        {status === "unauthorized" && (
+          <div style={{ marginBottom: "16px" }}>
+            <AsyncState
+              status="unauthorized"
+              errorMessage={errorMessage || "Phiên đăng nhập không hợp lệ hoặc đã hết hạn."}
+              onRetry={() => {
+                setStatus("success");
+                conversationIdRef.current = null;
+              }}
+            />
+          </div>
+        )}
+
         <div style={{ flex: 1, minHeight: 0 }}>
           <ChatPanel
             messages={messages}
             isStreaming={isStreaming}
             onSendMessage={handleSendMessage}
+            onCitationClick={() => setIsDrawerOpen(true)}
           />
         </div>
 

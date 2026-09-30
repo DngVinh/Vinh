@@ -1,4 +1,6 @@
-import React, { type ReactNode } from "react";
+"use client";
+
+import React, { type ReactNode, useEffect, useRef } from "react";
 import { InboxIcon, WifiOffIcon, AlertTriangleIcon } from "./Icons";
 
 export type AsyncStatus = "loading" | "empty" | "zero-result" | "error" | "offline" | "stale" | "degraded" | "unauthorized" | "result-unknown" | "success";
@@ -9,6 +11,7 @@ export interface AsyncStateProps {
   emptyMessage?: string;
   errorMessage?: string;
   onRetry?: () => void;
+  autoFocusRetry?: boolean;
   children?: ReactNode;
 }
 
@@ -18,8 +21,17 @@ export function AsyncState({
   emptyMessage = "Không có dữ liệu",
   errorMessage = "Đã xảy ra lỗi khi tải dữ liệu",
   onRetry,
+  autoFocusRetry = true,
   children,
 }: AsyncStateProps) {
+  const retryBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (autoFocusRetry && (status === "error" || status === "offline" || status === "result-unknown") && onRetry) {
+      retryBtnRef.current?.focus();
+    }
+  }, [status, autoFocusRetry, onRetry]);
+
   if (status === "success") {
     return <>{children}</>;
   }
@@ -27,41 +39,45 @@ export function AsyncState({
   if (status === "loading") {
     return (
       <div
+        role="status"
         aria-live="polite"
         style={{
           padding: "48px 24px",
           textAlign: "center",
-          backgroundColor: "#ffffff",
+          backgroundColor: "rgba(255, 255, 255, 0.7)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
           borderRadius: "var(--radius-lg, 14px)",
-          border: "1px solid var(--color-slate-200, #e2e8f0)",
-          boxShadow: "var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.04))",
+          border: "1px solid rgba(226, 232, 240, 0.5)",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "12px",
+          gap: "20px",
+          transition: "all 0.3s ease-in-out",
         }}
       >
-        <div
-          style={{
-            width: "28px",
-            height: "28px",
-            border: "3px solid var(--color-slate-200, #e2e8f0)",
-            borderTopColor: "var(--color-primary, #1e3a8a)",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        />
-        <p style={{ margin: 0, fontSize: "14px", color: "var(--color-slate-500, #64748b)", fontWeight: 500 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "320px", opacity: 0.6 }}>
+          <div style={{ height: "28px", backgroundColor: "var(--color-slate-200, #e2e8f0)", borderRadius: "6px", width: "100%", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
+          <div style={{ height: "20px", backgroundColor: "var(--color-slate-200, #e2e8f0)", borderRadius: "4px", width: "85%", margin: "0 auto", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite", animationDelay: "0.2s" }} />
+          <div style={{ height: "20px", backgroundColor: "var(--color-slate-200, #e2e8f0)", borderRadius: "4px", width: "60%", margin: "0 auto", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite", animationDelay: "0.4s" }} />
+        </div>
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+          }
+        `}</style>
+        <p style={{ margin: 0, fontSize: "14px", color: "var(--color-primary, #1e3a8a)", fontWeight: 600 }}>
           {loadingMessage}
         </p>
       </div>
     );
   }
 
-
   if (status === "zero-result") {
     return (
-      <div aria-live="polite" style={{ padding: "48px 24px", textAlign: "center", backgroundColor: "#ffffff", borderRadius: "14px", border: "1px dashed #cbd5e1" }}>
+      <div role="status" aria-live="polite" style={{ padding: "48px 24px", textAlign: "center", backgroundColor: "#ffffff", borderRadius: "14px", border: "1px dashed #cbd5e1" }}>
         <p style={{ margin: 0, fontSize: "14px", color: "#475569", fontWeight: 600 }}>
           Không tìm thấy kết quả
         </p>
@@ -71,21 +87,27 @@ export function AsyncState({
 
   if (status === "stale") {
     return (
-      <div aria-live="polite" style={{ padding: "16px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", color: "#b45309", borderRadius: "8px", marginBottom: "16px" }}>
-        <p style={{ margin: 0, fontSize: "14px", fontWeight: 500 }}>
-          Dữ liệu có thể chưa được cập nhật. {onRetry && <button onClick={onRetry} style={{ background: "none", border: "none", color: "#92400e", textDecoration: "underline", cursor: "pointer", padding: 0 }}>Làm mới</button>}
-        </p>
-      </div>
+      <>
+        <div role="status" aria-live="polite" style={{ padding: "16px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", color: "#b45309", borderRadius: "8px", marginBottom: "16px" }}>
+          <p style={{ margin: 0, fontSize: "14px", fontWeight: 500 }}>
+            Dữ liệu có thể chưa được cập nhật. {onRetry && <button onClick={onRetry} style={{ background: "none", border: "none", color: "#92400e", textDecoration: "underline", cursor: "pointer", padding: 0 }}>Làm mới</button>}
+          </p>
+        </div>
+        {children}
+      </>
     );
   }
 
   if (status === "degraded") {
     return (
-      <div aria-live="polite" style={{ padding: "16px", backgroundColor: "#fef3c7", border: "1px solid #fcd34d", color: "#b45309", borderRadius: "8px", marginBottom: "16px" }}>
-        <p style={{ margin: 0, fontSize: "14px", fontWeight: 500 }}>
-          Hệ thống đang phản hồi chậm. Một số tính năng có thể bị gián đoạn.
-        </p>
-      </div>
+      <>
+        <div role="status" aria-live="polite" style={{ padding: "16px", backgroundColor: "#fef3c7", border: "1px solid #fcd34d", color: "#b45309", borderRadius: "8px", marginBottom: "16px" }}>
+          <p style={{ margin: 0, fontSize: "14px", fontWeight: 500 }}>
+            Hệ thống đang phản hồi chậm. Một số tính năng có thể bị gián đoạn.
+          </p>
+        </div>
+        {children}
+      </>
     );
   }
 
@@ -102,7 +124,16 @@ export function AsyncState({
       <div role="alert" aria-live="assertive" style={{ padding: "24px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: "14px", textAlign: "center" }}>
         <p style={{ margin: 0, fontSize: "15px", fontWeight: 700 }}>Trạng thái xử lý không rõ ràng</p>
         <p style={{ margin: "8px 0 0", fontSize: "13px" }}>Vui lòng kiểm tra lại sau hoặc liên hệ hỗ trợ.</p>
-        {onRetry && <button onClick={onRetry} style={{ marginTop: "12px", padding: "8px 16px", background: "#ffffff", border: "1px solid #ef4444", borderRadius: "6px", cursor: "pointer", color: "#b91c1c" }}>Kiểm tra lại</button>}
+        {onRetry && (
+          <button
+            ref={retryBtnRef}
+            type="button"
+            onClick={onRetry}
+            style={{ marginTop: "12px", padding: "8px 16px", background: "#ffffff", border: "1px solid #ef4444", borderRadius: "6px", cursor: "pointer", color: "#b91c1c" }}
+          >
+            Kiểm tra lại
+          </button>
+        )}
       </div>
     );
   }
@@ -110,6 +141,7 @@ export function AsyncState({
   if (status === "empty") {
     return (
       <div
+        role="status"
         aria-live="polite"
         style={{
           padding: "48px 24px",
@@ -161,6 +193,7 @@ export function AsyncState({
         </p>
         {onRetry && (
           <button
+            ref={retryBtnRef}
             type="button"
             onClick={onRetry}
             style={{
@@ -208,6 +241,7 @@ export function AsyncState({
         <p style={{ fontWeight: 700, margin: 0, fontSize: "15px" }}>{errorMessage}</p>
         {onRetry && (
           <button
+            ref={retryBtnRef}
             type="button"
             onClick={onRetry}
             style={{
@@ -232,4 +266,3 @@ export function AsyncState({
 
   return null;
 }
-

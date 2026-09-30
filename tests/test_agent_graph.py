@@ -96,7 +96,11 @@ def test_graph_execution_ticket_create_write_flow(fake_llm: DeterministicFakePro
     final_state = workflow.run("Tôi muốn tạo ticket khiếu nại điểm thi môn toán")
 
     assert final_state.route == Route.TICKET_CREATE
-    assert final_state.tool_phase in (ToolPhase.AWAITING_CONFIRMATION, ToolPhase.CONFIRMED, ToolPhase.SUCCEEDED)
+    # Without a checkpointer, the graph does not suspend.
+    # It passes through await_confirmation to revalidate_confirmation.
+    # Because there is no user confirmation_context, it must fail closed.
+    assert final_state.tool_phase == ToolPhase.FAILED
+    assert final_state.terminal == Terminal.CANCELLED
     assert final_state.draft is not None
 
 

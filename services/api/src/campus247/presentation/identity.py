@@ -3,16 +3,20 @@ from __future__ import annotations
 from typing import Any
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
 
 from campus247.domain.shared.values import ErrorCode, ProblemDetails, generate_uuid7
 from campus247.ports.identity import IdentityContext
 
 
+from campus247.application.identity.session_service import get_session_service, SessionService
+
+
 class IdentityMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Any, adapter: Any) -> None:
+    def __init__(self, app: Any, adapter: Any, session_service: SessionService | None = None) -> None:
         super().__init__(app)
         self._adapter = adapter
+        self._session_service = session_service
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         auth_header = request.headers.get("Authorization")
@@ -23,11 +27,16 @@ class IdentityMiddleware(BaseHTTPMiddleware):
             token = request.cookies["auth_token"]
 
         identity: IdentityContext | None = None
+        session_svc = self._session_service or get_session_service()
         if token:
-            try:
-                identity = self._adapter.resolve_token(token)
-            except Exception:
+            # Revocation boundary: Revoked sessions fail closed immediately
+            if session_svc.is_revoked(token):
                 identity = None
+            else:
+                try:
+                    identity = self._adapter.resolve_token(token)
+                except Exception:
+                    identity = None
 
         request.state.identity = identity
         return await call_next(request)
@@ -50,11 +59,42 @@ def get_current_identity(request: Request) -> IdentityContext:
     return identity
 
 
-def create_identity_router() -> APIRouter:
+def create_identity_router(adapter: Any | None = None, environment: str = "local") -> APIRouter:
     from fastapi import APIRouter
     from fastapi.responses import JSONResponse
 
     router = APIRouter(tags=["Identity"])
+
+    is_prod = str(environment).strip().lower() == "production"
+
+    if not is_prod:
+        @router.get("/v1/auth/demo-session")
+        @router.post("/v1/auth/demo-session")
+        async def get_or_create_demo_session(request: Request) -> JSONResponse:
+            student_id = "4b419a1b-6d41-7dfb-8943-2edd9f071385"
+            token = adapter.mint_token(student_id) if adapter else ""
+            content = {
+                "token": token,
+                "user_id": student_id,
+                "display_name": "Nguyễn Văn Sinh Viên (Demo)",
+                "student_code": "SYN24000001",
+                "roles": ["STUDENT"],
+            }
+            resp = JSONResponse(
+                status_code=200,
+                content=content,
+                headers={"Cache-Control": "no-store"},
+            )
+            if token:
+                resp.set_cookie(
+                    key="auth_token",
+                    value=token,
+                    httponly=True,
+                    secure=True,
+                    samesite="lax",
+                    path="/",
+                )
+            return resp
 
     @router.get("/v1/users/me")
     async def get_current_user_profile(request: Request) -> JSONResponse:

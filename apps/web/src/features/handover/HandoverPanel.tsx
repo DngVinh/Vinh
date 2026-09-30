@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldCheckIcon, CheckCircle2Icon, ClockIcon, XIcon } from "../../components/Icons";
+import { ShieldCheckIcon, CheckCircle2Icon, ClockIcon, XIcon, AlertTriangleIcon } from "../../components/Icons";
 
 export interface HandoverReceipt {
   receiptId: string;
@@ -101,14 +101,7 @@ export function HandoverPanel({
             transition: "var(--transition-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1))",
           }}
         >
-          <span
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#dc2626",
-            }}
-          />
+          <AlertTriangleIcon size={16} accessibleName="Khẩn cấp" style={{ color: "#dc2626" }} />
           <span>Đường dây nóng khẩn cấp</span>
         </button>
       </div>
@@ -150,7 +143,11 @@ export function HandoverPanel({
           }}
         >
           <CheckCircle2Icon size={18} style={{ color: "#10b981" }} />
-          <span>Chuyên viên tiếp nhận đã được thông báo và đang xem xét yêu cầu của bạn.</span>
+          <span>
+            {receipt.status === "queued" && "Yêu cầu của bạn đã được tiếp nhận vào hàng chờ xử lý của đơn vị."}
+            {receipt.status === "assigned" && "Yêu cầu đã được phân công cán bộ phụ trách xem xét."}
+            {receipt.status === "in_review" && "Yêu cầu đang trong quá trình xem xét xử lý."}
+          </span>
         </div>
       )}
 
@@ -241,13 +238,27 @@ export function HandoverPanel({
                 <XIcon size={18} />
               </button>
             </div>
-            <p style={{ fontSize: "14px", color: "var(--color-slate-700, #334155)", lineHeight: 1.6, margin: "0 0 16px 0" }}>
-              Trong trường hợp khẩn cấp về an ninh, y tế hoặc tâm lý sinh viên, vui lòng liên hệ ngay:
-            </p>
-            <ul style={{ fontSize: "14px", paddingLeft: "20px", margin: "16px 0", color: "var(--color-slate-900, #0f172a)", lineHeight: 2 }}>
-              <li>Trực ban bảo vệ / Khẩn cấp: <strong style={{ color: "#991b1b" }}>024-3869-XXXX</strong></li>
-              <li>Phòng Y tế trường: <strong style={{ color: "#991b1b" }}>024-3869-YYYY</strong></li>
-            </ul>
+            <div
+              style={{
+                backgroundColor: "var(--color-slate-50, #f8fafc)",
+                border: "1px solid var(--color-slate-200, #e2e8f0)",
+                borderRadius: "var(--radius-lg, 12px)",
+                padding: "16px 20px",
+                margin: "16px 0",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "var(--color-slate-800, #1e293b)",
+                  lineHeight: 1.6,
+                  margin: 0,
+                  fontWeight: 500,
+                }}
+              >
+                DEMO — Chưa cấu hình đầu mối khẩn cấp chính thức. Phiên bản này không được dùng để xử lý tình huống khẩn cấp thực tế.
+              </p>
+            </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "24px" }}>
               <button
                 type="button"

@@ -140,6 +140,7 @@ def build_agent_graph(
             "retrieve_evidence": "retrieve_evidence",
             "prepare_tool_candidate": "prepare_tool_candidate",
             "prepare_handover": "prepare_handover",
+            "output_guard": "output_guard",
             "compose_grounded": "compose_grounded",
         },
     )
@@ -159,8 +160,42 @@ def build_agent_graph(
         },
     )
 
-    builder.add_edge("rerank_evidence", "compose_grounded")
-    builder.add_edge("compose_grounded", "evidence_gate")
+    # 5b. Conditional edge from rerank_evidence: check bundle sufficiency
+    def _route_after_rerank(state: AgentState) -> str:
+        if state.terminal == Terminal.ABSTAINED:
+            return "output_guard"
+        # Check bundle sufficiency — require at least one candidate
+        flow = state.tool_flow
+        candidates = getattr(flow, "candidates", []) if flow else []
+        if not candidates:
+            return "output_guard"
+        return "compose_grounded"
+
+    builder.add_conditional_edges(
+        "rerank_evidence",
+        _route_after_rerank,
+        {
+            "output_guard": "output_guard",
+            "compose_grounded": "compose_grounded",
+        },
+    )
+
+    # 5c. Conditional edge from compose_grounded: check draft validity
+    def _route_after_compose(state: AgentState) -> str:
+        if state.terminal == Terminal.ABSTAINED:
+            return "output_guard"
+        if state.draft is None or not state.draft.text:
+            return "output_guard"
+        return "evidence_gate"
+
+    builder.add_conditional_edges(
+        "compose_grounded",
+        _route_after_compose,
+        {
+            "output_guard": "output_guard",
+            "evidence_gate": "evidence_gate",
+        },
+    )
     builder.add_edge("evidence_gate", "output_guard")
 
     # 6. Tool Flow Edges
@@ -225,11 +260,14 @@ class CampusAgentWorkflow:
         llm_gateway: LlmGateway | None = None,
         checkpointer: Any | None = None,
         max_steps: int = 24,
+        budget: Any | None = None,
     ) -> None:
+        from campus247.agent.budget import BudgetTracker, RunBudget
         self._search_fn = search_fn or (lambda q: [])
         self._gateway = llm_gateway or DeterministicFakeProvider.default()
         self._checkpointer = checkpointer
         self._max_steps = max_steps
+        self._budget = budget or RunBudget()
         self._app = build_agent_graph(
             search_fn=self._search_fn,
             gateway=self._gateway,
@@ -270,12 +308,30 @@ class CampusAgentWorkflow:
                     errors=(*final_state.errors, "Max step limit reached"),
                 )
 
+            # Record privacy-safe execution trace
+            try:
+                from campus247.observability.agent_trace import AgentTracer
+                tracer = AgentTracer()
+                tracer.record(
+                    trace_id=f"tr-{turn.turn_id}",
+                    span_id=f"sp-{turn.turn_id}",
+                    session_id=turn.session_id,
+                    turn_id=turn.turn_id,
+                    raw_user_id=turn.user_id,
+                    event_type="terminal_transition",
+                    route=str(final_state.route) if final_state.route else None,
+                    decision=str(final_state.terminal) if final_state.terminal else None,
+                    tool_phase=str(final_state.tool_phase) if final_state.tool_phase else None,
+                )
+            except Exception:
+                pass
+
             return final_state
         except Exception as err:
             return dataclasses.replace(
                 initial_state,
                 terminal=Terminal.SAFE_FAILURE,
-                errors=(*initial_state.errors, f"Workflow execution error: {err}"),
+                errors=(*initial_state.errors, f"Workflow execution error: {err} {__import__('traceback').format_exc()}"),
                 draft=DraftResponse(
                     text="Đã xảy ra sự cố trong quá trình xử lý yêu cầu.",
                     is_grounded=True,

@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
+
+from campus247.application.authorization.concealment import ResourceNotFoundError
 from campus247.agent.graph import CampusAgentWorkflow
 from campus247.application.action.idempotency import IdempotencyLedger
 from campus247.presentation.errors import (
@@ -90,6 +92,17 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Application factory for Campus 24/7 FastAPI backend service."""
     settings = get_settings()
+    is_prod = str(settings.ENVIRONMENT).strip().lower() == "production"
+
+    from campus247.infrastructure.identity.production_guard import (
+        validate_identity_configuration,
+    )
+    validate_identity_configuration(
+        environment=settings.ENVIRONMENT,
+        auth_provider="mock" if getattr(settings, "DEMO_MODE", True) else "entra",
+        allow_demo_login=not is_prod and getattr(settings, "DEMO_MODE", True),
+    )
+
     app = FastAPI(
         title="Campus 24/7 API",
         version="0.1.0",
@@ -107,10 +120,37 @@ def create_app() -> FastAPI:
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
-    # 2. Synthetic Identity Middleware for Demo Mode
+    @app.exception_handler(ResourceNotFoundError)
+    async def resource_not_found_handler(request: Request, exc: ResourceNotFoundError) -> JSONResponse:
+        from campus247.presentation.errors import create_problem_details
+        return create_problem_details(
+            request=request,
+            status=404,
+            code="RESOURCE_NOT_FOUND",
+            title="Tài nguyên không tồn tại",
+            detail=str(exc)
+        )
+
+
+    # 2. Rate Limiting and Abuse Prevention Middleware
+    from campus247.presentation.middleware.abuse_limits import (
+        AbuseLimiterMiddleware,
+        InMemoryRateLimiterStore,
+        RateLimitRule,
+    )
+    abuse_rules = [
+        RateLimitRule(path_prefix="/v1/conversations", max_requests=30, window_seconds=60, fail_closed=True),
+        RateLimitRule(path_prefix="/v1/tickets", max_requests=20, window_seconds=60, fail_closed=True),
+        RateLimitRule(path_prefix="/v1/rooms/book", max_requests=10, window_seconds=60, fail_closed=True),
+        RateLimitRule(path_prefix="/v1/privacy/operations", max_requests=10, window_seconds=60, fail_closed=True),
+        RateLimitRule(path_prefix="/v1/privacy/requests", max_requests=10, window_seconds=60, fail_closed=True),
+    ]
+    app.add_middleware(AbuseLimiterMiddleware, store=InMemoryRateLimiterStore(), rules=abuse_rules)
+
+    # 3. Synthetic Identity Middleware for Demo Mode
     identity_adapter = SyntheticIdentityAdapter(
         secret_key=settings.IDENTITY_SECRET_KEY,
-        environment="local",
+        environment=settings.ENVIRONMENT,
     )
     app.add_middleware(IdentityMiddleware, adapter=identity_adapter)
 
@@ -126,7 +166,10 @@ def create_app() -> FastAPI:
     # Initialize shared services and stores for demo mode
     conv_service = ConversationMessageService()
     policy_engine = StudentPolicyEngine()
-    schedule_adapter = SyntheticScheduleAdapter()
+    from campus247.infrastructure.repositories.composition import RepositoryComposition
+    repo_comp = RepositoryComposition(settings.ENVIRONMENT)
+    
+    schedule_adapter = repo_comp.schedule_adapter
 
     token_svc = ConfirmationTokenService(signing_key=settings.CONFIRMATION_SIGNING_KEY)
     preview_svc = TicketPreviewService(confirmation_service=token_svc, policy_engine=policy_engine)
@@ -136,38 +179,17 @@ def create_app() -> FastAPI:
         confirmation_service=token_svc,
         idempotency_ledger=idempotency_ledger,
         audit_writer=audit_writer,
+        policy_engine=policy_engine,
     )
 
-    ticket_store: dict[str, Any] = {}
-    doc_store: dict[str, Any] = {}
-    handover_store: dict[str, Any] = {}
-    sources_store: dict[str, Any] = {}
-    versions_store: dict[str, Any] = {}
+    ticket_store = repo_comp.ticket_store
+    doc_store = repo_comp.doc_store
+    handover_store = repo_comp.handover_store
+    sources_store = repo_comp.sources_store
+    versions_store = repo_comp.versions_store
 
-    rooms_list = [
-        RoomInfo(
-            id="01923456-789a-7def-8123-456789abcde1",
-            room_code="H1-301",
-            display_name="Phòng 301 - Giảng đường H1",
-            capacity=50,
-            features=("WIFI", "PROJECTOR"),
-        ),
-        RoomInfo(
-            id="01923456-789a-7def-8123-456789abcde2",
-            room_code="H1-302",
-            display_name="Phòng 302 - Giảng đường H1",
-            capacity=25,
-            features=("WIFI",),
-        ),
-        RoomInfo(
-            id="01923456-789a-7def-8123-456789abcde3",
-            room_code="H2-101",
-            display_name="Hội trường H2",
-            capacity=150,
-            features=("PROJECTOR", "MIC", "STAGE"),
-        ),
-    ]
-    bookings_list: list[ExistingBooking] = []
+    rooms_list = repo_comp.rooms_list
+    bookings_list = repo_comp.bookings_list
 
     feedback_service = FeedbackService(conv_service=conv_service)
 
@@ -191,7 +213,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
 
     # Identity: /v1/users/me
-    app.include_router(identity.create_identity_router())
+    app.include_router(identity.create_identity_router(adapter=identity_adapter, environment=settings.ENVIRONMENT))
 
     llm_gateway = create_llm_gateway(settings=settings)
     vec_adapter = VectorSearchAdapter()

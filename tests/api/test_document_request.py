@@ -88,7 +88,7 @@ def test_get_document_request_forbidden(setup_app):
         f"/v1/document-requests/{doc.id}",
         headers={"Authorization": f"Bearer {token_2}"},
     )
-    assert resp.status_code == 403
+    assert resp.status_code == 404
 
 
 def test_get_document_request_success(setup_app):

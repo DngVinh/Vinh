@@ -77,7 +77,7 @@ def test_get_ticket_forbidden_other_student(setup_app):
 
     token_2 = identity_adapter.mint_token(student_2)
     resp = client.get(f"/v1/tickets/{t1.id}", headers={"Authorization": f"Bearer {token_2}"})
-    assert resp.status_code == 403
+    assert resp.status_code == 404
 
 
 def test_get_ticket_success(setup_app):

@@ -58,6 +58,7 @@ def test_pilot_negative_unauthorized_token_rejection(pilot_manifest: dict[str, A
     result = token_service.validate_token(
         token="tampered.payload.or.token",
         expected_preview_id="prev-123",
+        expected_action_type="BOOK_ROOM",
         expected_actor_id="user-456",
         expected_payload_hash="sha256-hash",
     )

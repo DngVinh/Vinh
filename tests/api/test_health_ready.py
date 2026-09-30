@@ -32,7 +32,7 @@ def test_health_ready_unhealthy_negative_path(monkeypatch):
     """Verify /health/ready returns 503 when critical dependency fails."""
     from campus247.presentation import health
 
-    async def failing_check():
+    async def failing_check(request=None):
         return False
 
     monkeypatch.setattr(health, "check_database_connectivity", failing_check)

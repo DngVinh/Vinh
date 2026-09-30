@@ -28,7 +28,7 @@ def test_migration_0009_attributes():
     assert callable(mod.downgrade)
 
 
-def test_alembic_head_is_0009():
+def test_alembic_head_is_0010():
     config = Config(str(ALEMBIC_INI))
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["0009"]
+    assert script.get_heads() == ["0010"]

@@ -28,6 +28,7 @@ def test_confirmation_tamper_signature_rejected():
         token=tampered,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="docreq.create",
         expected_payload_hash=preview.payload_hash,
     )
     assert res.is_valid is False
@@ -46,6 +47,7 @@ def test_confirmation_expired_token_rejected():
         token=token,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="booking.create",
         expected_payload_hash=preview.payload_hash,
         at_time=future_time,
     )
@@ -66,6 +68,7 @@ def test_confirmation_replay_with_idempotency_ledger():
         token=token,
         expected_preview_id=preview.id,
         expected_actor_id=actor_id,
+        expected_action_type="ticket.create",
         expected_payload_hash=preview.payload_hash,
     )
     assert val_res.is_valid is True

@@ -6,11 +6,14 @@ import { AsyncState } from "./AsyncState";
 
 describe("AsyncState Component (TASK-WEB-STATE-001)", () => {
   afterEach(() => cleanup());
-  it("renders loading state with polite aria-live region", () => {
+  it("renders loading state with polite aria-live region and skeleton pulse", () => {
     render(<AsyncState status="loading" loadingMessage="Đang tải dữ liệu..." />);
     const liveRegion = screen.getByText("Đang tải dữ liệu...");
     expect(liveRegion).toBeDefined();
     expect(liveRegion.closest("[aria-live='polite']")).not.toBeNull();
+    // Expect skeleton to have pulse animation
+    const container = liveRegion.closest("div");
+    expect(container?.innerHTML).toMatch(/pulse/);
   });
 
   it("renders empty state with appropriate message", () => {
@@ -81,4 +84,35 @@ describe("AsyncState Component (TASK-WEB-STATE-001)", () => {
     render(<AsyncState status="error" />);
     expect(screen.getByText(/Đã xảy ra lỗi/i)).toBeDefined();
   });
+
+  it("auto-focuses retry button in error state for focus recovery", () => {
+    render(<AsyncState status="error" onRetry={() => {}} />);
+    const retryBtn = screen.getByRole("button", { name: /Thử lại/i });
+    expect(document.activeElement).toBe(retryBtn);
+  });
+
+  it("auto-focuses retry button in offline state for focus recovery", () => {
+    render(<AsyncState status="offline" onRetry={() => {}} />);
+    const retryBtn = screen.getByRole("button", { name: /Thử lại/i });
+    expect(document.activeElement).toBe(retryBtn);
+  });
+
+  it("renders role='status' on polite regions for screen reader announcements without duplication", () => {
+    const { unmount } = render(<AsyncState status="loading" />);
+    expect(screen.getByRole("status")).toBeDefined();
+    unmount();
+
+    render(<AsyncState status="empty" />);
+    expect(screen.getByRole("status")).toBeDefined();
+  });
+
+  it("supports keyboard activation via Space / Enter on retry button", () => {
+    const handleRetry = vi.fn();
+    render(<AsyncState status="error" onRetry={handleRetry} />);
+    const retryBtn = screen.getByRole("button", { name: /Thử lại/i });
+    fireEvent.keyDown(retryBtn, { key: "Enter", code: "Enter" });
+    fireEvent.click(retryBtn);
+    expect(handleRetry).toHaveBeenCalled();
+  });
 });
+

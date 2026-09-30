@@ -94,7 +94,76 @@
   /* Transitions & Spring Physics */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-spring: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Font Family */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #0f766e 50%, #1d4ed8 100%);
+  --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+  --gradient-shimmer: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+
+  /* Animation Durations */
+  --duration-instant: 100ms;
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* Z-Index Scale */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-modal-backdrop: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-tooltip: 500;
 }
+
+/* Dark Mode Tokens */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text-main: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-text-inverse: #0f172a;
+    --color-bg-main: #0f172a;
+    --color-bg-subtle: #1e293b;
+    --color-border: #334155;
+    --color-border-strong: #475569;
+
+    --surface-canvas: #0f172a;
+    --surface-card: #1e293b;
+    --surface-elevated: #334155;
+    --surface-glass: rgba(30, 41, 59, 0.85);
+    --surface-glass-border: rgba(51, 65, 85, 0.85);
+
+    --color-slate-50: #0f172a;
+    --color-slate-100: #1e293b;
+    --color-slate-200: #334155;
+    --color-slate-800: #e2e8f0;
+    --color-slate-900: #f8fafc;
+
+    --shadow-ambient: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Accessibility & Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 
