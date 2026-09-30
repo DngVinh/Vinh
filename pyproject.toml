@@ -40,6 +40,8 @@ filterwarnings = [
 
 [tool.setuptools.packages.find]
 where = ['services/api/src', 'packages/synthetic/src']
+namespaces = true
+
 
 
 
