@@ -41,6 +41,8 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install -e .
           pip install --no-cache-dir pytest pytest-asyncio pydantic jsonschema pyyaml httpx
       - name: Run backend tests
         run: |
@@ -76,6 +78,8 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install -e .
           pip install --no-cache-dir pytest pyyaml
       - name: Run AI adversarial gates
         run: |
@@ -94,8 +98,11 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install -e .
           pip install --no-cache-dir pytest jsonschema pyyaml
       - name: Run release manifest verifier tests
         run: |
           echo "Commit: ${{ github.sha }}"
           python -B -m pytest -q tests/delivery/test_release_manifest.py
+
