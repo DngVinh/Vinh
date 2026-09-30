@@ -35,3 +35,7 @@ addopts = ["--import-mode=importlib"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
+
+[tool.setuptools.packages.find]
+where = ['services/api/src', 'packages/synthetic/src']
+
